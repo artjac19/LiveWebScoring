@@ -203,7 +203,7 @@
 
     Private Sub Btn_Back2TList_Click(sender As Object, e As EventArgs) Handles Btn_Back2TList.Click
         Dim sYrPkd As String = HF_YearPkd.Value
-        Response.Redirect("TList.aspx?YR=" & sYrPkd & "")
+        Response.Redirect("default.aspx?YR=" & sYrPkd & "")
     End Sub
 
     Private Sub Btn_Home_Click(sender As Object, e As EventArgs) Handles Btn_Home.Click

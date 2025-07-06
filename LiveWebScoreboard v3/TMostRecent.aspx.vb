@@ -274,7 +274,7 @@
 
     Private Sub Btn_2TList_Click(sender As Object, e As EventArgs) Handles Btn_2TList.Click
         Dim sYrPkd As String = HF_YearPkd.Value
-        Response.Redirect("TList.aspx?YR=" & sYrPkd)
+        Response.Redirect("default.aspx?YR=" & sYrPkd)
     End Sub
 
 

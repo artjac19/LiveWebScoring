@@ -23,15 +23,6 @@ Partial Public Class _default
     Protected WithEvents form1 As Global.System.Web.UI.HtmlControls.HtmlForm
 
     '''<summary>
-    '''ddl_PkYear control.
-    '''</summary>
-    '''<remarks>
-    '''Auto-generated field.
-    '''To modify move field declaration from designer file to code-behind file.
-    '''</remarks>
-    Protected WithEvents ddl_PkYear As Global.System.Web.UI.WebControls.DropDownList
-
-    '''<summary>
     '''lbl_Errors control.
     '''</summary>
     '''<remarks>
@@ -50,13 +41,130 @@ Partial Public Class _default
     Protected WithEvents TB_SanctionID As Global.System.Web.UI.WebControls.TextBox
 
     '''<summary>
-    '''Btn_SanctionID control.
+    '''Btn_Recent20 control.
     '''</summary>
     '''<remarks>
     '''Auto-generated field.
     '''To modify move field declaration from designer file to code-behind file.
     '''</remarks>
-    Protected WithEvents Btn_SanctionID As Global.System.Web.UI.WebControls.Button
+    Protected WithEvents Btn_Recent20 As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''Btn_Year2025 control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_Year2025 As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''Btn_Year2024 control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_Year2024 As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''Btn_Year2023 control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_Year2023 As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''Btn_Year2022 control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_Year2022 As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''Btn_Year2021 control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_Year2021 As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''Btn_RegionEast control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_RegionEast As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''Btn_RegionSouth control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_RegionSouth As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''Btn_RegionMidwest control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_RegionMidwest As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''Btn_RegionCentral control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_RegionCentral As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''Btn_RegionWest control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_RegionWest As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''Btn_RegionNone control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_RegionNone As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''Lbl_TournamentErrors control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Lbl_TournamentErrors As Global.System.Web.UI.WebControls.Label
+
+    '''<summary>
+    '''TList control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents TList As Global.System.Web.UI.HtmlControls.HtmlGenericControl
 
     '''<summary>
     '''Btn_Privacy_TermsOfUse control.

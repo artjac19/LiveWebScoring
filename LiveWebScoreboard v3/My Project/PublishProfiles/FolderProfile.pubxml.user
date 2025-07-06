@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 https://go.microsoft.com/fwlink/?LinkID=208121.
 -->
@@ -500,9 +500,6 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     </File>
     <File Include="TLeaderBoardSP.aspx">
       <publishTime>05/12/2024 14:45:19</publishTime>
-    </File>
-    <File Include="TList.aspx">
-      <publishTime>02/06/2024 11:00:21</publishTime>
     </File>
     <File Include="TMostRecent.aspx">
       <publishTime>05/09/2024 14:30:46</publishTime>

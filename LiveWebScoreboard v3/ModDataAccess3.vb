@@ -1,4 +1,4 @@
-﻿Imports System.Data.Common
+Imports System.Data.Common
 Imports System.Data.OleDb
 Imports System.Security.Cryptography.X509Certificates
 
@@ -1435,7 +1435,7 @@ Module ModDataAccess3
         Return "Success"
     End Function
 
-    Friend Function GetTournamentList2(ByVal SkiYr As String) As String
+    Friend Function GetTournamentList2(ByVal SkiYr As String, Optional ByVal region As String = "") As String
         Dim sMsg As String = ""
         Dim sErrDetails As String = ""
         Dim sSkiYr As String = Trim(SkiYr)
@@ -1506,13 +1506,19 @@ Module ModDataAccess3
                     cmdRead.CommandText = SQL
                     cmdRead.Connection.Open()
 
-                    MyDataReader = cmdRead.ExecuteReader
+                     MyDataReader = cmdRead.ExecuteReader
                     If MyDataReader.HasRows = True Then
                         Do While MyDataReader.Read()
                             sSanctionID = CStr(MyDataReader.Item("SanctionID"))
+                            ' Region filter: region is the 3rd character of sanctionID
+                            If region <> "" Then
+                                If sSanctionID.Length < 3 OrElse UCase(Mid(sSanctionID, 3, 1)) <> UCase(region) Then
+                                    Continue Do
+                                End If
+                            End If
                             sName = CStr(MyDataReader.Item("Name"))
                             sClass = CStr(MyDataReader.Item("Class"))
-                            sEventDates = MyDataReader.Item("EventDates")
+                            sEventDates = Format(CDate(MyDataReader.Item("EventDates")), "MM/dd/yyyy")
                             sEventLocation = MyDataReader.Item("EventLocation")
                             sRules = MyDataReader.Item("Rules")
                             sVCount = MyDataReader.Item("VCount")
@@ -1520,6 +1526,8 @@ Module ModDataAccess3
                                 sHasVideo = "<img src=""Images/Flag-green16.png"" alt=""Trick Video Available"" title=""Trick Video Available, Select skier on Entry List"" />"
                             End If
                             sLblText = sSanctionID & "</b> " & sEventLocation
+                            ' Output to console for backend test
+                            Console.WriteLine($"[REGION TEST] {sSanctionID} - {sName} - Region: {Mid(sSanctionID,3,1)}")
                             sHTML.Append("<tr><td>" & sHasVideo & "</td><td><a runat=""server"" href=""Tournament.aspx?SN=" & sSanctionID & "&FM=1&SY=" & sSkiYr & """><b>" & sName & "</b></a><b> " & sEventDates & " " & sLblText & "</td></tr>")
                             '
                             sHasVideo = ""
@@ -4878,5 +4886,71 @@ Module ModDataAccess3
         Return sEventTable.ToString()
     End Function
 
+
+    ' Searches tournaments by keyword in Name or EventLocation
+    Friend Function SearchTournamentsByKeyword(ByVal keyword As String) As String
+        Dim sMsg As String = ""
+        Dim sErrDetails As String = ""
+        Dim SQL As String = ""
+        Dim sKeyword As String = "%" & keyword.Replace("'", "''") & "%"
+        SQL = "SELECT SanctionID, Name, Class, Format(cast(EventDates As Date), 'yyyyMMdd') AS FormattedDate, EventDates, EventLocation, Rules FROM Tournament " & _
+              "WHERE (Name LIKE ? OR EventLocation LIKE ?) AND ISDATE(EventDates) = 1 " & _
+              "ORDER BY FormattedDate DESC"
+        System.Diagnostics.Debug.WriteLine("[LWS-LOG] SearchTournamentsByKeyword SQL: " & SQL & " | Keyword: " & keyword)
+        Dim sConn As String = ""
+        Try
+            If ConfigurationManager.ConnectionStrings("S_UseLocal_Scoreboard").ConnectionString = 0 Then
+                sConn = ConfigurationManager.ConnectionStrings("LWS_Prod").ConnectionString
+            Else
+                sConn = ConfigurationManager.ConnectionStrings("Local_SS_WP23").ConnectionString
+            End If
+        Catch ex As Exception
+            sMsg = "Error: Can not access data"
+            sErrDetails = "Error: SearchTournamentsByKeyword could not retrieve connection string. " & ex.Message & "  " & ex.StackTrace
+            Return sMsg
+            Exit Function
+        End Try
+        Dim Cnnt As New OleDb.OleDbConnection(sConn)
+        Dim sHTML As New StringBuilder("")
+        sHTML.Append("<table class='table table-striped border-1'>")
+        Dim cmdRead As New OleDb.OleDbCommand
+        Dim MyDataReader As OleDb.OleDbDataReader = Nothing
+        Try
+            Using Cnnt
+                Using cmdRead
+                    cmdRead.Connection = Cnnt
+                    cmdRead.CommandText = SQL
+                    cmdRead.Parameters.AddWithValue("@Name", sKeyword)
+                    cmdRead.Parameters.AddWithValue("@EventLocation", sKeyword)
+                    cmdRead.Connection.Open()
+                    MyDataReader = cmdRead.ExecuteReader
+                    If MyDataReader.HasRows Then
+                        Do While MyDataReader.Read()
+                            Dim sSanctionID As String = CStr(MyDataReader.Item("SanctionID"))
+                            Dim sName As String = CStr(MyDataReader.Item("Name"))
+                            Dim sEventDates As String = Format(CDate(MyDataReader.Item("EventDates")), "MM/dd/yyyy")
+                            Dim sEventLocation As String = MyDataReader.Item("EventLocation")
+                            sHTML.Append("<tr>" & _
+    "<td class='date-col'>" & sEventDates & "</td>" & _
+    "<td class='name-col'><a href='Tournament.aspx?SN=" & sSanctionID & "&FM=1&SY=0'><b>" & sName & "</b></a></td>" & _
+    "<td class='loc-col'>" & sEventLocation & "</td>" & _
+    "<td class='sanction-col'>" & sSanctionID & "</td>" & _
+    "</tr>")
+                        Loop
+                    Else
+                        sHTML.Append("<tr><td>No tournaments found matching your search.</td></tr>")
+                    End If
+                End Using
+            End Using
+        Catch ex As Exception
+            sMsg = "Error: searching tournaments by keyword. "
+            sErrDetails = ex.Message & " " & ex.StackTrace & "<br>SQL= " & SQL
+            sMsg += sErrDetails
+            Return sMsg
+        End Try
+        sHTML.Append("</table>")
+        System.Diagnostics.Debug.WriteLine("[LWS-LOG] SearchTournamentsByKeyword HTML Results: " & sHTML.ToString())
+        Return sHTML.ToString()
+    End Function
 
 End Module
