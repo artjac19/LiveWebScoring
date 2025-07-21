@@ -3258,8 +3258,6 @@ Module ModDataAccess3
         sSQL += " left join LiveWebScoreboard.dbo.EventReg ER on SR.sanctionID = ER.SanctionID and SR.MemberId = ER.MemberID "
         sSQL += "Where SR.SanctionId ='" & sSanctionID & "' AND  SR.MemberId='" & sMemberID & "' and SR.[Round] = SS.[Round] and ER.Event = 'Slalom'"
         sSQL += " Order By SR.[Round], SR.SkierRunNum ASC "
-
-
         '       End If
         Dim sConn As String = ""
         Try
@@ -4930,12 +4928,11 @@ Module ModDataAccess3
                             Dim sName As String = CStr(MyDataReader.Item("Name"))
                             Dim sEventDates As String = Format(CDate(MyDataReader.Item("EventDates")), "MM/dd/yyyy")
                             Dim sEventLocation As String = MyDataReader.Item("EventLocation")
-                            sHTML.Append("<tr>" & _
-    "<td class='date-col'>" & sEventDates & "</td>" & _
-    "<td class='name-col'><a href='Tournament.aspx?SN=" & sSanctionID & "&FM=1&SY=0'><b>" & sName & "</b></a></td>" & _
-    "<td class='loc-col'>" & sEventLocation & "</td>" & _
-    "<td class='sanction-col'>" & sSanctionID & "</td>" & _
-    "</tr>")
+                            sHTML.Append("<tr>" &
+                                "<td></td>" &
+                                "<td><a runat=""server"" href=""Tournament.aspx?SN=" & sSanctionID & "&FM=1&SY=0""><b>" & sName & "</b></a>" &
+                                "<b> " & sEventDates & " " & sSanctionID & "</b> " & sEventLocation & "</td>" &
+                                "</tr>")
                         Loop
                     Else
                         sHTML.Append("<tr><td>No tournaments found matching your search.</td></tr>")

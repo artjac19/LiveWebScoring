@@ -23,15 +23,6 @@ Partial Public Class _default
     Protected WithEvents form1 As Global.System.Web.UI.HtmlControls.HtmlForm
 
     '''<summary>
-    '''lbl_Errors control.
-    '''</summary>
-    '''<remarks>
-    '''Auto-generated field.
-    '''To modify move field declaration from designer file to code-behind file.
-    '''</remarks>
-    Protected WithEvents lbl_Errors As Global.System.Web.UI.WebControls.Label
-
-    '''<summary>
     '''TB_SanctionID control.
     '''</summary>
     '''<remarks>
@@ -149,6 +140,15 @@ Partial Public Class _default
     Protected WithEvents Btn_RegionNone As Global.System.Web.UI.WebControls.Button
 
     '''<summary>
+    '''lbl_Errors control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents lbl_Errors As Global.System.Web.UI.WebControls.Label
+
+    '''<summary>
     '''Lbl_TournamentErrors control.
     '''</summary>
     '''<remarks>
@@ -165,22 +165,4 @@ Partial Public Class _default
     '''To modify move field declaration from designer file to code-behind file.
     '''</remarks>
     Protected WithEvents TList As Global.System.Web.UI.HtmlControls.HtmlGenericControl
-
-    '''<summary>
-    '''Btn_Privacy_TermsOfUse control.
-    '''</summary>
-    '''<remarks>
-    '''Auto-generated field.
-    '''To modify move field declaration from designer file to code-behind file.
-    '''</remarks>
-    Protected WithEvents Btn_Privacy_TermsOfUse As Global.System.Web.UI.WebControls.Button
-
-    '''<summary>
-    '''Panel_Priv_TofUse control.
-    '''</summary>
-    '''<remarks>
-    '''Auto-generated field.
-    '''To modify move field declaration from designer file to code-behind file.
-    '''</remarks>
-    Protected WithEvents Panel_Priv_TofUse As Global.System.Web.UI.WebControls.Panel
 End Class
