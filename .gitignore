@@ -6,7 +6,6 @@ logs/
 # Click-Once directory
 PublishImport/
 Documentation
-web.config
 
 # Build results
 [Dd]ebug/
