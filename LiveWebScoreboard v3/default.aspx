@@ -9,6 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Web Scorebook Home Page</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" />
     <link rel="stylesheet" href="Content/bootstrap.min.css" />
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -66,8 +67,8 @@
         </div>
         <div class="tournament-display">
         <!-- Filter Bubbles Section -->
-            <div class="vert-container">
-                <div class="filter-containers-wrapper">
+<div class="vert-container">
+                <div id="tFilters" class="filter-containers-wrapper">
                     <!-- Year Filter Container -->
                     <div class="filter-container">
                         <asp:Button ID="Btn_Recent20" runat="server" Text="Most Recent 20"
@@ -108,18 +109,54 @@
                         No results found.
                     </div>
                     <!-- Desktop view-->
-                    <div class="desktop-tournament-container">
+                    <div id="tDesktop" class="desktop-tournament-container">
                         <div id="TList" runat="server" class="desktop-table-view"/>
                     </div>
 
                     <!-- Mobile view -->
-                    <div id="MobileTList" class="mobile-table-view"></div>
+                    <div id="tMobile" class="mobile-table-view"></div>
 
                 
                 </div>
             </div>
-            <!-- Tournament details panel for desktop -->
-            <div id="tournamentInfoPanel" class="tournament-info-panel">
+            
+            <!-- Leaderboard section for scores -->
+            <div id="leaderboardSection" style="display: none;">
+                <!-- Filter Bubbles -->
+                <div id="lFilters" class="filter-containers-wrapper">
+                    <div class="event-round-stack">
+                    <div id="eventFilters" class="filter-container">
+                        <button class="filter-btn" data-filter="event" data-value="0">Select Event</button>
+                    </div>
+                    <div id="roundFilters" class="filter-container">
+                        <button class="filter-btn active" data-filter="round" data-value="0">All Rounds</button>
+                    </div>
+                    </div>
+                    <div id="divisionFilters" class="filter-container">
+                        <button class="filter-btn active" data-filter="division" data-value="ALL">All Divisions</button>
+                    </div>
+                    
+                    
+                </div>
+                
+                <!-- On Water Display -->
+                <div id="onWaterDisplay" class="on-water-display" style="display: none;">
+                    <div class="alert alert-info mb-3">
+                        <div class="on-water-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 8v4l2.5 2.5"/>
+                            </svg>
+                            <strong id="currentEventText">Current Event</strong>
+                        </div>
+                        <div id="onWaterContent"></div>
+                    </div>
+                </div>
+                
+                <!-- Leaderboard Content -->
+                <div id="leaderboardContent">
+                    <p class="text-center text-muted">Please select an event to display the leaderboard</p>
+                </div>
             </div>
         </div>
         <!--

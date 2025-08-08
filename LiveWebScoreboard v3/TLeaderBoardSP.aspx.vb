@@ -319,6 +319,20 @@
                 If UCase(sPlcmntFormat) = "ROUND" Then
                     ColumnOne.InnerHtml = ModDataAccess3.LeaderBoardROUND(sSanctionID, sYrPkd, sTournName, "S", sDivisionCodePkd, sRndsPkd, sSlalomrounds, sTrickRounds, sJumpRounds, sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
                 Else
+                    ' DEBUG: Log TLeaderBoardSP parameters
+                    System.Diagnostics.Debug.WriteLine("[DEBUG] TLeaderBoardSP call - Event: S, Division: " & sDivisionCodePkd)
+                    System.Diagnostics.Debug.WriteLine("  sSanctionID: '" & sSanctionID & "' (" & sSanctionID.GetType().Name & ")")
+                    System.Diagnostics.Debug.WriteLine("  sYrPkd: '" & sYrPkd & "' (" & sYrPkd.GetType().Name & ")")
+                    System.Diagnostics.Debug.WriteLine("  sTournName: '" & sTournName & "' (" & sTournName.GetType().Name & ")")
+                    System.Diagnostics.Debug.WriteLine("  sRndsPkd: '" & sRndsPkd & "' (" & sRndsPkd.GetType().Name & ")")
+                    System.Diagnostics.Debug.WriteLine("  sSlalomrounds: '" & sSlalomrounds & "' (" & sSlalomrounds.GetType().Name & ")")
+                    System.Diagnostics.Debug.WriteLine("  sTrickRounds: '" & sTrickRounds & "' (" & sTrickRounds.GetType().Name & ")")
+                    System.Diagnostics.Debug.WriteLine("  sJumpRounds: '" & sJumpRounds & "' (" & sJumpRounds.GetType().Name & ")")
+                    System.Diagnostics.Debug.WriteLine("  sUseNops: '" & sUseNops & "' (" & sUseNops.GetType().Name & ")")
+                    System.Diagnostics.Debug.WriteLine("  sUseTeams: '" & sUseTeams & "' (" & sUseTeams.GetType().Name & ")")
+                    System.Diagnostics.Debug.WriteLine("  sFormatCode: '" & sFormatCode & "' (" & sFormatCode.GetType().Name & ")")
+                    System.Diagnostics.Debug.WriteLine("  sDisplayMetric: '" & sDisplayMetric & "' (" & sDisplayMetric.GetType().Name & ")")
+                    
                     ColumnOne.InnerHtml = ModDataAccess3.LeaderBoardBestRndLeftSP(sSanctionID, sYrPkd, sTournName, "S", sDivisionCodePkd, sRndsPkd, sSlalomrounds, sTrickRounds, sJumpRounds, sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
                 End If
                 Panel_R1C1.Visible = True

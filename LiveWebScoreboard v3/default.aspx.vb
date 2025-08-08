@@ -121,6 +121,9 @@ Public Class _default
     Protected Sub Btn_SanctionID_ServerClick(sender As Object, e As EventArgs)
         Dim sInput As String = TB_SanctionID.Text.Trim()
         If Regex.IsMatch(sInput, "^[0-9][0-9][CEMSWUX][0-9][0-9][0-9]$") Then
+            ' Test our new function when a valid sanction ID is entered
+            Dim recentDivs = ModDataAccess3.GetDvMostRecent(sInput, "S")
+            
             ' Sanction number - redirect as before
             Response.Redirect("Tournament.aspx?SN=" & sInput & "&FM=1&SY=0")
             Exit Sub

@@ -196,13 +196,13 @@ Module ModDataAccess3
                             If selRnd = 0 Then
                                 Select Case sEventClass
                                     Case "C"
-                                        sEventClassIcon = "<img src=""Images/C.png"" alt=""Class C"" title=""Class C"" />"
+                                        sEventClassIcon = "<span class=""class-logo class-c"" title=""Class C"">C</span>"
                                     Case "E"
-                                        sEventClassIcon = "<img src=""Images/E.png"" alt=""Class E"" title=""Class E"" />"
+                                        sEventClassIcon = "<span class=""class-logo class-e"" title=""Class E"">E</span>"
                                     Case "L"
-                                        sEventClassIcon = "<img src=""Images/L.png"" alt=""Class L"" title=""Class L"" />"
+                                        sEventClassIcon = "<span class=""class-logo class-l"" title=""Class L"">L</span>"
                                     Case "R"
-                                        sEventClassIcon = "<img src=""Images/R.png"" alt=""Class R"" title=""Class R"" />"
+                                        sEventClassIcon = "<span class=""class-logo class-r"" title=""Class R"">R</span>"
                                 End Select
                                 If sTmpEventGroup = "" Then
                                     sTmpEventGroup = sEventGroup
@@ -273,13 +273,13 @@ Module ModDataAccess3
                                     i = 1
                                     Select Case sEventClass
                                         Case "C"
-                                            sEventClassIcon = "<img src=""Images/C.png"" alt=""Class C"" title=""Class C"" />"
+                                            sEventClassIcon = "<span class=""class-logo class-c"" title=""Class C"">C</span>"
                                         Case "E"
-                                            sEventClassIcon = "<img src=""Images/E.png"" alt=""Class E"" title=""Class E"" />"
+                                            sEventClassIcon = "<span class=""class-logo class-e"" title=""Class E"">E</span>"
                                         Case "L"
-                                            sEventClassIcon = "<img src=""Images/L.png"" alt=""Class L"" title=""Class L"" />"
+                                            sEventClassIcon = "<span class=""class-logo class-l"" title=""Class L"">L</span>"
                                         Case "R"
-                                            sEventClassIcon = "<img src=""Images/R.png"" alt=""Class R"" title=""Class R"" />"
+                                            sEventClassIcon = "<span class=""class-logo class-r"" title=""Class R"">R</span>"
                                     End Select
                                     sLine.Append("<tr><td class=""table-success""><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & stmpMemberID & "&DV=" & sDv & "&EV=" & sSelEvent & "&TN=" & sTName & "")
                                     sLine.Append("&FC=RO&FT=0&RP=" & sRnd & "&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a>" & sHasVideo & "</td>")
@@ -295,13 +295,13 @@ Module ModDataAccess3
                             Else 'only need score for selected round
                                 Select Case sEventClass
                                     Case "C"
-                                        sEventClassIcon = "<img src=""Images/C.png"" alt=""Class C"" title=""Class C"" />"
+                                        sEventClassIcon = "<span class=""class-logo class-c"" title=""Class C"">C</span>"
                                     Case "E"
-                                        sEventClassIcon = "<img src=""Images/E.png"" alt=""Class E"" title=""Class E"" />"
+                                        sEventClassIcon = "<span class=""class-logo class-e"" title=""Class E"">E</span>"
                                     Case "L"
-                                        sEventClassIcon = "<img src=""Images/L.png"" alt=""Class L"" title=""Class L"" />"
+                                        sEventClassIcon = "<span class=""class-logo class-l"" title=""Class L"">L</span>"
                                     Case "R"
-                                        sEventClassIcon = "<img src=""Images/R.png"" alt=""Class R"" title=""Class R"" />"
+                                        sEventClassIcon = "<span class=""class-logo class-r"" title=""Class R"">R</span>"
                                 End Select
                                 sLine.Append("<tr><td class = ""table-success"" width=""13%""><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & stmpMemberID & "&DV=" & sDv & "&EV=" & sSelEvent & "&TN=" & sTName & "")
                                 sLine.Append("&FC=RO&FT=0&RP=" & sRnd & "&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a>" & sHasVideo & "</td>")
@@ -1210,13 +1210,13 @@ Module ModDataAccess3
                                 End If
                                 Select Case sEventClass
                                     Case "C"
-                                        sEventClassIcon = "<img src=""Images/C.png"" alt=""Class C"" title=""Class C"" />"
+                                        sEventClassIcon = "<span class=""class-logo class-c"" title=""Class C"">C</span>"
                                     Case "E"
-                                        sEventClassIcon = "<img src=""Images/E.png"" alt=""Class E"" title=""Class E"" />"
+                                        sEventClassIcon = "<span class=""class-logo class-e"" title=""Class E"">E</span>"
                                     Case "L"
-                                        sEventClassIcon = "<img src=""Images/L.png"" alt=""Class L"" title=""Class L"" />"
+                                        sEventClassIcon = "<span class=""class-logo class-l"" title=""Class L"">L</span>"
                                     Case "R"
-                                        sEventClassIcon = "<img src=""Images/R.png"" alt=""Class R"" title=""Class R"" />"
+                                        sEventClassIcon = "<span class=""class-logo class-r"" title=""Class R"">R</span>"
                                 End Select
                                 Select Case sRnd 'get the data available for the specified event, Group, DV, and skier
                                     Case 1
@@ -1257,14 +1257,14 @@ Module ModDataAccess3
                                             sTmpRow.Append("<td>" & sEventClassIcon & " " & sEventScoreDesc & "</td>")   'sRnd1Score = sEventScoreDesc  'sR1=true
                                         End If
                                     Case 25 ' Runoff Round
-                                        sTmpRow.Append("<td forecolor=""red" > "" & sEventClassIcon & " " & sEventScoreDesc & "</td>")
+                                        sTmpRow.Append("<td>" & sEventClassIcon & " " & sEventScoreDesc & "</td>")
                                     Case 0  'error
                                         sTmpRow.Append("<td>No Score</td>")
                                 End Select
 
                             Else 'only need score for selected round Expand format
-                                'Header from calling function  <td>Rnd " & sSelRnd & "</td><td>NOPS</td><td>Details</td><td>Time</td>
-                                sTmpRow.Append("<td><b>" & sEventClass & "</b></td><td><b> " & sNOPS & "</b></td><td colspan=""2""><b> " & sEventScoreDesc & "</b></td></tr>")
+                                'Header from calling function  <td>Rnd " & sSelRnd & "</td><td>Class</td><td>Ft/M or Points</td><td>NOPS</td>
+                                sTmpRow.Append("<td><b>" & sEventClass & "</b></td><td><b>" & sEventScoreDesc & "</b></td><td><b>" & sNOPS & "</b></td></tr>")
                             End If
 
                             '                           sLine.Append(sTmpRow.ToString())
@@ -1506,7 +1506,7 @@ Module ModDataAccess3
                     cmdRead.CommandText = SQL
                     cmdRead.Connection.Open()
 
-                     MyDataReader = cmdRead.ExecuteReader
+                    MyDataReader = cmdRead.ExecuteReader
                     If MyDataReader.HasRows = True Then
                         Do While MyDataReader.Read()
                             sSanctionID = CStr(MyDataReader.Item("SanctionID"))
@@ -1527,7 +1527,7 @@ Module ModDataAccess3
                             End If
                             sLblText = sSanctionID & "</b> " & sEventLocation
                             ' Output to console for backend test
-                            Console.WriteLine($"[REGION TEST] {sSanctionID} - {sName} - Region: {Mid(sSanctionID,3,1)}")
+                            Console.WriteLine($"[REGION TEST] {sSanctionID} - {sName} - Region: {Mid(sSanctionID, 3, 1)}")
                             sHTML.Append("<tr><td>" & sHasVideo & "</td><td><a runat=""server"" href=""Tournament.aspx?SN=" & sSanctionID & "&FM=1&SY=" & sSkiYr & """><b>" & sName & "</b></a><b> " & sEventDates & " " & sLblText & "</td></tr>")
                             '
                             sHasVideo = ""
@@ -1880,6 +1880,7 @@ Module ModDataAccess3
 
     Public Function LeaderBoardBestRndLeftSP(ByVal SanctionID As String, ByVal SkiYr As String, ByVal TName As String, ByVal selEvent As String, ByVal selDv As String, ByVal selRnd As String, ByVal RndsSlalomOffered As String, ByVal RndsTrickOffered As String, ByVal RndsJumpOffered As String, ByVal UseNOPS As Int16, ByVal UseTeams As Int16, ByVal selFormat As String, ByVal DisplayMetric As Int16) As String
         'This function is run for each event selected based on code in TLeaderBoard_Load and Btn_Update
+        System.Diagnostics.Debug.WriteLine("LeaderBoardBestRndLeftSP started for " & selEvent & "-" & selDv)
         Dim sReturn As String = ""
         Dim sMsg As String = ""
         Dim sErrDetails As String = ""
@@ -1933,6 +1934,9 @@ Module ModDataAccess3
         Dim sHasRunoff As Boolean = False
         Dim sRunoffSection As String = ""
         Dim sScoreRunoff As String = ""
+        Dim sSlalomNops As String = ""
+        Dim sTrickNops As String = ""
+        Dim sJumpNops As String = ""
         Dim sPlcmtFormat As String = ""
         Dim sReadyForPlcmt As String = ""
 
@@ -1945,11 +1949,11 @@ Module ModDataAccess3
                 If sSelRnd = "0" Then
                     sRndCols = CStr(CInt(sRndsSlalomOffered) + 1)
                     For j = 1 To RndsSlalomOffered
-                        sRoundsHTML += "<td  class=""table-primary"">Rnd&nbsp;" & j & "</td>" 'completes the event header with appropriate number of rounds columns
+                        sRoundsHTML += "<td><b>Rnd&nbsp;" & j & "</b></td>" 'completes the event header with appropriate number of rounds columns
                     Next
                     sRoundsHTML += "</tr>"
                 Else
-                    sRoundsHTML += "<td>Class</td><td>NOPS</td><td colspan=""2"">Details</td>"
+                    sRoundsHTML += "<td>Class</td><td>Score</td><td>NOPS</td>"
                     sRndCols = "6"
                 End If
 
@@ -1962,12 +1966,12 @@ Module ModDataAccess3
                 If sSelRnd = "0" Then
                     sRndCols = CStr(CInt(sRndsTrickOffered) + 1)  'Rnds + name + 2 for BestRnd
                     For j = 1 To RndsTrickOffered
-                        sRoundsHTML += "<td  class=""table-primary"">Rnd&nbsp;" & j & "</td>"  'completes the event header with appropriate number of rounds columns
+                        sRoundsHTML += "<td><b>Rnd&nbsp;" & j & "</b></td>"  'completes the event header with appropriate number of rounds columns
                     Next
                     sRoundsHTML += "</tr>"
                 Else
-                    sRoundsHTML += "<td>Rnd " & sSelRnd & "</td><td> Points </td><td>NOPS</td><td>Details</td><td>Time</td>"
-                    sRndCols = "6"
+                    sRoundsHTML += "<td>Class</td><td> Points </td><td>NOPS</td>"
+                    sRndCols = "4"
                 End If
 
             Case "J"
@@ -1978,15 +1982,22 @@ Module ModDataAccess3
                 If sSelRnd = "0" Then
                     sRndCols = CStr(CInt(sRndsJumpOffered) + 1)  'Rnds + name + 2 for BestRnd
                     For j = 1 To RndsJumpOffered
-                        sRoundsHTML += "<td  Class=""table-primary"">Rnd&nbsp;" & j & "</td>"    'completes the event header with appropriate number of rounds columns
+                        sRoundsHTML += "<td><b>Rnd&nbsp;" & j & "</b></td>"    'completes the event header with appropriate number of rounds columns
                     Next
                     sRoundsHTML += "</tr>"
                 Else
-                    sRoundsHTML += "<td>Rnd " & sSelRnd & "</td><td>Class</td><td> Ft/M </td><td>NOPS</td><td>Details</td><td>Time</td></tr>"
-                    sRndCols = "6"
+                    sRoundsHTML += "<td>Class</td><td> Ft/M </td><td>NOPS</td></tr>"
+                    sRndCols = "4"
                 End If
+            Case "O"
+                sSelEvent = "Overall"
+                sSql = "PrGetScoresOverall"
+                sUnit = " Points"
+                'Overall always shows all rounds with individual event NOPS scores
+                sRoundsHTML += "<td>Round</td><td>Overall Score</td><td>Slalom NOPS</td><td>Trick NOPS</td><td>Jump NOPS</td></tr>"
+                sRndCols = "6"
             Case Else  'Load all by default
-                sMsg = "<td>Event Code out of range</td></tr>"
+                sMsg = "<td>Event code out of range</td></tr>"
                 Return sMsg
                 Exit Function
         End Select
@@ -2008,25 +2019,44 @@ Module ModDataAccess3
         Dim cmdRead As New OleDb.OleDbCommand
         cmdRead.CommandType = CommandType.StoredProcedure
         cmdRead.CommandText = sSql
-        cmdRead.Parameters.Add("@InSanctionID", OleDb.OleDbType.VarChar)
-        cmdRead.Parameters("@InSanctionID").Size = 6
-        cmdRead.Parameters("@InSanctionID").Value = sSanctionID
-        cmdRead.Parameters("@InSanctionID").Direction = ParameterDirection.Input
 
-        cmdRead.Parameters.Add("@InEvCode", OleDb.OleDbType.VarChar)
-        cmdRead.Parameters("@InEvCode").Size = 12
-        cmdRead.Parameters("@InEvCode").Value = sSelEvent
-        cmdRead.Parameters("@InEvCode").Direction = ParameterDirection.Input
+        If selEvent = "O" Then
+            'PrGetScoresOverall uses different parameters
+            cmdRead.Parameters.Add("@InSanctionId", OleDb.OleDbType.Char)
+            cmdRead.Parameters("@InSanctionId").Size = 6
+            cmdRead.Parameters("@InSanctionId").Value = sSanctionID
+            cmdRead.Parameters("@InSanctionId").Direction = ParameterDirection.Input
 
-        cmdRead.Parameters.Add("@InFormat", OleDb.OleDbType.VarChar)
-        cmdRead.Parameters("@InFormat").Size = 12
-        cmdRead.Parameters("@InFormat").Value = "Best"    '0 = All Rounds    sSelRnd
-        cmdRead.Parameters("@InFormat").Direction = ParameterDirection.Input
+            cmdRead.Parameters.Add("@InDiv", OleDb.OleDbType.VarChar)
+            cmdRead.Parameters("@InDiv").Size = 3
+            If sSelDV = "" Or sSelDV = "All" Then
+                cmdRead.Parameters("@InDiv").Value = "All"
+            Else
+                cmdRead.Parameters("@InDiv").Value = sSelDV
+            End If
+            cmdRead.Parameters("@InDiv").Direction = ParameterDirection.Input
+        Else
+            'Regular event stored procedures (PrLeaderBoard)
+            cmdRead.Parameters.Add("@InSanctionID", OleDb.OleDbType.VarChar)
+            cmdRead.Parameters("@InSanctionID").Size = 6
+            cmdRead.Parameters("@InSanctionID").Value = sSanctionID
+            cmdRead.Parameters("@InSanctionID").Direction = ParameterDirection.Input
 
-        cmdRead.Parameters.Add("@InDV", OleDb.OleDbType.VarChar)
-        cmdRead.Parameters("@InDV").Size = 3
-        cmdRead.Parameters("@InDV").Value = sSelDV   'This is the division selected for display.  sDv is the division in which the skier is performing.
-        cmdRead.Parameters("@InDV").Direction = ParameterDirection.Input
+            cmdRead.Parameters.Add("@InEvCode", OleDb.OleDbType.VarChar)
+            cmdRead.Parameters("@InEvCode").Size = 12
+            cmdRead.Parameters("@InEvCode").Value = sSelEvent
+            cmdRead.Parameters("@InEvCode").Direction = ParameterDirection.Input
+
+            cmdRead.Parameters.Add("@InFormat", OleDb.OleDbType.VarChar)
+            cmdRead.Parameters("@InFormat").Size = 12
+            cmdRead.Parameters("@InFormat").Value = "Best"    '0 = All Rounds    sSelRnd
+            cmdRead.Parameters("@InFormat").Direction = ParameterDirection.Input
+
+            cmdRead.Parameters.Add("@InDV", OleDb.OleDbType.VarChar)
+            cmdRead.Parameters("@InDV").Size = 3
+            cmdRead.Parameters("@InDV").Value = sSelDV   'This is the division selected for display.  sDv is the division in which the skier is performing.
+            cmdRead.Parameters("@InDV").Direction = ParameterDirection.Input
+        End If
 
         '    cmdRead.Parameters.Add("@InGroup", OleDb.OleDbType.VarChar)
         '    cmdRead.Parameters("@InGroup").Size = 3
@@ -2043,29 +2073,61 @@ Module ModDataAccess3
                     MyDataReader = cmdRead.ExecuteReader
                     If MyDataReader.HasRows = True Then
                         Do While MyDataReader.Read()
-                            sSanctionID = CStr(MyDataReader.Item("SanctionID"))
-                            sSkierName = CStr(MyDataReader.Item("SkierName"))
+                            If selEvent = "O" Then
+                                'Overall uses different column names from PrGetScoresOverall
+                                sSanctionID = CStr(MyDataReader.Item("SanctionId"))
+                                sSkierName = CStr(MyDataReader.Item("SkierName"))
 
-                            If Not IsDBNull(MyDataReader.Item("DiV")) Then
-                                sDv = CStr(MyDataReader.Item("DiV"))
-                            Else
-                                sDv = ""
-                            End If
+                                If Not IsDBNull(MyDataReader.Item("AgeGroup")) Then
+                                    sDv = CStr(MyDataReader.Item("AgeGroup"))
+                                Else
+                                    sDv = ""
+                                End If
 
-                            If Not IsDBNull(MyDataReader.Item("Round")) Then
-                                sRound = CStr(MyDataReader.Item("Round"))
+                                If Not IsDBNull(MyDataReader.Item("Round")) Then
+                                    sRound = CStr(MyDataReader.Item("Round"))
+                                Else
+                                    sRound = ""
+                                End If
+
+                                If Not IsDBNull(MyDataReader.Item("MemberId")) Then
+                                    sMemberID = MyDataReader.Item("MemberId")
+                                Else
+                                    sMemberID = ""
+                                End If
+
+                                'Overall specific score
+                                If Not IsDBNull(MyDataReader.Item("NopsScoreOverall")) Then
+                                    sScoreBest = Format(MyDataReader.Item("NopsScoreOverall"), "0.00")
+                                Else
+                                    sScoreBest = "0.00"
+                                End If
                             Else
-                                sRound = ""
-                            End If
-                            If Not IsDBNull(MyDataReader.Item("MemberID")) Then
-                                sMemberID = MyDataReader.Item("MemberID")
-                            Else
-                                sMemberID = ""
-                            End If
-                            If Not IsDBNull(MyDataReader.Item("EventScore")) Then
-                                sScoreBest = MyDataReader.Item("EventScore")
-                            Else
-                                sScoreBest = ""
+                                'Regular events use these column names
+                                sSanctionID = CStr(MyDataReader.Item("SanctionID"))
+                                sSkierName = CStr(MyDataReader.Item("SkierName"))
+
+                                If Not IsDBNull(MyDataReader.Item("DiV")) Then
+                                    sDv = CStr(MyDataReader.Item("DiV"))
+                                Else
+                                    sDv = ""
+                                End If
+
+                                If Not IsDBNull(MyDataReader.Item("Round")) Then
+                                    sRound = CStr(MyDataReader.Item("Round"))
+                                Else
+                                    sRound = ""
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("MemberID")) Then
+                                    sMemberID = MyDataReader.Item("MemberID")
+                                Else
+                                    sMemberID = ""
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("EventScore")) Then
+                                    sScoreBest = MyDataReader.Item("EventScore")
+                                Else
+                                    sScoreBest = ""
+                                End If
                             End If
                             'Show best score only for B1 and G1 slalom divisions
                             If (sDv <> "OM" And sDv <> "OW") And selEvent = "S" Then
@@ -2074,53 +2136,67 @@ Module ModDataAccess3
                                 sShowBuoys = ""
                             End If
 
-                            If Not IsDBNull(MyDataReader.Item("ScoreRunoff")) Then
-                                sScoreRunoff = MyDataReader.Item("ScoreRunoff")
-                            Else
+                            If selEvent = "O" Then
+                                'Overall doesn't have these fields, set defaults
                                 sScoreRunoff = ""
-                            End If
-
-
-
-
-                            If Not IsDBNull(MyDataReader.Item("EventClass")) Then
-                                sEventClass = MyDataReader.Item("EventClass")
-                            Else
                                 sEventClass = ""
-                            End If
-                            If Not IsDBNull(MyDataReader.Item("City")) Then
-                                sCity = MyDataReader.Item("City")
-                            Else
                                 sCity = ""
-                            End If
-                            If Not IsDBNull(MyDataReader.Item("State")) Then
-                                sState = MyDataReader.Item("State")
-                            Else
                                 sState = ""
-                            End If
-                            If Not IsDBNull(MyDataReader.Item("Federation")) Then
-                                sFederation = MyDataReader.Item("Federation")
-                            Else
                                 sFederation = ""
-                            End If
-                            If Not IsDBNull(MyDataReader.Item("RankingScore")) Then
-                                sRankingScore = MyDataReader.Item("RankingScore")
-                            Else
                                 sRankingScore = ""
-                            End If
-                            If Not IsDBNull(MyDataReader.Item("NOPSScore")) Then
-                                sNopsScore = MyDataReader.Item("NOPSScore")
+                                'Overall NOPS score is the overall total
+                                If Not IsDBNull(MyDataReader.Item("NopsScoreOverall")) Then
+                                    sNopsScore = Format(MyDataReader.Item("NopsScoreOverall"), "0.00")
+                                Else
+                                    sNopsScore = "0.00"
+                                End If
                             Else
-                                sNopsScore = ""
+                                'Regular events have these fields
+                                If Not IsDBNull(MyDataReader.Item("ScoreRunoff")) Then
+                                    sScoreRunoff = MyDataReader.Item("ScoreRunoff")
+                                Else
+                                    sScoreRunoff = ""
+                                End If
+
+                                If Not IsDBNull(MyDataReader.Item("EventClass")) Then
+                                    sEventClass = MyDataReader.Item("EventClass")
+                                Else
+                                    sEventClass = ""
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("City")) Then
+                                    sCity = MyDataReader.Item("City")
+                                Else
+                                    sCity = ""
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("State")) Then
+                                    sState = MyDataReader.Item("State")
+                                Else
+                                    sState = ""
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("Federation")) Then
+                                    sFederation = MyDataReader.Item("Federation")
+                                Else
+                                    sFederation = ""
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("RankingScore")) Then
+                                    sRankingScore = MyDataReader.Item("RankingScore")
+                                Else
+                                    sRankingScore = ""
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("NOPSScore")) Then
+                                    sNopsScore = MyDataReader.Item("NOPSScore")
+                                Else
+                                    sNopsScore = ""
+                                End If
                             End If
                             sReadyForPlcmt = ""
                             If Not IsDBNull(MyDataReader.Item("ReadyForPlcmt")) Then
                                 If MyDataReader.Item("ReadyForPlcmt") <> "Y" Then
-                                    sReadyForPlcmt = "<img src=""Images/CriticalError.bmp"" alt=""NOT for Placement"" title=""NOT for placeent"" />"
+                                    sReadyForPlcmt = "&nbsp;<span class=""class-logo class-x"" title=""NOT for placement"">X</span>"
                                 End If
                             End If
 
-                                sHasVideo = ""
+                            sHasVideo = ""
                             'ONLY for Trick - Show trick video flag if available- 
                             If selEvent = "T" Then
                                 If Not IsDBNull(MyDataReader.Item("Pass1VideoURL")) Then
@@ -2138,9 +2214,19 @@ Module ModDataAccess3
 
                             If sTmpDv = "" Then
                                 'Get the division header for first division
-                                sDVHeader = "<table class=""table""><tr class=""table-info""><td colspan=""" & sRndCols & """>Placement Format = " & sPlcmtFormat & " <span class=""bg-danger text-white"" > <b>! UNOFFICIAL !</b></span><b> &nbsp;" & sSelEvent & " " & sDv & "</b></td></tr>"
+                                sDVHeader = "<table class=""division-section"" style=""margin-bottom: 1rem;"">"
                                 'Start the first Dataline
-                                sDVScoresSection.Append("<tr><td Class=""table-warning"" width=""25%""><b> Leader Board </b></td>" & sRoundsHTML)
+                                ' Add round info if specific round is selected
+                                Dim sRoundInfo As String = ""
+                                If sSelRnd <> "0" And sSelRnd <> "" Then
+                                    sRoundInfo = "Round " & sSelRnd & " -"
+                                End If
+                                sDVScoresSection.Append("<tr class=""table-header-row""><td width=""35%""><b>" & sSelEvent & " " & sDv & " - " & sRoundInfo & " Sort by: " & sPlcmtFormat & "</b></td>" & sRoundsHTML)
+                                ' Add runoff row if runoffs exist for this division
+                                Dim sRunoffSectionContent As String = ModDataAccessPro.GetRunoffSection(sSanctionID, sSelEvent, sDv)
+                                If sRunoffSectionContent <> "" And Not sRunoffSectionContent.Contains("No RunOffs Found") And Not sRunoffSectionContent.Contains("Error") Then
+                                    sDVScoresSection.Append("<tr><td colspan=""" & sRndCols & """ style=""background-color: #ffebee; padding: 8px; font-style: italic;"">" & sRunoffSectionContent & "</td></tr>")
+                                End If
                                 sTmpDv = sDv
                             End If
                             'Get the first MemberID' first record in first pass through data
@@ -2148,14 +2234,45 @@ Module ModDataAccess3
 
                             If sTmpDv = sDv Then 'Continue in same Division
                                 'Add the data line
-                                sDVScoresSection.Append("<tr><td Class=""table-warning""><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & sMemberID & "&DV=" & sTmpDv & "&EV=" & sEventPkd & "&TN=" & sTName & "")
-                                sDVScoresSection.Append("&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a><b> " & sShowBuoys & "</b>" & sHasVideo & sReadyForPlcmt & "</td>")   '   
-                                sMultiRndScores = ModDataAccess3.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
-                                If sMultiRndScores <> "Error" Then
-                                    sDVScoresSection.Append(sMultiRndScores)
-                                    sMultiRndScores = ""
+                                sDVScoresSection.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & sMemberID & "&DV=" & sTmpDv & "&EV=" & sEventPkd & "&TN=" & sTName & "")
+                                If sSelRnd = "0" Then
+                                    sDVScoresSection.Append("&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a><b> " & sShowBuoys & "</b>" & sHasVideo & sReadyForPlcmt & "</td>")
                                 Else
-                                    'FIX THIS ERROR TRAP
+                                    sDVScoresSection.Append("&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a>" & sHasVideo & sReadyForPlcmt & "</td>")
+                                End If   '   
+
+                                If selEvent = "O" Then
+                                    'For Overall, display the scores directly from the stored procedure
+                                    sDVScoresSection.Append("<td>" & sRound & "</td>")
+                                    sDVScoresSection.Append("<td><b>" & sScoreBest & "</b></td>") 'Overall score
+                                    'Get individual event NOPS scores
+                                    If Not IsDBNull(MyDataReader.Item("NopsScoreSlalom")) Then
+                                        sSlalomNops = Format(MyDataReader.Item("NopsScoreSlalom"), "0.00")
+                                    Else
+                                        sSlalomNops = "--"
+                                    End If
+                                    If Not IsDBNull(MyDataReader.Item("NopsScoreTrick")) Then
+                                        sTrickNops = Format(MyDataReader.Item("NopsScoreTrick"), "0.00")
+                                    Else
+                                        sTrickNops = "--"
+                                    End If
+                                    If Not IsDBNull(MyDataReader.Item("NopsScoreJump")) Then
+                                        sJumpNops = Format(MyDataReader.Item("NopsScoreJump"), "0.00")
+                                    Else
+                                        sJumpNops = "--"
+                                    End If
+                                    sDVScoresSection.Append("<td>" & sSlalomNops & "</td>")
+                                    sDVScoresSection.Append("<td>" & sTrickNops & "</td>")
+                                    sDVScoresSection.Append("<td>" & sJumpNops & "</td></tr>")
+                                Else
+                                    'Regular events use LBGetRndScores
+                                    sMultiRndScores = ModDataAccess3.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
+                                    If sMultiRndScores <> "Error" Then
+                                        sDVScoresSection.Append(sMultiRndScores)
+                                        sMultiRndScores = ""
+                                    Else
+                                        'FIX THIS ERROR TRAP
+                                    End If
                                 End If
                                 If sScoreRunoff <> "" Then
                                     sHasRunoff = True
@@ -2164,14 +2281,6 @@ Module ModDataAccess3
                             Else 'Division changed.
                                 'Add the Header line
                                 sLine.Append(sDVHeader)
-                                'Get RunOff scores if appropriate
-                                If sHasRunoff = True Then 'Only add runnoff scores if this division has runoff scores
-                                    sRunoffSection = ModDataAccessPro.GetRunoffSection(sSanctionID, sEventPkd, sRunOffDv)
-                                    '
-                                    If Left(sRunoffSection, 3) = "<b>" Then
-                                        sLine.Append("<tr><td Class=""table-info"" colspan=""" & sRndCols - 2 & """><b>RunOff Scores</td><td colspan=""2"">" & sRunoffSection & "</td></tr>")
-                                    End If
-                                End If
                                 'Close division table
                                 sDVScoresSection.Append("</table>")
                                 'Add Division scores to sLine
@@ -2185,16 +2294,57 @@ Module ModDataAccess3
                                 stmpMemberID = sMemberID
                                 sTmpDv = sDv
                                 'start new division header
-                                sDVHeader = "<table Class=""table""><tr Class=""table-info""><td  colspan=""" & sRndCols & """>Placement Format = " & sPlcmtFormat & " <span Class=""bg-danger text-white"" > <b>! UNOFFICIAL !</b></span><b> &nbsp;" & sSelEvent & " " & sDv & "</b></td></tr>"
-                                sDVScoresSection.Append("<tr><td Class=""table-warning"" width=""25%""><b> Leader Board </b></td>" & sRoundsHTML)
+                                sDVHeader = "<table class=""division-section"" style=""margin-bottom: 1rem;"">"
+                                ' Add round info if specific round is selected
+                                Dim sRoundInfo As String = ""
+                                If sSelRnd <> "0" And sSelRnd <> "" Then
+                                    sRoundInfo = "Round " & sSelRnd & " -"
+                                End If
+                                sDVScoresSection.Append("<tr class=""table-header-row""><td width=""35%""><b>" & sSelEvent & " " & sDv & " - " & sRoundInfo & " Sort by: " & sPlcmtFormat & "</b></td>" & sRoundsHTML)
+                                ' Add runoff row if runoffs exist for this division
+                                Dim sRunoffSectionContent As String = ModDataAccessPro.GetRunoffSection(sSanctionID, sSelEvent, sDv)
+                                If sRunoffSectionContent <> "" And Not sRunoffSectionContent.Contains("No RunOffs Found") And Not sRunoffSectionContent.Contains("Error") Then
+                                    sDVScoresSection.Append("<tr><td colspan=""" & sRndCols & """ style=""background-color: #ffebee; padding: 8px; font-style: italic;"">" & sRunoffSectionContent & "</td></tr>")
+                                End If
                                 'Add the data line
-                                sDVScoresSection.Append("<tr><td Class=""table-warning""><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & stmpMemberID & "&DV=" & sTmpDv & "&EV=" & sEventPkd & "&TN=" & sTName & "")
-                                sDVScoresSection.Append("&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a><b> " & sShowBuoys & "</b>" & sHasVideo & sReadyForPlcmt & "</td>")   '   
-                                sMultiRndScores = ModDataAccess3.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
-                                If sMultiRndScores <> "Error" Then
-                                    sDVScoresSection.Append(sMultiRndScores)
+                                sDVScoresSection.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & stmpMemberID & "&DV=" & sTmpDv & "&EV=" & sEventPkd & "&TN=" & sTName & "")
+                                If sSelRnd = "0" Then
+                                    sDVScoresSection.Append("&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a><b> " & sShowBuoys & "</b>" & sHasVideo & sReadyForPlcmt & "</td>")
                                 Else
-                                    'FIX THIS ERROR TRAP
+                                    sDVScoresSection.Append("&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a>" & sHasVideo & sReadyForPlcmt & "</td>")
+                                End If   '   
+
+                                If selEvent = "O" Then
+                                    'For Overall, display the scores directly from the stored procedure
+                                    sDVScoresSection.Append("<td>" & sRound & "</td>")
+                                    sDVScoresSection.Append("<td><b>" & sScoreBest & "</b></td>") 'Overall score
+                                    'Get individual event NOPS scores
+                                    If Not IsDBNull(MyDataReader.Item("NopsScoreSlalom")) Then
+                                        sSlalomNops = Format(MyDataReader.Item("NopsScoreSlalom"), "0.00")
+                                    Else
+                                        sSlalomNops = "--"
+                                    End If
+                                    If Not IsDBNull(MyDataReader.Item("NopsScoreTrick")) Then
+                                        sTrickNops = Format(MyDataReader.Item("NopsScoreTrick"), "0.00")
+                                    Else
+                                        sTrickNops = "--"
+                                    End If
+                                    If Not IsDBNull(MyDataReader.Item("NopsScoreJump")) Then
+                                        sJumpNops = Format(MyDataReader.Item("NopsScoreJump"), "0.00")
+                                    Else
+                                        sJumpNops = "--"
+                                    End If
+                                    sDVScoresSection.Append("<td>" & sSlalomNops & "</td>")
+                                    sDVScoresSection.Append("<td>" & sTrickNops & "</td>")
+                                    sDVScoresSection.Append("<td>" & sJumpNops & "</td></tr>")
+                                Else
+                                    'Regular events use LBGetRndScores
+                                    sMultiRndScores = ModDataAccess3.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
+                                    If sMultiRndScores <> "Error" Then
+                                        sDVScoresSection.Append(sMultiRndScores)
+                                    Else
+                                        'FIX THIS ERROR TRAP
+                                    End If
                                 End If
                             End If
 
@@ -2202,14 +2352,6 @@ Module ModDataAccess3
                         'Add the Header line
                         sLine.Append(sDVHeader)
                         '                       End If
-                        'Get RunOff scores if appropriate
-                        If sHasRunoff = True Then 'Only add runnoff scores if this division has runoff scores
-                            sRunoffSection = ModDataAccessPro.GetRunoffSection(sSanctionID, sEventPkd, sRunOffDv)
-
-                            If Left(sRunoffSection, 3) = "<b>" Then
-                                sLine.Append("<tr><td Class=""table-info"" colspan=""" & sRndCols - 2 & """><b>RunOff Scores</td><td colspan=""2"">" & sRunoffSection & "</td></tr>")
-                            End If
-                        End If
                         'Close division table
                         sDVScoresSection.Append("</table>")
                         'Add Division scores to sLine
@@ -2223,14 +2365,17 @@ Module ModDataAccess3
             Catch ex As Exception
                 sMsg = "Error at LeaderBoardBestRndLeftSP"
                 sErrDetails = sMsg & " " & ex.Message & " " & ex.StackTrace
+                System.Diagnostics.Debug.WriteLine("LeaderBoardBestRndLeftSP exception for " & selEvent & "-" & selDv & ": " & ex.Message)
             End Try
 
         End Using
         If Len(sMsg) > 2 Then
+            System.Diagnostics.Debug.WriteLine("LeaderBoardBestRndLeftSP returning error for " & selEvent & "-" & selDv & ": " & sMsg)
             Return sMsg
         Else
-            sMsg = sLine.ToString()
-            Return sLine.ToString()
+            Dim result = sLine.ToString()
+            System.Diagnostics.Debug.WriteLine("LeaderBoardBestRndLeftSP returning " & result.Length & " chars for " & selEvent & "-" & selDv)
+            Return result
         End If
     End Function
 
@@ -2300,6 +2445,9 @@ Module ModDataAccess3
                 sSql += " From [LiveWebScoreboard].[dbo].[vSlalomResults] Where SanctionID = ? and Event = ? "
                 If sSelRnd <> "0" Then
                     sSql += " And [Round] = ? "
+                Else
+                    ' Exclude runoffs (Round 25) when showing all rounds
+                    sSql += " And [Round] <> 25 "
                 End If
                 If UCase(sSelDV) <> "ALL" Then
                     sSql += " And [Div] = ? "
@@ -2309,7 +2457,7 @@ Module ModDataAccess3
                 If sSelRnd = "0" Then
                     sRndCols = CStr(CInt(sRndsSlalomOffered))
                     For j = 1 To RndsSlalomOffered
-                        sRoundsHTML += "<td  Class=""table-primary"">Rnd&nbsp;" & j & "</td>" 'completes the event header with appropriate number of rounds columns
+                        sRoundsHTML += "<td><b>Rnd&nbsp;" & j & "</b></td>" 'completes the event header with appropriate number of rounds columns
                     Next
                     sRoundsHTML += "</tr>"
                 Else
@@ -2325,6 +2473,9 @@ Module ModDataAccess3
                 sSql += " From [LiveWebScoreboard].[dbo].[vTrickResults]  Where SanctionID = ? and Event = ? "
                 If sSelRnd <> "0" Then
                     sSql += " And [Round] = ? "
+                Else
+                    ' Exclude runoffs (Round 25) when showing all rounds
+                    sSql += " And [Round] <> 25 "
                 End If
                 If UCase(sSelDV) <> "ALL" Then
                     sSql += " And [Div] = ? "
@@ -2336,7 +2487,7 @@ Module ModDataAccess3
                 If sSelRnd = "0" Then
                     sRndCols = CStr(CInt(sRndsTrickOffered))  'Rnds + name + 2 for BestRnd
                     For j = 1 To RndsTrickOffered
-                        sRoundsHTML += "<td  Class=""table-primary"">Rnd&nbsp;" & j & "</td>"  'completes the event header with appropriate number of rounds columns
+                        sRoundsHTML += "<td><b>Rnd&nbsp;" & j & "</b></td>"  'completes the event header with appropriate number of rounds columns
                     Next
                     sRoundsHTML += "</tr>"
                 Else
@@ -2351,6 +2502,9 @@ Module ModDataAccess3
                 sSql += " From [LiveWebScoreboard].[dbo].[vJumpResults]  Where SanctionID = ? and Event = ? "
                 If sSelRnd <> "0" Then
                     sSql += " And [Round] = ? "
+                Else
+                    ' Exclude runoffs (Round 25) when showing all rounds
+                    sSql += " And [Round] <> 25 "
                 End If
                 If UCase(sSelDV) <> "ALL" Then
                     sSql += " And [Div] = ? "
@@ -2361,7 +2515,7 @@ Module ModDataAccess3
                 If sSelRnd = "0" Then
                     sRndCols = CStr(CInt(sRndsTrickOffered))  'Rnds + name + 2 for BestRnd
                     For j = 1 To RndsJumpOffered
-                        sRoundsHTML += "<td  Class=""table-primary"">Rnd&nbsp;" & j & "</td>"    'completes the event header with appropriate number of rounds columns
+                        sRoundsHTML += "<td><b>Rnd&nbsp;" & j & "</b></td>"    'completes the event header with appropriate number of rounds columns
                     Next
                     sRoundsHTML += "</tr>"
                 Else
@@ -2369,7 +2523,7 @@ Module ModDataAccess3
                     sRndCols = "6"
                 End If
             Case Else  'Load all by default
-                sMsg = "<td>Event Code out Of range</td></tr>"
+                sMsg = "<td>Event code out of range</td></tr>"
                 Return sMsg
                 Exit Function
         End Select
@@ -2528,45 +2682,51 @@ Module ModDataAccess3
 
 
                             If sTmpRnd = "" Then
-                                'Make master table
-                                sMasterTable.Append("<table class=""table""><tr class=""table-primary""><td colspan=""" & sRndCols & """>")
-                                sMasterTable.Append("<span Class=""bg-danger text-white"" ><b>!UNOFFICIAL!</b>&nbsp; &nbsp; </span> ")
-                                sMasterTable.Append(" <b> " & UCase(sSelEvent) & " Results - Placement Format = ROUND</b></td></tr>")
-                                sMasterTable.Append("<tr><td>")
-                                'Make first division table
-                                sDvTable.Append("<table Class=""table""><tr Class=""table-info""><td colspan=""2""><b>" & sDv & " &nbsp; &nbsp; Round " & sCurRnd & "</b></td></tr>")
+                                'Make first round table with proper header
+                                sMasterTable.Append("<table class=""division-section"" style=""margin-bottom: 1rem;"">")
+                                sMasterTable.Append("<tr class=""table-header-row""><td colspan=""2""><b>" & UCase(sSelEvent) & " " & sDv & " — ROUND " & sCurRnd & " — Sort by: ROUND</b></td></tr>")
+                                ' Add runoff row for new division (always show if specific round selected, otherwise only on first round)
+                                Dim shouldShowRunoff As Boolean = (sSelRnd <> "0") Or (sTmpRnd = "")
+                                If shouldShowRunoff Then
+                                    Dim sRunoffSectionContent As String = ModDataAccessPro.GetRunoffSection(sSanctionID, sSelEvent, sDv)
+                                    If sRunoffSectionContent <> "" And Not sRunoffSectionContent.Contains("No RunOffs Found") And Not sRunoffSectionContent.Contains("Error") Then
+                                        sMasterTable.Append("<tr><td colspan=""2"" style=""background-color: #ffebee; padding: 8px; font-style: italic;"">" & sRunoffSectionContent & "</td></tr>")
+                                    End If
+                                End If
                                 sTmpRnd = sCurRnd
                                 sTmpDv = sDv
                             End If
                             If sTmpRnd = sCurRnd Then  'Rnd header already in place.  Continue
 
                                 If sTmpDv = sDv Then 'Div header in place, just list skier
-                                    sDvTable.Append("<tr><td>" & sSkierLink & "</td><td><b>" & sEventScoreDesc & "</b></td></tr>")
+                                    sMasterTable.Append("<tr><td width=""35%"">" & sSkierLink & "</td><td width=""65%""><b>" & sEventScoreDesc & "</b></td></tr>")
 
-                                Else 'division changed  close out division table. Add to Mastertable, and start new division table 
-                                    sDvTable.Append("</table>")
-                                    sMasterTable.Append(sDvTable.ToString())
-                                    sDvTable.Clear()
-                                    sDvTable.Append("<table Class=""table""><tr Class=""table-info""><td colspan=""2""><b>" & sDv & " &nbsp; &nbsp; Round " & sCurRnd & "</b></td></tr>")
-                                    sDvTable.Append("<tr><td>" & sSkierLink & "</td><td><b>" & sEventScoreDesc & "</b></td></tr>")
+                                Else 'division changed - add skier row with division info
+                                    sMasterTable.Append("<tr><td width=""35%"">" & sSkierLink & " (" & sDv & ")</td><td width=""65%""><b>" & sEventScoreDesc & "</b></td></tr>")
                                     sTmpDv = sDv
                                 End If
 
-                            Else 'Round changed close out existing division and round and start a new round and division
-                                sDvTable.Append("</table>")
-                                sMasterTable.Append(sDvTable.ToString() & "</td><td valign=""top"">")
-                                sDvTable.Clear()
-                                sDvTable.Append("<table Class=""table""><tr Class=""table-info""><td colspan=""2""><b>" & sDv & " &nbsp; &nbsp; Round " & sCurRnd & "</b></td></tr>")
-                                sDvTable.Append("<tr><td>" & sSkierLink & "</td><td><b>" & sEventScoreDesc & "</b></td></tr>")
+                            Else 'Round changed - close current table and start new round table
+                                sMasterTable.Append("</table>")
+                                sMasterTable.Append("<table class=""division-section"" style=""margin-bottom: 1rem;"">")
+                                sMasterTable.Append("<tr class=""table-header-row""><td colspan=""2""><b>" & UCase(sSelEvent) & " " & sDv & " — ROUND " & sCurRnd & " — Sort by: ROUND</b></td></tr>")
+                                ' Add runoff row - always show if specific round selected, otherwise only if division changed
+                                Dim shouldShowRunoff As Boolean = (sSelRnd <> "0") Or (sTmpDv <> sDv)
+                                If shouldShowRunoff Then
+                                    Dim sRunoffSectionContent As String = ModDataAccessPro.GetRunoffSection(sSanctionID, sSelEvent, sDv)
+                                    If sRunoffSectionContent <> "" And Not sRunoffSectionContent.Contains("No RunOffs Found") And Not sRunoffSectionContent.Contains("Error") Then
+                                        sMasterTable.Append("<tr><td colspan=""2"" style=""background-color: #ffebee; padding: 8px; font-style: italic;"">" & sRunoffSectionContent & "</td></tr>")
+                                    End If
+                                End If
+                                sMasterTable.Append("<tr><td width=""35%"">" & sSkierLink & "</td><td width=""65%""><b>" & sEventScoreDesc & "</b></td></tr>")
                                 sTmpDv = sDv
                                 sTmpRnd = sCurRnd
 
                             End If
 
                         Loop
-                        'end of scores  close existing division and master tables
-                        sDvTable.Append("</table>")
-                        sMasterTable.Append(sDvTable.ToString & "</td></tr></table>")
+                        'end of scores - close final table
+                        sMasterTable.Append("</table>")
                     Else  'No records
                         sMsg = "NO " & UCase(sSelEvent) & " SCORES FOUND FOR " & sSanctionID
 
@@ -2644,7 +2804,7 @@ Module ModDataAccess3
                 If sSelRnd = "0" Then
                     sRndCols = CStr(CInt(sRndsSlalomOffered) + 1)
                     For j = 1 To RndsSlalomOffered
-                        sRoundsHTML += "<td  Class=""table-primary"">Rnd&nbsp;" & j & "</td>" 'completes the event header with appropriate number of rounds columns
+                        sRoundsHTML += "<td>Rnd&nbsp;" & j & "</td>" 'completes the event header with appropriate number of rounds columns
                     Next
                     sRoundsHTML += "</tr>"
                 Else
@@ -2661,7 +2821,7 @@ Module ModDataAccess3
                 If sSelRnd = "0" Then
                     sRndCols = CStr(CInt(sRndsTrickOffered) + 1)  'Rnds + name + 2 for BestRnd
                     For j = 1 To RndsTrickOffered
-                        sRoundsHTML += "<td  Class=""table-primary"">Rnd&nbsp;" & j & "</td>"  'completes the event header with appropriate number of rounds columns
+                        sRoundsHTML += "<td>Rnd&nbsp;" & j & "</td>"  'completes the event header with appropriate number of rounds columns
                     Next
                     sRoundsHTML += "</tr>"
                 Else
@@ -2677,7 +2837,7 @@ Module ModDataAccess3
                 If sSelRnd = "0" Then
                     sRndCols = CStr(CInt(sRndsTrickOffered) + 1)  'Rnds + name + 2 for BestRnd
                     For j = 1 To RndsJumpOffered
-                        sRoundsHTML += "<td  Class=""table-primary"">Rnd&nbsp;" & j & "</td>"    'completes the event header with appropriate number of rounds columns
+                        sRoundsHTML += "<td>Rnd&nbsp;" & j & "</td>"    'completes the event header with appropriate number of rounds columns
                     Next
                     sRoundsHTML += "</tr>"
                 Else
@@ -2826,8 +2986,12 @@ Module ModDataAccess3
 
                             If sTmpDv = "" Then
                                 'Add the division header for first division
-                                sLine.Append("<table class=""table""><tr class=""table-info""><td colspan=""" & sRndCols & """><span class=""bg-danger text-white"" > <b>! UNOFFICIAL !</b></span><b> &nbsp;" & sSelEvent & " " & sDv & "</b></td></tr>")
-                                sLine.Append("<table class=""table""><tr><td class=""table-warning"" width=""25%""><b> Leader Board </b></td>" & sRoundsHTML)
+                                ' Add round info if specific round is selected
+                                Dim sRoundInfo As String = ""
+                                If sSelRnd <> "0" And sSelRnd <> "" Then
+                                    sRoundInfo = "Round " & sSelRnd & " -"
+                                End If
+                                sLine.Append("<table class=""division-section"" style=""margin-bottom: 1rem;""><tr class=""table-header-row""><td width=""35%""><b>" & sSelEvent & " " & sDv & " - " & sRoundInfo & " Sort by: " & "</b></td>" & sRoundsHTML)
                                 sTmpDv = sDv
                             End If
                             'Get the first MemberID' first record in first pass through data
@@ -2835,7 +2999,7 @@ Module ModDataAccess3
 
                             If sTmpDv = sDv Then 'Continue in same Division
                                 'Add the data line
-                                sLine.Append("<tr><td class=""table-warning""><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & sMemberID & "&DV=" & sTmpDv & "&EV=" & sEventPkd & "&TN=" & sTName & "")
+                                sLine.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & sMemberID & "&DV=" & sTmpDv & "&EV=" & sEventPkd & "&TN=" & sTName & "")
                                 sLine.Append("&FC=LB&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a><b> " & sShowBuoys & "</b>" & sHasVideo & "</td>")   '   
                                 sMultiRndScores = ModDataAccess3.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
                                 If sMultiRndScores <> "Error" Then
@@ -2850,10 +3014,10 @@ Module ModDataAccess3
                                 stmpMemberID = sMemberID
                                 sTmpDv = sDv
                                 'start new division header
-                                sLine.Append("<table class=""table""><tr class=""table-info""><td  colspan=""" & sRndCols & """><span class=""bg-danger text-white"" > <b>! UNOFFICIAL !</b></span><b> &nbsp;" & sSelEvent & " " & sDv & "</b></td></tr")
-                                sLine.Append("<table class=""table""><tr><td class=""table-warning""  width=""25%""><b> Leader Board </b></td>" & sRoundsHTML)
+                                sLine.Append("<table><tr><td colspan=""" & sRndCols & """><b> &nbsp;" & sSelEvent & " " & sDv & "</b></td></tr")
+                                sLine.Append("<table><tr><td width=""25%""><b> Leader Board </b></td>" & sRoundsHTML)
                                 'Add the data line
-                                sLine.Append("<tr><td class=""table-warning""><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & stmpMemberID & "&DV=" & sTmpDv & "&EV=" & sEventPkd & "&TN=" & sTName & "")
+                                sLine.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & stmpMemberID & "&DV=" & sTmpDv & "&EV=" & sEventPkd & "&TN=" & sTName & "")
                                 sLine.Append("&FC=LB&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a><b> " & sShowBuoys & "</b>" & sHasVideo & "</td>")   '   
                                 sMultiRndScores = ModDataAccess3.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
                                 If sMultiRndScores <> "Error" Then
@@ -2927,12 +3091,12 @@ Module ModDataAccess3
         Dim sSQLBuilder As New StringBuilder
         sSQLBuilder.Append("SELECT TR.SkierName, TR.SanctionId, TR.MemberId, TR.AgeGroup, TR.AgeGroup AS Div, TR.City, TR.State, TR.Federation, ER.Event, ")
         sSQLBuilder.Append("TR.ReadyToSki, ER.TeamCode AS Team, CASE WHEN COALESCE  ")
-                      sSQLBuilder.Append("((SELECT MIN(PK) AS TVPK  ")
-                        sSQLBuilder.Append("FROM      TrickVideo AS TV  ")
-                        sSQLBuilder.Append("WHERE   TV.SanctionId = TR.SanctionId AND TV.MemberId = TR.MemberId AND TV.AgeGroup = TR.AgeGroup AND (TV.Pass1VideoUrl IS NOT NULL OR  ")
+        sSQLBuilder.Append("((SELECT MIN(PK) AS TVPK  ")
+        sSQLBuilder.Append("FROM      TrickVideo AS TV  ")
+        sSQLBuilder.Append("WHERE   TV.SanctionId = TR.SanctionId AND TV.MemberId = TR.MemberId AND TV.AgeGroup = TR.AgeGroup AND (TV.Pass1VideoUrl IS NOT NULL OR  ")
         sSQLBuilder.Append("TV.Pass2VideoUrl IS NOT NULL)), 0) > 0 THEN 'Y' ELSE 'N' END AS TrickVideoAvailable  ")
         sSQLBuilder.Append("FROM     dbo.TourReg AS TR INNER JOIN  ")
-                  sSQLBuilder.Append("dbo.EventReg AS ER ON ER.SanctionId = TR.SanctionId AND ER.MemberId = TR.MemberId AND ER.AgeGroup = TR.AgeGroup  ")
+        sSQLBuilder.Append("dbo.EventReg AS ER ON ER.SanctionId = TR.SanctionId AND ER.MemberId = TR.MemberId AND ER.AgeGroup = TR.AgeGroup  ")
 
         sSQLBuilder.Append("WHERE  tr.SanctionID = '" & sSanctionID & "' and ((TR.Withdrawn IS NULL) OR(TR.Withdrawn = 'N') OR(TR.Withdrawn = ''))  ")
         sSQLBuilder.Append("order by tr.SkierName  ")
@@ -4522,8 +4686,7 @@ Module ModDataAccess3
         Dim sMaxRnds As Int16 = 0
         Dim sSQL As String = ""
         Dim sColInnerHTML As New StringBuilder
-        sColInnerHTML.Append("<table Class=""table"">")
-        'MAKE PAGE LEVEL TABLE WITH A COLUMN FOR EACH ROW.  GENERATE A TABLE FOR EACH ROUND AND PUT IN MASTER TABLE COLUMNS.  LIKE TRICK SHEETS
+        'GENERATE SEPARATE TABLES FOR EACH ROUND WITH PROPER HEADERS
         Select Case sEventPkd
             Case "S"
                 If sRndPkd = 0 Then
@@ -4536,7 +4699,7 @@ Module ModDataAccess3
                         End If
                     Next
                 Else
-                    sMsg = ModDataAccess3.ScoresXMultiRunOrdHoriz(sSanctionID, sYrPkd, sTournName, "S", sDivisionCodePkd, sRndPkd, sSlalomrounds, sTrickRounds, sJumpRounds, sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                    sMsg = ModDataAccess3.ScoresXMultiRunOrdHoriz(sSanctionID, sYrPkd, sTournName, "S", sDivisionCodePkd, sRndPkd, sSlalomRounds, sTrickRounds, sJumpRounds, sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
                     If Left(sMsg, 5) <> "Error" Then
                         sColInnerHTML.Append(sMsg)
                     End If
@@ -4576,7 +4739,6 @@ Module ModDataAccess3
                 End If
         End Select
 
-        sColInnerHTML.Append("</table>")
 
 
         If Len(sErrMsg) > 2 Then
@@ -4891,8 +5053,8 @@ Module ModDataAccess3
         Dim sErrDetails As String = ""
         Dim SQL As String = ""
         Dim sKeyword As String = "%" & keyword.Replace("'", "''") & "%"
-        SQL = "SELECT SanctionID, Name, Class, Format(cast(EventDates As Date), 'yyyyMMdd') AS FormattedDate, EventDates, EventLocation, Rules FROM Tournament " & _
-              "WHERE (Name LIKE ? OR EventLocation LIKE ?) AND ISDATE(EventDates) = 1 " & _
+        SQL = "SELECT SanctionID, Name, Class, Format(cast(EventDates As Date), 'yyyyMMdd') AS FormattedDate, EventDates, EventLocation, Rules FROM Tournament " &
+              "WHERE (Name LIKE ? OR EventLocation LIKE ?) AND ISDATE(EventDates) = 1 " &
               "ORDER BY FormattedDate DESC"
         System.Diagnostics.Debug.WriteLine("[LWS-LOG] SearchTournamentsByKeyword SQL: " & SQL & " | Keyword: " & keyword)
         Dim sConn As String = ""
@@ -4948,6 +5110,138 @@ Module ModDataAccess3
         sHTML.Append("</table>")
         System.Diagnostics.Debug.WriteLine("[LWS-LOG] SearchTournamentsByKeyword HTML Results: " & sHTML.ToString())
         Return sHTML.ToString()
+    End Function
+
+    Public Function LoadDvData(ByVal sanctionId As String, ByVal eventCode As String) As List(Of Object)
+        Dim divisions As New List(Of Object)
+        Dim sSQL As String = "PrGetUsedAgeGroups"
+        Dim sPREventCode As String = ""
+
+        Select Case eventCode.ToUpper()
+            Case "S"
+                sPREventCode = "Slalom"
+            Case "T"
+                sPREventCode = "Trick"
+            Case "J"
+                sPREventCode = "Jump"
+            Case "O"
+                sPREventCode = "Overall"
+            Case Else
+                sPREventCode = "All"
+        End Select
+
+        Dim sConn As String = ""
+        Try
+            If ConfigurationManager.ConnectionStrings("S_UseLocal_Scoreboard").ConnectionString = 0 Then
+                sConn = ConfigurationManager.ConnectionStrings("LWS_Prod").ConnectionString
+            Else
+                sConn = ConfigurationManager.ConnectionStrings("Local_SS_WP23").ConnectionString
+            End If
+
+            Using Cnnt As New OleDb.OleDbConnection(sConn)
+                Using cmdRead As New OleDb.OleDbCommand
+                    cmdRead.CommandType = CommandType.StoredProcedure
+                    cmdRead.CommandText = sSQL
+                    cmdRead.Parameters.Add("@InSanctionId", OleDb.OleDbType.VarChar, 6).Value = sanctionId
+                    cmdRead.Parameters.Add("@InEvent", OleDb.OleDbType.VarChar, 12).Value = sPREventCode
+                    cmdRead.Connection = Cnnt
+                    Cnnt.Open()
+
+                    Using reader As OleDb.OleDbDataReader = cmdRead.ExecuteReader()
+                        While reader.Read()
+                            If Not IsDBNull(reader("AgeGroup")) Then
+                                divisions.Add(New With {
+                                    .code = reader("AgeGroup").ToString(),
+                                    .name = reader("AgeGroup").ToString()
+                                })
+                            End If
+                        End While
+                    End Using
+                End Using
+            End Using
+        Catch ex As Exception
+            ' Return empty list on error
+        End Try
+
+        Return divisions
+    End Function
+
+    Public Function GetDvMostRecent(ByVal sanctionId As String, ByVal eventCode As String) As List(Of Object)
+        Dim divisions As New List(Of Object)
+
+        ' Custom SQL to get event-division combinations ordered by most recent scoring activity
+        Dim sSQL As String = ""
+
+        ' Filter by specific event if provided
+        If eventCode = "S" Then
+            sSQL = "SELECT 'S' as Event, AgeGroup, MAX(InsertDate) as MaxDate " &
+                   "FROM SlalomScore WHERE sanctionID = ? GROUP BY AgeGroup ORDER BY MaxDate DESC"
+        ElseIf eventCode = "T" Then
+            sSQL = "SELECT 'T' as Event, AgeGroup, MAX(InsertDate) as MaxDate " &
+                   "FROM TrickScore WHERE sanctionID = ? GROUP BY AgeGroup ORDER BY MaxDate DESC"
+        ElseIf eventCode = "J" Then
+            sSQL = "SELECT 'J' as Event, AgeGroup, MAX(InsertDate) as MaxDate " &
+                   "FROM JumpScore WHERE sanctionID = ? GROUP BY AgeGroup ORDER BY MaxDate DESC"
+        Else
+            ' Default: get all events
+            sSQL = "SELECT 'S' as Event, AgeGroup, MAX(InsertDate) as MaxDate " &
+                   "FROM SlalomScore WHERE sanctionID = ? GROUP BY AgeGroup " &
+                   "UNION " &
+                   "SELECT 'T' as Event, AgeGroup, MAX(InsertDate) as MaxDate " &
+                   "FROM TrickScore WHERE sanctionID = ? GROUP BY AgeGroup " &
+                   "UNION " &
+                   "SELECT 'J' as Event, AgeGroup, MAX(InsertDate) as MaxDate " &
+                   "FROM JumpScore WHERE sanctionID = ? GROUP BY AgeGroup " &
+                   "ORDER BY MaxDate DESC"
+        End If
+
+        Dim sConn As String = ""
+        Try
+            If ConfigurationManager.ConnectionStrings("S_UseLocal_Scoreboard").ConnectionString = 0 Then
+                sConn = ConfigurationManager.ConnectionStrings("LWS_Prod").ConnectionString
+            Else
+                sConn = ConfigurationManager.ConnectionStrings("Local_SS_WP23").ConnectionString
+            End If
+
+            Using Cnnt As New OleDb.OleDbConnection(sConn)
+                Using cmdRead As New OleDb.OleDbCommand(sSQL, Cnnt)
+                    If eventCode = "S" Or eventCode = "T" Or eventCode = "J" Then
+                        ' Single event - one parameter
+                        cmdRead.Parameters.AddWithValue("@p1", sanctionId)
+                    Else
+                        ' All events - three parameters
+                        cmdRead.Parameters.AddWithValue("@p1", sanctionId)
+                        cmdRead.Parameters.AddWithValue("@p2", sanctionId)
+                        cmdRead.Parameters.AddWithValue("@p3", sanctionId)
+                    End If
+                    Cnnt.Open()
+
+                    Using reader As OleDb.OleDbDataReader = cmdRead.ExecuteReader()
+                        While reader.Read()
+                            If Not IsDBNull(reader("Event")) AndAlso Not IsDBNull(reader("AgeGroup")) Then
+                                divisions.Add(New With {
+                                    .event = reader("Event").ToString(),
+                                    .division = reader("AgeGroup").ToString()
+                                })
+                            End If
+                        End While
+                    End Using
+                End Using
+            End Using
+        Catch ex As Exception
+            System.Diagnostics.Debug.WriteLine("[DEBUG] GetDvMostRecent exception: " & ex.Message)
+        End Try
+
+        ' Debug output for returned combinations
+        Dim debugOutput As String = "GetDvMostRecent found: "
+        For i As Integer = 0 To divisions.Count - 1
+            Dim div = divisions(i)
+            If i > 0 Then debugOutput += ", "
+            debugOutput += div.event & "-" & div.division
+        Next
+        System.Diagnostics.Debug.WriteLine(debugOutput)
+
+        Return divisions
     End Function
 
 End Module

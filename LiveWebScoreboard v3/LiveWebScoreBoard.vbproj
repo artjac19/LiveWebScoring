@@ -144,9 +144,11 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\Site.css" />
+    <Content Include="Content\styles.css" />
     <Content Include="default.aspx" />
     <Content Include="ErrorPages\Oops.aspx" />
     <Content Include="favicon.ico" />
+    <Content Include="GetLeaderboardSP.aspx" />
     <Content Include="Global.asax" />
     <Content Include="images\AWSALogo.jpg" />
     <Content Include="images\AWSALogo.png" />
@@ -255,6 +257,10 @@
     <Compile Include="ErrorPages\Oops.aspx.vb">
       <DependentUpon>Oops.aspx</DependentUpon>
       <SubType>ASPXCodebehind</SubType>
+    </Compile>
+    <Compile Include="GetLeaderboardSP.aspx.vb">
+      <DependentUpon>GetLeaderboardSP.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Global.asax.vb">
       <DependentUpon>Global.asax</DependentUpon>

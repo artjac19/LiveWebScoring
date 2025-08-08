@@ -216,11 +216,9 @@ Module ModDataAccessTeams
                             End If
                             If sTmpDv = "" Then
                                 'Add the division header for first division
-                                sLine.Append("<table class=""table"" width=""100%"">")
-                                sLine.Append("<tr><td class=""table-warning"" width=""25%""><b> Leader Board </b></td>")
+                                sLine.Append("<table style=""margin-bottom: 1rem;"" width=""100%"">")
                                 '   sLine.Append("<td Class=""table-primary"" width=""5%""></td>")
-                                sLine.Append("<td Class=""table-primary""><b>" & UCase(sSelEvent) & "</b></td>")
-                                sLine.Append("<td Class=""table-primary"" colspan=""2""><b>Group: " & sDv & " &nbsp;</b><span class=""bg-danger text-white"" > <b>! UNOFFICIAL !</b></span></td></tr>")
+                                sLine.Append("<td class=""table-header-row"" colspan=""4""><b> " & UCase(sSelEvent) & " " & sDv & "&nbsp;</b></td></tr>")
                                 sTmpDv = sDv
                             End If
                             'Get the first MemberID' first record in first pass through data
@@ -228,10 +226,12 @@ Module ModDataAccessTeams
 
                             If sTmpDv = sDv Then 'Continue in same Division
                                 'Add the data line
-                                sLine.Append("<tr><td class=""table-warning""><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sSkiYear & "&MID=" & sMemberID & "&DV=" & sSelDV & "&EV=" & sEventPkd & "&TN=" & sTName & "")
+                                sLine.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sSkiYear & "&MID=" & sMemberID & "&DV=" & sSelDV & "&EV=" & sEventPkd & "&TN=" & sTName & "")
                                 sLine.Append("&FC=NCWL&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a></td>")   '   
                                 sLine.Append("<td><b> " & sTeamCode & "</b></td>")
-                                sLine.Append("<td><b> " & sScoreBest & " " & sUnit & "</b></td><td>" & sEventScoreDesc & "</td></tr>")
+                                sLine.Append("<td>" & sEventScoreDesc & "</td></tr>")
+                                'sLine.Append("<td><b> " & sScoreBest & " " & sUnit & "</b></td><td>" & sEventScoreDesc & "</td></tr>")
+
                                 '   sMultiRndScores = ModDataAccessTeams.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
                                 '   If sMultiRndScores <> "Error" Then
                                 '       sLine.Append(sMultiRndScores)
@@ -1157,4 +1157,5 @@ Module ModDataAccessTeams
         sMsg = sLine.ToString()
         Return sLine.ToString()
     End Function
+
 End Module

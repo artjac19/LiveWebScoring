@@ -2461,9 +2461,9 @@ Module ModDataAccess
         sSQL = "Select SR.[Round], SR.Score, SR.PassLineLength, SR.Note, SR.Reride, SR.ScoreProt, SR.RerideReason, SS.Score as Buoys, SS.EventClass,  "
         sSQL += " TR.Federation, TR.City, Tr.State, ER.RankingScore "
         sSQL += " From LiveWebScoreboard.dbo.SlalomRecap SR "
-        sSQL += " left join LiveWebScoreboard.dbo.SlalomScore SS On SR.SanctionID = SS.SanctionID And SR.MemberID = SS.MemberID "
-        sSQL += " Left Join LiveWebScoreboard.dbo.TourReg TR on SR.SanctionID = TR.SanctionId And SR.MemberID = TR.MemberId "
-        sSQL += " left join LiveWebScoreboard.dbo.EventReg ER on SR.sanctionID = ER.SanctionID and SR.MemberId = ER.MemberID "
+        sSQL += " left join LiveWebScoreboard.dbo.SlalomScore SS On SR.SanctionID = SS.SanctionID And SR.MemberID = SS.MemberID And SS.AgeGroup = SR.AgeGroup "
+        sSQL += " Left Join LiveWebScoreboard.dbo.TourReg TR on SR.SanctionID = TR.SanctionId And SR.MemberID = TR.MemberId And SR.AgeGroup = TR.AgeGroup "
+        sSQL += " left join LiveWebScoreboard.dbo.EventReg ER on SR.sanctionID = ER.SanctionID and SR.MemberId = ER.MemberID And SR.AgeGroup = ER.AgeGroup "
         sSQL += "Where SR.SanctionId ='" & sSanctionID & "' AND  SR.MemberId='" & sMemberID & "' And  SR.AgeGroup='" & sAgeGroup & "' and SR.[Round] = SS.[Round] and ER.Event = 'Slalom'"
         sSQL += " Order By SR.[Round], SR.SkierRunNum ASC "
 

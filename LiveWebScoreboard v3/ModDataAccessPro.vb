@@ -1640,7 +1640,20 @@ Module ModDataAccessPro
         Dim cmdRead As New OleDb.OleDbCommand
         cmdRead.CommandType = CommandType.Text
 
-        sSQL = "select distinct skiername, Div, scorerunoff from vSlalomResults "
+        ' Determine which database view to use based on event
+        Dim sViewName As String = ""
+        Select Case UCase(sEvent)
+            Case "SLALOM", "S"
+                sViewName = "vSlalomResults"
+            Case "TRICK", "T"
+                sViewName = "vTrickResults"
+            Case "JUMP", "J"
+                sViewName = "vJumpResults"
+            Case Else
+                sViewName = "vSlalomResults" ' Default to Slalom for backwards compatibility
+        End Select
+        
+        sSQL = "select distinct skiername, Div, scorerunoff from " & sViewName & " "
         sSQL += " where SanctionId = '" & SanctionID & "' and ScoreRunoff IS NOT NULL and Div = '" & sDv & "' "
         sSQL += " order by div, ScoreRunoff desc"
         Using Cnnt

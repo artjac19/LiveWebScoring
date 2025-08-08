@@ -84,7 +84,7 @@
           <div class="dropdown"> under title</div>
 
 
-<div class="container ms-0">
+<div class="container ms-0" id="scores">
     <asp:Panel ID="Panel_OnWater" runat="server" Visible="false">
         <div class="row">
             <div class="col-xxl box ms-0" id="OnWater" runat="server" ></div>

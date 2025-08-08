@@ -92,7 +92,7 @@ background-color:aqua;
         
         <!-- Display created in code and put into div id=InsertHere.  AJAX reload that div when reload button is clicked. -->
       
-<div class="container-fluid ms-0">
+<div class="container-fluid ms-0" id="scores">
 
     <asp:Panel ID="Panel_OnWater" runat="server" Visible="True">
         <div class="row">
