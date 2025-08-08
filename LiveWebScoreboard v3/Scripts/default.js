@@ -692,13 +692,239 @@
             });
         },
 
+        loadRecentScores: function() {
+            // Stop infinite scroll and clean up any existing observers/state
+            this.stopInfiniteScroll();
+            
+            // Show loading message
+            $('#leaderboardContent').html('<div><p>Loading recent scores...</p></div>');
+            
+            // Call GetLeaderboardSP.aspx with a new parameter to get recent scores
+            $.getJSON('GetLeaderboardSP.aspx', {
+                SID: AppState.currentSelectedTournamentId,
+                SY: "0",
+                TN: AppState.currentTournamentName,
+                FC: this.currentTournamentInfo.formatCode,
+                FT: '0',
+                UN: '0',
+                UT: '0',
+                GET_RECENT_SCORES: '1',  // New parameter to trigger recent scores
+                OFFSET: 0                // Start from the beginning (first 20 records)
+            })
+            .done((response) => {
+                if (response.success && response.recentScores && response.recentScores.length > 0) {
+                    this.displayRecentScores(response.recentScores);
+                } else {
+                    $('#leaderboardContent').html('<div><p>No recent scores found</p></div>');
+                }
+            })
+            .fail((error) => {
+                $('#leaderboardContent').html('<div><p>Error loading recent scores</p></div>');
+            });
+        },
+
+        stopInfiniteScroll: function() {
+            // Disconnect the intersection observer
+            if (this.intersectionObserver) {
+                this.intersectionObserver.disconnect();
+                this.intersectionObserver = null;
+            }
+            
+            // Clear the batch loading state variables
+            this.allPrioritizedDivisions = null;
+            this.currentBatchIndex = 0;
+            this.isLoading = false;
+        },
+
+        displayRecentScores: function(recentScores) {
+            // Store initial scores and set up pagination state
+            this.allRecentScores = recentScores;
+            this.currentRecentScoresIndex = 0;
+            this.recentScoresOffset = 0; // Track how many records we've loaded
+            this.isLoadingRecentScores = false;
+            
+            // Display first batch
+            this.renderRecentScoresTable();
+            
+            // Set up infinite scroll for recent scores
+            this.setupRecentScoresInfiniteScroll();
+        },
+
+        renderRecentScoresTable: function() {
+            let html = '<div class="recent-scores-section">';
+            html += '<table id="recentScoresTable">';
+            html += '<tr class="table-header-row"><th>Time</th><th>Skier</th><th>Event</th><th>Score</th></tr>';
+            
+            this.allRecentScores.forEach((score, index) => {
+                const timeAgo = this.formatTimeAgo(score.insertDate);
+                const eventName = this.getEventName(score.event);
+                
+                // Create merged event column: [Event] [Division], [Round]
+                const mergedEvent = `${eventName} ${score.division}, R${score.round}`;
+                
+                // Create skier link similar to other leaderboards
+                const skierLink = `<a href="Trecap?SID=${score.sanctionId}&SY=0&MID=${score.memberId}&DV=${score.division}&EV=${score.event}&TN=${AppState.currentTournamentName}&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=${encodeURIComponent(score.skierName)}"><strong>${score.skierName}</strong></a>`;
+                
+                // Add a class to the last row for intersection observer
+                const isLastRow = index === this.allRecentScores.length - 1;
+                const rowClass = isLastRow ? ' class="recent-scores-last-row"' : '';
+                
+                html += `<tr${rowClass}>`;
+                html += `<td><small>${timeAgo}</small></td>`;
+                html += `<td>${skierLink}</td>`;
+                html += `<td>${mergedEvent}</td>`;
+                html += `<td>${score.eventScoreDesc}</td>`;
+                html += '</tr>';
+            });
+            
+            html += '</table>';
+            html += '</div>';
+            
+            $('#leaderboardContent').html(html);
+        },
+
+        setupRecentScoresInfiniteScroll: function() {
+            const self = this;
+            
+            // Clean up any existing observer
+            if (this.recentScoresObserver) {
+                this.recentScoresObserver.disconnect();
+                this.recentScoresObserver = null;
+            }
+            
+            // Create intersection observer to watch for last row coming into view
+            this.recentScoresObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !self.isLoadingRecentScores) {
+                        self.loadMoreRecentScores();
+                    }
+                });
+            }, {
+                rootMargin: '100px' // Trigger when row is 100px from being visible
+            });
+            
+            // Start observing the last row if it exists
+            this.observeLastRecentScoreRow();
+        },
+
+        observeLastRecentScoreRow: function() {
+            if (!this.recentScoresObserver) return;
+            
+            const lastRow = document.querySelector('#recentScoresTable .recent-scores-last-row');
+            if (lastRow) {
+                this.recentScoresObserver.observe(lastRow);
+            }
+        },
+
+        formatTimeAgo: function(dateString) {
+            try {
+                if (!dateString || dateString === '') return 'Unknown';
+                
+                const now = new Date();
+                let scoreDate;
+                
+                // Handle .NET JavaScriptSerializer date format: /Date(timestamp)/
+                if (typeof dateString === 'string' && dateString.startsWith('/Date(') && dateString.endsWith(')/')) {
+                    // Extract the timestamp from /Date(1754687243000)/
+                    const timestampMatch = dateString.match(/\/Date\((\d+)\)\//);
+                    if (timestampMatch) {
+                        const timestamp = parseInt(timestampMatch[1]);
+                        scoreDate = new Date(timestamp);
+                    } else {
+                        return 'Invalid Date Format';
+                    }
+                } else {
+                    // Try normal date parsing
+                    scoreDate = new Date(dateString);
+                }
+                
+                // Check if we have a valid date
+                if (isNaN(scoreDate.getTime())) {
+                    console.error('Invalid date after parsing:', dateString);
+                    return 'Invalid Date';
+                }
+                
+                const diffMs = now - scoreDate;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMins / 60);
+                
+                if (diffMins < 1) return 'Just now';
+                if (diffMins < 60) return `${diffMins}m ago`;
+                if (diffHours < 24) return `${diffHours}h ${diffMins % 60}m ago`;
+                return scoreDate.toLocaleDateString();
+            } catch (e) {
+                console.error('Error formatting date:', dateString, e);
+                return 'Date Error';
+            }
+        },
+
+        loadMoreRecentScores: function() {
+            if (this.isLoadingRecentScores) return;
+            
+            this.isLoadingRecentScores = true;
+            
+            // Load next batch of 20 records by incrementing offset
+            this.recentScoresOffset = this.allRecentScores.length;
+            
+            // Call GetLeaderboardSP.aspx for next batch of scores
+            $.getJSON('GetLeaderboardSP.aspx', {
+                SID: AppState.currentSelectedTournamentId,
+                SY: "0",
+                TN: AppState.currentTournamentName,
+                FC: this.currentTournamentInfo.formatCode,
+                FT: '0',
+                UN: '0',
+                UT: '0',
+                GET_RECENT_SCORES: '1',
+                OFFSET: this.recentScoresOffset
+            })
+            .done((response) => {
+                this.isLoadingRecentScores = false;
+                
+                if (response.success && response.recentScores && response.recentScores.length > 0) {
+                    // Add new scores to the existing array (no need to filter since OFFSET ensures no duplicates)
+                    this.allRecentScores.push(...response.recentScores);
+                    
+                    // Re-render the table with all scores
+                    this.renderRecentScoresTable();
+                    
+                    // Re-setup the observer for the new last row
+                    this.observeLastRecentScoreRow();
+                } else {
+                    // No more scores available, disable further loading
+                    if (this.recentScoresObserver) {
+                        this.recentScoresObserver.disconnect();
+                        this.recentScoresObserver = null;
+                    }
+                }
+            })
+            .fail((error) => {
+                this.isLoadingRecentScores = false;
+                console.error('Error loading more recent scores:', error);
+            });
+        },
+
         getEventName: function(eventCode) {
-            switch(eventCode) {
-                case 'S': return 'Slalom';
-                case 'T': return 'Trick';
-                case 'J': return 'Jump';
-                case 'O': return 'Overall';
-                default: return 'Unknown';
+            // Handle different possible event formats from database
+            if (!eventCode) return 'Unknown';
+            
+            const code = eventCode.toString().toUpperCase();
+            switch(code) {
+                case 'S':
+                case 'SLALOM': 
+                    return 'Slalom';
+                case 'T':
+                case 'TRICK': 
+                    return 'Trick';
+                case 'J':
+                case 'JUMP': 
+                    return 'Jump';
+                case 'O':
+                case 'OVERALL': 
+                    return 'Overall';
+                default: 
+                    console.log('Unknown event code:', eventCode);
+                    return 'Unknown (' + eventCode + ')';
             }
         },
 
@@ -781,6 +1007,7 @@
             const eventFilters = $('#eventFilters');
             eventFilters.empty();
             eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
+            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="MIXED">Mixed</button>');
             
             if (data.availableEvents && data.availableEvents.length > 0) {
                 data.availableEvents.forEach(event => {
@@ -922,6 +1149,13 @@
             const hasDivision = selectedDivision && selectedDivision !== 'MOST_RECENT' && selectedDivision !== 'ALL';
             const isAlphabetical = selectedDivision === 'ALL';
             const isMostRecent = selectedDivision === 'MOST_RECENT';
+            const isMixed = selectedEvent === 'MIXED';
+            
+            // Case 0: Mixed recent scores
+            if (isMixed) {
+                this.loadRecentScores();
+                return;
+            }
             
             // Case 1: No filters selected / Most Recent (default)
             if (isMostRecent) {

@@ -29,6 +29,7 @@ Public Class GetLeaderboardSP
             Dim sLoadAllDivisions As String = Request("LOAD_ALL_DIVISIONS")
             Dim sBatchDivisions As String = Request("BATCH_DIVISIONS")
             Dim sForcePlacement As String = Request("FORCE_PLACEMENT")
+            Dim sGetRecentScores As String = Request("GET_RECENT_SCORES")
 
             ' Validate required parameters
             If String.IsNullOrEmpty(sSanctionID) OrElse String.IsNullOrEmpty(sYrPkd) OrElse
@@ -111,6 +112,20 @@ Public Class GetLeaderboardSP
                 jsonResponse = serializer.Serialize(New With {
                     .success = True,
                     .availableDivisions = allDivisions
+                })
+                ' Return recent scores from all events
+            ElseIf sGetRecentScores = "1" Then
+                ' Use offset parameter for pagination, default to 0
+                Dim offsetRows As Integer = 0
+                If Not String.IsNullOrEmpty(Request("OFFSET")) Then
+                    Integer.TryParse(Request("OFFSET"), offsetRows)
+                End If
+                
+                Dim recentScores = ModDataAccess3.GetRecentScores(sSanctionID, 20, offsetRows)
+                Dim serializer As New JavaScriptSerializer()
+                jsonResponse = serializer.Serialize(New With {
+                    .success = True,
+                    .recentScores = recentScores
                 })
                 ' Load multiple divisions using multiple calls to LeaderBoardBestRndLeftSP
             ElseIf Not String.IsNullOrEmpty(sBatchDivisions) Then

@@ -5244,4 +5244,133 @@ Module ModDataAccess3
         Return divisions
     End Function
 
+    Public Function GetRecentScores(ByVal sanctionId As String, Optional ByVal maxScores As Integer = 20, Optional ByVal offsetRows As Integer = 0) As List(Of Object)
+        ' Get recent scores using custom SQL query with OFFSET/FETCH pagination
+        ' Returns up to maxScores recent scores starting from offsetRows
+        Dim recentScores As New List(Of Object)
+        Dim sMsg As String = ""
+        Dim sErrDetails As String = ""
+        
+        System.Diagnostics.Debug.WriteLine("[DEBUG] GetRecentScores starting for sanctionId: " & sanctionId & ", maxScores: " & maxScores & ", offsetRows: " & offsetRows)
+        
+        Dim sConn As String = ""
+        Try
+            If ConfigurationManager.ConnectionStrings("S_UseLocal_Scoreboard").ConnectionString = 0 Then
+                sConn = ConfigurationManager.ConnectionStrings("LWS_Prod").ConnectionString
+            Else
+                sConn = ConfigurationManager.ConnectionStrings("Local_SS_WP23").ConnectionString
+            End If
+        Catch ex As Exception
+            System.Diagnostics.Debug.WriteLine("[DEBUG] GetRecentScores connection error: " & ex.Message)
+            Return recentScores
+        End Try
+
+        ' Build custom SQL query with OFFSET/FETCH for pagination
+        Dim sqlQuery As String = "
+            SELECT TR.SkierName, TR.SanctionId, TR.MemberId, TR.SkiYearAge, TR.AgeGroup, TR.AgeGroup as Div, TR.Gender, TR.City, TR.State, TR.Federation
+                , ER.Event, COALESCE(SS.EventClass, ER.EventClass) as EventClass, ER.EventGroup, ER.TeamCode, COALESCE(ER.ReadyForPlcmt, 'N') as ReadyForPlcmt
+                , ER.RankingRating, ER.RankingScore
+                , SS.Round, COALESCE(SS.Status, 'TBD') AS Status, SS.NopsScore
+                , TRIM(CAST(SS.FinalPassScore AS CHAR)) + ' @ ' + TRIM(CAST(SS.FinalSpeedMph AS CHAR)) + 'mph ' + TRIM(SS.FinalLenOff) 
+                    + ' (' + TRIM(CAST(SS.FinalSpeedKph AS CHAR)) + 'kph ' + TRIM(SS.FinalLen) + 'm) ' 
+                    + CAST(SS.Score AS CHAR)+ ' Buoys' AS EventScoreDesc
+                , SS.InsertDate
+            FROM TourReg AS TR 
+            INNER JOIN EventReg AS ER ON ER.MemberId = TR.MemberId AND ER.SanctionId = TR.SanctionId AND ER.AgeGroup = TR.AgeGroup AND ER.Event = 'Slalom' 
+            INNER JOIN SlalomScore AS SS ON SS.MemberId = TR.MemberId AND SS.SanctionId = TR.SanctionId AND SS.AgeGroup = TR.AgeGroup
+            WHERE TR.SanctionId = ?
+            
+            UNION
+            
+            SELECT TR.SkierName, TR.SanctionId, TR.MemberId, TR.SkiYearAge, TR.AgeGroup, TR.AgeGroup as Div, TR.Gender, TR.City, TR.State, TR.Federation
+                , ER.Event, COALESCE(SS.EventClass, ER.EventClass) as EventClass, ER.EventGroup, ER.TeamCode, COALESCE(ER.ReadyForPlcmt, 'N') as ReadyForPlcmt
+                , ER.RankingRating, ER.RankingScore
+                , SS.Round, COALESCE(SS.Status, 'TBD') AS Status, SS.NopsScore
+                , TRIM(CAST(SS.Score AS CHAR)) + ' POINTS (P1:' + TRIM(CAST(SS.ScorePass1 AS CHAR)) + ' P2:' + TRIM(CAST(SS.ScorePass2 AS CHAR)) + ')' AS EventScoreDesc
+                , SS.InsertDate
+            FROM TourReg AS TR 
+            INNER JOIN EventReg AS ER ON ER.MemberId = TR.MemberId AND ER.SanctionId = TR.SanctionId AND ER.AgeGroup = TR.AgeGroup AND ER.Event = 'Trick' 
+            INNER JOIN TrickScore AS SS ON SS.MemberId = TR.MemberId AND SS.SanctionId = TR.SanctionId AND SS.AgeGroup = TR.AgeGroup
+            WHERE TR.SanctionId = ?
+            
+            UNION
+            
+            SELECT TR.SkierName, TR.SanctionId, TR.MemberId, TR.SkiYearAge, TR.AgeGroup, TR.AgeGroup as Div, TR.Gender, TR.City, TR.State, TR.Federation
+                , ER.Event, COALESCE(SS.EventClass, ER.EventClass) as EventClass, ER.EventGroup, ER.TeamCode, COALESCE(ER.ReadyForPlcmt, 'N') as ReadyForPlcmt
+                , ER.RankingRating, ER.RankingScore
+                , SS.Round, COALESCE(SS.Status, 'TBD') AS Status, SS.NopsScore
+                , TRIM(CAST(ROUND(SS.ScoreFeet, 0) AS CHAR)) + 'FT (' + TRIM(CAST(ROUND(SS.ScoreMeters, 1) AS CHAR)) + 'M)' AS EventScoreDesc
+                , SS.InsertDate
+            FROM TourReg AS TR 
+            INNER JOIN EventReg AS ER ON ER.MemberId = TR.MemberId AND ER.SanctionId = TR.SanctionId AND ER.AgeGroup = TR.AgeGroup AND ER.Event = 'Jump' 
+            INNER JOIN JumpScore AS SS ON SS.MemberId = TR.MemberId AND SS.SanctionId = TR.SanctionId AND SS.AgeGroup = TR.AgeGroup
+            WHERE TR.SanctionId = ?
+            
+            ORDER BY InsertDate DESC
+            OFFSET ? ROWS
+            FETCH NEXT ? ROWS ONLY"
+
+        Using connection As New OleDb.OleDbConnection(sConn)
+            Try
+                Using command As New OleDb.OleDbCommand()
+                    command.Connection = connection
+                    command.CommandType = CommandType.Text
+                    command.CommandText = sqlQuery
+                    
+                    ' Add parameters (3 for SanctionId in each UNION, 1 for OFFSET, 1 for FETCH)
+                    command.Parameters.Add("@SanctionId1", OleDb.OleDbType.VarChar, 6).Value = sanctionId
+                    command.Parameters.Add("@SanctionId2", OleDb.OleDbType.VarChar, 6).Value = sanctionId
+                    command.Parameters.Add("@SanctionId3", OleDb.OleDbType.VarChar, 6).Value = sanctionId
+                    command.Parameters.Add("@OffsetRows", OleDb.OleDbType.Integer).Value = offsetRows
+                    command.Parameters.Add("@MaxScores", OleDb.OleDbType.Integer).Value = maxScores
+                    
+                    System.Diagnostics.Debug.WriteLine("[DEBUG] Calling custom SQL query with:")
+                    System.Diagnostics.Debug.WriteLine("[DEBUG] SanctionId = '" & sanctionId & "'")
+                    System.Diagnostics.Debug.WriteLine("[DEBUG] OffsetRows = " & offsetRows)
+                    System.Diagnostics.Debug.WriteLine("[DEBUG] MaxScores = " & maxScores)
+                    
+                    connection.Open()
+                    
+                    Using reader As OleDb.OleDbDataReader = command.ExecuteReader()
+                        Dim scoreCount As Integer = 0
+                        
+                        While reader.Read()
+                            scoreCount += 1
+                            
+                            Dim score As New With {
+                                .skierName = If(IsDBNull(reader("SkierName")), "", reader("SkierName").ToString()),
+                                .sanctionId = If(IsDBNull(reader("SanctionId")), "", reader("SanctionId").ToString()),
+                                .memberId = If(IsDBNull(reader("MemberId")), "", reader("MemberId").ToString()),
+                                .division = If(IsDBNull(reader("Div")), "", reader("Div").ToString()),
+                                .event = If(IsDBNull(reader("Event")), "", reader("Event").ToString()),
+                                .round = If(IsDBNull(reader("Round")), 0, Convert.ToInt32(reader("Round"))),
+                                .status = If(IsDBNull(reader("Status")), "TBD", reader("Status").ToString()),
+                                .eventScoreDesc = If(IsDBNull(reader("EventScoreDesc")), "", reader("EventScoreDesc").ToString()),
+                                .nopsScore = If(IsDBNull(reader("NopsScore")), 0.0, Convert.ToDouble(reader("NopsScore"))),
+                                .insertDate = If(IsDBNull(reader("InsertDate")), DateTime.MinValue, Convert.ToDateTime(reader("InsertDate"))),
+                                .city = If(IsDBNull(reader("City")), "", reader("City").ToString()),
+                                .state = If(IsDBNull(reader("State")), "", reader("State").ToString()),
+                                .eventClass = If(IsDBNull(reader("EventClass")), "", reader("EventClass").ToString()),
+                                .readyForPlcmt = If(IsDBNull(reader("ReadyForPlcmt")), "N", reader("ReadyForPlcmt").ToString())
+                            }
+                            
+                            recentScores.Add(score)
+                            
+                            ' Debug first few records
+                            If scoreCount <= 3 Then
+                                System.Diagnostics.Debug.WriteLine("[DEBUG] Score #" & scoreCount & ": " & score.skierName & " - " & score.event & " " & score.division & " R" & score.round & " - " & score.eventScoreDesc & " @ " & score.insertDate)
+                            End If
+                        End While
+                        
+                        System.Diagnostics.Debug.WriteLine("[DEBUG] Custom SQL query returned " & scoreCount & " scores (offset: " & offsetRows & ", limit: " & maxScores & ")")
+                    End Using
+                End Using
+            Catch ex As Exception
+                System.Diagnostics.Debug.WriteLine("[DEBUG] GetRecentScores exception: " & ex.Message)
+            End Try
+        End Using
+
+        Return recentScores
+    End Function
+
 End Module
