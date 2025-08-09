@@ -26,6 +26,29 @@ Public Class _default
             If Request("EM") IsNot Nothing Then
                 lbl_Errors.Text = Request("EM")
             End If
+
+            ' Handle search parameter from URL
+            If Request("search") IsNot Nothing Then
+                Dim searchInput As String = Trim(Request("search"))
+                TB_SanctionID.Text = searchInput
+
+                ' Perform the same search logic as Btn_SanctionID_ServerClick
+                If Regex.IsMatch(searchInput, "^[0-9][0-9][CEMSWUX][0-9][0-9][0-9]$") Then
+                    Response.Redirect("Tournament.aspx?SN=" & searchInput & "&FM=1&SY=0")
+                    Exit Sub
+                Else
+                    Dim sResultsHtml As String = ModDataAccess3.SearchTournamentsByKeyword(searchInput)
+                    If sResultsHtml.Contains("No tournaments found") Then
+                        Lbl_TournamentErrors.Text = "No tournaments found matching your search."
+                        TList.InnerHtml = ""
+                    Else
+                        TList.InnerHtml = sResultsHtml
+                        Lbl_TournamentErrors.Text = ""
+                        ResetFilterButtons()
+                        ResetRegionButtons()
+                    End If
+                End If
+            End If
         End If
     End Sub
 
@@ -123,7 +146,7 @@ Public Class _default
         If Regex.IsMatch(sInput, "^[0-9][0-9][CEMSWUX][0-9][0-9][0-9]$") Then
             ' Test our new function when a valid sanction ID is entered
             Dim recentDivs = ModDataAccess3.GetDvMostRecent(sInput, "S")
-            
+
             ' Sanction number - redirect as before
             Response.Redirect("Tournament.aspx?SN=" & sInput & "&FM=1&SY=0")
             Exit Sub
@@ -139,9 +162,12 @@ Public Class _default
 
         TList.InnerHtml = sResultsHtml
         Lbl_TournamentErrors.Text = ""
-        
+
         ' Reset filter buttons when search results are loaded
         ResetFilterButtons()
         ResetRegionButtons()
+
+        ' Redirect to avoid POST resubmission popup on refresh
+        Response.Redirect("default.aspx?search=" & Server.UrlEncode(sInput))
     End Sub
 End Class

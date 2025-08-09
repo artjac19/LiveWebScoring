@@ -3526,8 +3526,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
 
         Dim sLine As String = ""
         Dim Cnnt As New OleDb.OleDbConnection(sConn)
-        sText = "<Table class=""table "">"
-        '        sText += "<thead clase=""table-primary""><tr><td colspan=""6""><b>Slalom Recap for " & sSkierName & "</b></td></tr></head>"
+        sText = "<h3>Slalom Recap for " & sSkierName & " " & sAgeGroup & "</h3>"
         Dim cmdRead As New OleDb.OleDbCommand
         Dim MyDataReader As OleDb.OleDbDataReader = Nothing
         Dim sCkRows As Boolean = False
@@ -3620,24 +3619,33 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                             Else
                                 sLastUpdateDate = CStr(MyDataReader.Item("LastUpdateDate"))
                             End If
-                            If sTmpRound <> sRound Then  '
+                            If sTmpRound <> sRound Then
+                                ' Close previous table if it exists
+                                If sTmpRound > 0 Then
+                                    sText += "</table><br/>"
+                                End If
 
-
-                                sText += "<tr class=""table-info""><td  colspan=""3"" class=""text-start""><b>" & sSkierName & "  " & sAgeGroup & " Ranking Score: " & sRankingScore & "</td><td colspan=""3""><b>&nbsp; &nbsp; &nbsp;  " & sCity & ",   " & sState & "   " & sFederation & "  </b></td></tr>"
-                                sText += "<tr Class=""table-info""><td  colspan=""6""><b>Round " & sRound & " Slalom Recap " & " &nbsp; Class " & sEventClass & " &nbsp;&nbsp; <span Class=""bg-danger text-white"" >  UNOFFICIAL Score: " & sBuoys & " Buoys</span></b> as of " & sLastUpdateDate & "</td></tr>"
-
-                                sText += "<tr><th>Score</th><th>Pass Detail</th><th>Reride</th><th>Protected</th><th>Class</th></tr></thead>"
+                                ' Start new table for this round
+                                sText += "<h4>Round " & sRound & " - Class " & sEventClass & " " & sBuoys & " Buoy</h4>"
+                                sText += "<p><strong>" & sSkierName & " " & sAgeGroup & "</strong> - Ranking Score: " & sRankingScore & " | " & sCity & ", " & sState & " " & sFederation & "</p>"
+                                sText += "<p><em>Updated: " & sLastUpdateDate & "</em></p>"
+                                sText += "<table class=""table table-striped"">"
+                                sText += "<thead class=""table-dark"">"
+                                sText += "<tr><th>Score</th><th>Pass Detail</th><th>Reride</th><th>Protected</th><th>Class</th></tr>"
+                                sText += "</thead><tbody>"
                                 sTmpRound = sRound
                             End If
                             sText += "<tr><td>" & sScore & "</td><td>" & sNote & "</td><td>" & sReride & "</td><td>" & sProtected & "</td><td>" & sEventClass & "</td></tr>"
                             If sReride = "Y" Then
-                                sHighlightRerideReason = " class = ""table-danger"" "
+                                sHighlightRerideReason = " "
                                 sText += "<tr><td " & sHighlightRerideReason & " colspan=""5"">At " & sPsLnLngth & "M Pass, Reride Reason " & sRerideReason & "</td></tr>"
                                 sHighlightRerideReason = ""
                             End If
                         Loop
+                        ' Close the last table
+                        sText += "</tbody></table>"
                     Else
-                        sText += "<tr><td class=""table-warning"" colspan=""5"">No Slalom results Found For selected skier.</td></tr>"
+                        sText += "<p>No Slalom results found for selected skier.</p>"
                     End If 'end of has rows
                 End Using
 
@@ -3645,7 +3653,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                 sMsg += "Error Can 't retrieve Slalom Scores. "
                 sErrDetails = ex.Message & "<br> " & ex.StackTrace & "<br>""error at SRecapQry:SQL= " & sSQL
             Finally
-                sText += "</table>"
+                ' Table closing is now handled properly above
             End Try
         End Using
         If Len(sMsg) > 2 Then
@@ -3725,7 +3733,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
         Dim sEventClass As String = ""
         Dim sLine As String = ""
         Dim Cnnt As New OleDb.OleDbConnection(sConn)
-        Dim sTableMstr As String = "<Table class=""table"">" 'Table row holding first round information
+        Dim sTableMstr As String = "<table>" 'Table row holding first round information
         Dim sTableRound As String = ""
         Dim cmdRead As New OleDb.OleDbCommand
         Dim MyDataReader As OleDb.OleDbDataReader = Nothing
@@ -3791,11 +3799,11 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                             If sTmpRound = 0 Then 'This is the first round. set up row in master table and round Table that holds both passes
                                 sTmpRound = sRound
                                 sTableMstr += "<tr><td>" 'row that will hold Rounds tables
-                                sTableRound = "<Table class=""table"">"
-                                sTableRound += "<tr><td Class=""table-primary""><b>Trick Recap: " & sSkierName & " &nbsp;" & sAgeGroup & " Class " & sEventClass & " Round " & sRound & "</b></td><td class=""table-primary""><span class=""bg-danger text-white"" >  UNOFFICIAL </span><b> &nbsp;Score " & sRoundScore & "</b> as of " & sLastUpdateDate & "</td></tr>"
+                                sTableRound = "<table>"
+                                sTableRound += "<tr><td><b>Trick Recap: " & sSkierName & " &nbsp;" & sAgeGroup & " Class " & sEventClass & " Round " & sRound & "</b></td><td class=""table-primary""><span class=""bg-danger text-white"" >  UNOFFICIAL </span><b> &nbsp;Score " & sRoundScore & "</b> as of " & sLastUpdateDate & "</td></tr>"
                                 sTableRound += "<tr><td>" 'row containing left and right tables
-                                sPassTable = "<Table Class=""table table-warning"">"  'Pass 1 table
-                                sPassTable += "<thead><tr Class=""table-info""><th colspan=""4""> Pass: " & sPass & "&nbsp; Score " & sP1Score & "</th></tr>"
+                                sPassTable = "<table>"  'Pass 1 table
+                                sPassTable += "<thead><tr><th colspan=""4""> Pass: " & sPass & "&nbsp; Score " & sP1Score & "</th></tr>"
                                 sPassTable += "<tr><th>Skis</th><th>Code</th><th>Results</th><th>Score</th></tr></head>"
                                 'reset for new round
                                 sTmpPass = sPass
@@ -3808,7 +3816,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                             If sRound = sTmpRound Then 'Beginning pass 1
                                 If sTmpPass = sPass Then  'still in same round and pass
                                     'display next trick.  subtotal points?
-                                    sPassTable += "<tr bncolor=""#FFB6C1""><td>" & sSkis & "</td><td>" & sCode & "</td><td>" & sResults & "</td><td>" & sTrkScore & "</td></tr>"
+                                    sPassTable += "<tr><td>" & sSkis & "</td><td>" & sCode & "</td><td>" & sResults & "</td><td>" & sTrkScore & "</td></tr>"
                                 End If
                                 If sTmpPass <> sPass Then  'Could use if sPass = 2
                                     'close out pass 1 
@@ -3818,11 +3826,11 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                     sPassTable = ""
                                     ' set up pass 2
                                     sTmpPass = sPass  'should be 2
-                                    sPassTable = "<Table Class=""table table-warning"">"
-                                    sPassTable += "<thead><tr class=""table-info""><th colspan=""4"">  Pass: " & sPass & "&nbsp;Score " & sP2Score & "</th></tr>"
+                                    sPassTable = "<table>"
+                                    sPassTable += "<thead><tr><th colspan=""4"">  Pass: " & sPass & "&nbsp;Score " & sP2Score & "</th></tr>"
                                     sPassTable += "<tr><th>Skis</th><th>Code</th><th>Results</th><th>Score</th></tr></thead>"
                                     'display next trick. subtotal points?
-                                    sPassTable += "<tr bncolor=""#FFB6C1""><td>" & sSkis & "</td><td>" & sCode & "</td><td>" & sResults & "</td><td>" & sTrkScore & "</td></tr>"
+                                    sPassTable += "<tr><td>" & sSkis & "</td><td>" & sCode & "</td><td>" & sResults & "</td><td>" & sTrkScore & "</td></tr>"
                                 End If
                             End If
                             ' COULD USE ELSE
@@ -3843,11 +3851,11 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                 sTmpRound = sRound
                                 sTmpPass1Url = sPass1URL
                                 sTmpPass2URL = sPass2URL
-                                sTableRound = "<Table class=""table"">"
-                                sTableRound += "<tr><td Class=""table-primary""><b>Trick Recap: " & sSkierName & " &nbsp;" & sAgeGroup & " Class " & sEventClass & " Round " & sRound & "</b></td><td class=""table-primary""><span class=""bg-danger text-white"" >  UNOFFICIAL </span><b> &nbsp;Score " & sRoundScore & "</b> as of " & sLastUpdateDate & "</td></tr>"
+                                sTableRound = "<table>"
+                                sTableRound += "<tr><td><b>Trick Recap: " & sSkierName & " &nbsp;" & sAgeGroup & " Class " & sEventClass & " Round " & sRound & "</b></td><td><b> &nbsp;Score " & sRoundScore & "</b> as of " & sLastUpdateDate & "</td></tr>"
                                 sTableRound += "<tr><td>" 'row containing left and right tables
-                                sPassTable = "<Table Class=""table table-warning"">"  'Pass 1 table
-                                sPassTable += "<thead><tr Class=""table-info""><th colspan=""4""> Pass: " & sPass & "&nbsp; Score " & sP1Score & "</th></tr>"
+                                sPassTable = "<table>"  'Pass 1 table
+                                sPassTable += "<thead><tr><th colspan=""4""> Pass: " & sPass & "&nbsp; Score " & sP1Score & "</th></tr>"
                                 sPassTable += "<tr><th>Skis</th><th>Code</th><th>Results</th><th>Score</th></tr></head>"
                                 'reset for new round
                                 sTmpPass = sPass  'pass number of next round
@@ -3855,12 +3863,12 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                 sP2SubTotal = 0
                                 sTotalScore = 0
                                 'Add first row of new round
-                                sPassTable += "<tr bncolor=""#FFB6C1""><td>" & sSkis & "</td><td>" & sCode & "</td><td>" & sResults & "</td><td>" & sTrkScore & "</td></tr>"
+                                sPassTable += "<tr><td>" & sSkis & "</td><td>" & sCode & "</td><td>" & sResults & "</td><td>" & sTrkScore & "</td></tr>"
                             End If
 
                         Loop
                     Else
-                        sTableMstr += "<tr class=""table-warning"" colspan=""2""><td>No Trick results Found For selected skier.</td></tr>"  'close row here and table in Finally
+                        sTableMstr += "<tr colspan=""2""><td>No Trick results Found For selected skier.</td></tr>"  'close row here and table in Finally
                     End If 'end of has rows
                 End Using
 
@@ -4037,20 +4045,20 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                 sLastUpdateDate = CStr(MyDataReader.Item("LastUpdateDate"))
                             End If
                             If sTmpRound <> sRound Then
-                                sText += "<tr class=""table-primary""><td colspan=""7""><span class=""bg-danger text-white"">  UNOFFICIAL </span> <b>Round " & sRound & " Distance for " & sSkierName & " " & sAgeGroup & "  Class " & sEventClass & " </b> as of " & sLastUpdateDate & "</td></tr>"
+                                sText += "<tr><td colspan=""7""><b>Round " & sRound & " Distance for " & sSkierName & " " & sAgeGroup & "  Class " & sEventClass & " </b> as of " & sLastUpdateDate & "</td></tr>"
                                 sText += "<tr><th>Result<th>Pass</th><th> Ft  Mtr </th><th>Speed</th><th>RmpHt</th><th>Reride</th><th>Score Protect</th></tr>"
                                 sTmpRound = sRound
                             End If
                             sText += "<tr><td>" & sResults & "</td><td>" & sPass & "</td><td>" & sFeet & "&nbsp;" & sMeters & "</td><td>" & sBSpeed & "</td><td>" & sRmpHt & "</td><td>" & sReride & "</td><td>" & sProtected & "</td></tr>"
                             If sReride = "Y" Then
-                                sHighlightRerideReason = " class = ""table-danger"" "
+                                sHighlightRerideReason = ""
                                 sText += "<tr><td " & sHighlightRerideReason & " colspan=""7"">Pass# " & sPass & " " & sRerideReason & "</td></tr>"
                                 sHighlightRerideReason = ""
                             End If
 
                         Loop
                     Else
-                        sText += "<tr Class=""table-warning""><td colspan=""6"">No Jump results Found For selected skier.</td></tr>"
+                        sText += "<tr><td colspan=""6"">No Jump results Found For selected skier.</td></tr>"
                     End If 'end of has rows
                 End Using
 
@@ -4124,8 +4132,8 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
         Dim sEventClass As String = ""
         Dim sLine As String = ""
         Dim Cnnt As New OleDb.OleDbConnection(sConn)
-        sText = "<Table class=""table table-striped border-1 "">"
-        sText += "<thead><tr Class=""table-primary""><td colspan=""6""><span class=""bg-danger text-white"">UNOFFICIAL</span><b>Overall Scores for " & sSkierName & "</b></td></tr>"
+        sText = "<table>"
+        sText += "<thead><tr><td colspan=""6""><b>Overall Scores for " & sSkierName & "</b></td></tr>"
         sText += "<tr><th>Age Group</th><th>Rnd</th><th>Overall Score</th><th>Slalom Nops</th><th>Trick Nops</th><th>Jump Nops</th></tr></thead>"
         Dim cmdRead As New OleDb.OleDbCommand
         Dim MyDataReader As OleDb.OleDbDataReader = Nothing
@@ -4233,10 +4241,10 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                         If sDataLine <> "" Then
                             sText += sDataLine
                         Else
-                            sText = "<table class=""table""><tr Class=""table-warning""><td colspan=""6"">No Overall results Found For selected skier.</td></tr>"
+                            sText = "<table><tr><td colspan=""6"">No Overall results Found For selected skier.</td></tr>"
                         End If
                     Else
-                        sText += "<tr Class=""table-warning""><td colspan=""6"">No Overall results Found For selected skier.</td></tr>"
+                        sText += "<tr><td colspan=""6"">No Overall results Found For selected skier.</td></tr>"
                     End If 'end of has rows
                 End Using
 

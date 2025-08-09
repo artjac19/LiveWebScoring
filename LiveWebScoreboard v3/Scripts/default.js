@@ -145,6 +145,27 @@
             
             AppState.currentSelectedTournamentId = sanctionId;
             AppState.currentTrickVideoText = trickVideoText || '';
+            
+            // Add sanctionId to URL parameters while preserving existing ones
+            const currentUrl = new URL(window.location);
+            const params = {};
+            
+            // Preserve existing search and filter parameters
+            if (currentUrl.searchParams.get('search')) {
+                params.search = currentUrl.searchParams.get('search');
+            }
+            if (currentUrl.searchParams.get('YR')) {
+                params.YR = currentUrl.searchParams.get('YR');
+            }
+            if (currentUrl.searchParams.get('RG')) {
+                params.RG = currentUrl.searchParams.get('RG');
+            }
+            
+            // Add sanctionId parameter
+            params.sanctionId = sanctionId;
+            
+            // Update URL
+            this.updateUrlParameters(params);
 
             // Create panel and show loading state - renderInfo will handle this
             this.renderInfo();
@@ -471,6 +492,30 @@
                 
                 switch(view) {
                     case 'scores':
+                        // Add view parameter to URL
+                        const currentUrl = new URL(window.location);
+                        const params = {};
+                        
+                        // Preserve existing parameters
+                        if (currentUrl.searchParams.get('search')) {
+                            params.search = currentUrl.searchParams.get('search');
+                        }
+                        if (currentUrl.searchParams.get('YR')) {
+                            params.YR = currentUrl.searchParams.get('YR');
+                        }
+                        if (currentUrl.searchParams.get('RG')) {
+                            params.RG = currentUrl.searchParams.get('RG');
+                        }
+                        if (currentUrl.searchParams.get('sanctionId')) {
+                            params.sanctionId = currentUrl.searchParams.get('sanctionId');
+                        }
+                        
+                        // Add view parameter
+                        params.view = 'scores';
+                        
+                        // Update URL
+                        TournamentInfo.updateUrlParameters(params);
+                        
                         TournamentInfo.loadScores(sanctionId);
                         break;
                     case 'running-order':
@@ -564,6 +609,9 @@
                 if (response.success) {
                     // Set up the normal filter bubbles
                     this.setupLeaderboardFilters(response);
+                    
+                    // Restore filter state from URL parameters if they exist
+                    this.restoreFilterStateFromUrl();
                     
                     // Then load most recent 10 divisions immediately  
                     this.loadMostRecentDivisions(sanctionId, skiYear, formatCode, 'NONE', '0');
@@ -698,6 +746,12 @@
             
             // Show loading message
             $('#leaderboardContent').html('<div><p>Loading recent scores...</p></div>');
+            
+            // Only make the call if we have a valid tournament ID
+            if (!AppState.currentSelectedTournamentId || AppState.currentSelectedTournamentId.length < 6) {
+                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No tournament selected</p></div>');
+                return;
+            }
             
             // Call GetLeaderboardSP.aspx with a new parameter to get recent scores
             $.getJSON('GetLeaderboardSP.aspx', {
@@ -866,6 +920,12 @@
             // Load next batch of 20 records by incrementing offset
             this.recentScoresOffset = this.allRecentScores.length;
             
+            // Only make the call if we have a valid tournament ID
+            if (!AppState.currentSelectedTournamentId || AppState.currentSelectedTournamentId.length < 6) {
+                this.isLoadingRecentScores = false;
+                return;
+            }
+            
             // Call GetLeaderboardSP.aspx for next batch of scores
             $.getJSON('GetLeaderboardSP.aspx', {
                 SID: AppState.currentSelectedTournamentId,
@@ -1028,16 +1088,18 @@
             // More division options will be populated dynamically
             
             // Load divisions from all events and add to filter
-            $.getJSON('GetLeaderboardSP.aspx', {
-                SID: AppState.currentSelectedTournamentId,
-                SY: "0",
-                TN: AppState.currentTournamentName,
-                FC: 'LBSP',
-                FT: '0',
-                UN: '0',
-                UT: '0',
-                LOAD_ALL_DIVISIONS: '1'
-            })
+            // Only make the call if we have a valid tournament ID
+            if (AppState.currentSelectedTournamentId && AppState.currentSelectedTournamentId.length >= 6) {
+                $.getJSON('GetLeaderboardSP.aspx', {
+                    SID: AppState.currentSelectedTournamentId,
+                    SY: "0",
+                    TN: AppState.currentTournamentName,
+                    FC: 'LBSP',
+                    FT: '0',
+                    UN: '0',
+                    UT: '0',
+                    LOAD_ALL_DIVISIONS: '1'
+                })
             .done((response) => {
                 if (response.success && response.availableDivisions) {
                     // Create a Set to track unique divisions
@@ -1060,6 +1122,7 @@
             .fail((error) => {
                 // Silently fail - division filters will just show default
             });
+            }
            
             
             // Setup round filter bubbles dynamically
@@ -1160,6 +1223,9 @@
             const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
             const selectedBestOf = $('#roundFilters .filter-btn.active[data-filter="bestof"]').data('value');
             
+            // Update URL with current filter parameters
+            this.updateLeaderboardUrl(selectedEvent, selectedDivision, selectedRound, selectedPlacement, selectedBestOf);
+            
             // Get current filter state
             const hasEvent = selectedEvent && selectedEvent !== 'NONE';
             const hasDivision = selectedDivision && selectedDivision !== 'MOST_RECENT' && selectedDivision !== 'ALL';
@@ -1255,6 +1321,12 @@
         loadEventDivisionCombination: function(eventCode, divisionCode, roundCode) {
             // Show loading state
             $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading ' + eventCode + ' ' + divisionCode + '...</p></div>');
+            
+            // Only make the call if we have a valid tournament ID
+            if (!AppState.currentSelectedTournamentId || AppState.currentSelectedTournamentId.length < 6) {
+                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No tournament selected</p></div>');
+                return;
+            }
             
             // Check if division exists in the event by trying to load it
             $.getJSON('GetLeaderboardSP.aspx', {
@@ -1692,6 +1764,61 @@
             }
         },
 
+        updateUrlParameters: function(params) {
+            // Update URL with current filter parameters without triggering page reload
+            const url = new URL(window.location);
+            
+            // Add/update parameters
+            Object.keys(params).forEach(key => {
+                if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+                    url.searchParams.set(key, params[key]);
+                } else {
+                    url.searchParams.delete(key);
+                }
+            });
+            
+            // Update browser URL without reload
+            window.history.replaceState({}, '', url.toString());
+        },
+
+        updateTournamentSearchUrl: function() {
+            // Get current tournament search filter states from active buttons
+            const params = {};
+            
+            // Get active year filter
+            const activeYearBtn = $('#tFilters .filter-btn.active');
+            activeYearBtn.each(function() {
+                const btnId = $(this).attr('id');
+                if (btnId.includes('Recent')) {
+                    params.year = '0';
+                } else if (btnId.includes('Year')) {
+                    const yearMatch = btnId.match(/Year(\d{4})/);
+                    if (yearMatch) {
+                        params.year = yearMatch[1].slice(-2);
+                    }
+                } else if (btnId.includes('East')) {
+                    params.region = 'E';
+                } else if (btnId.includes('South')) {
+                    params.region = 'S';
+                } else if (btnId.includes('Midwest')) {
+                    params.region = 'M';
+                } else if (btnId.includes('Central')) {
+                    params.region = 'C';
+                } else if (btnId.includes('West')) {
+                    params.region = 'W';
+                }
+            });
+            
+            // Get search input value
+            const searchInput = $('#TB_SanctionID').val();
+            if (searchInput && searchInput.trim() !== '') {
+                params.search = searchInput.trim();
+            }
+            
+            // Update URL
+            this.updateUrlParameters(params);
+        },
+
         splitOverallTablesByRound: function(selectedRound) {
             console.log('[SPLIT-DEBUG] Starting Overall table splitting for round:', selectedRound);
             
@@ -1820,6 +1947,11 @@
             const sanctionId = AppState.currentSelectedTournamentId;
             const skiYear = "0";
             const tournamentName = AppState.currentTournamentName;
+            
+            // Only make the call if we have a valid tournament ID
+            if (!sanctionId || sanctionId.length < 6) {
+                return;
+            }
             
             $.getJSON('GetLeaderboardSP.aspx', {
                 SID: sanctionId,
@@ -2249,6 +2381,129 @@
             .fail(function(xhr, status, error) {
                 $('#leaderboardContent').html('<p class="text-center text-danger">Error: ' + error + '</p>');
             });
+        },
+        
+        updateLeaderboardUrl: function(selectedEvent, selectedDivision, selectedRound, selectedPlacement, selectedBestOf) {
+            // Get existing URL parameters
+            const currentUrl = new URL(window.location);
+            const params = {};
+            
+            // Preserve existing non-filter parameters
+            if (currentUrl.searchParams.get('search')) {
+                params.search = currentUrl.searchParams.get('search');
+            }
+            if (currentUrl.searchParams.get('YR')) {
+                params.YR = currentUrl.searchParams.get('YR');
+            }
+            if (currentUrl.searchParams.get('RG')) {
+                params.RG = currentUrl.searchParams.get('RG');
+            }
+            if (currentUrl.searchParams.get('sanctionId')) {
+                params.sanctionId = currentUrl.searchParams.get('sanctionId');
+            }
+            if (currentUrl.searchParams.get('view')) {
+                params.view = currentUrl.searchParams.get('view');
+            }
+            
+            // Add filter parameters if they have meaningful values
+            if (selectedEvent && selectedEvent !== 'NONE') {
+                params.event = selectedEvent;
+            }
+            if (selectedDivision && selectedDivision !== 'MOST_RECENT') {
+                params.division = selectedDivision;
+            }
+            if (selectedRound && selectedRound !== '0') {
+                params.round = selectedRound;
+            }
+            if (selectedPlacement) {
+                params.placement = selectedPlacement;
+            }
+            if (selectedBestOf) {
+                params.bestof = selectedBestOf;
+            }
+            
+            // Update URL
+            this.updateUrlParameters(params);
+        },
+        
+        restoreFilterStateFromUrl: function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // First: Restore event filter only using applyFilterCombination
+            const eventParam = urlParams.get('event');
+            if (eventParam) {
+                const eventButton = $('#eventFilters .filter-btn[data-value="' + eventParam + '"]');
+                if (eventButton.length > 0) {
+                    $('#eventFilters .filter-btn').removeClass('active');
+                    eventButton.addClass('active');
+                    // Use applyFilterCombination to handle the event change properly
+                    this.applyFilterCombination();
+                    
+                    // Second: After delay, restore divisions and rounds
+                    setTimeout(() => {
+                        this.restoreRemainingFilters(urlParams);
+                    }, 1000); // Give time for divisions to load
+                    return;
+                }
+            }
+            
+            // If no event parameter, restore remaining filters immediately
+            this.restoreRemainingFilters(urlParams);
+        },
+        
+        restoreRemainingFilters: function(urlParams) {
+            let hasFiltersToRestore = false;
+            
+            // Restore division filter
+            const divisionParam = urlParams.get('division');
+            if (divisionParam) {
+                const divisionButton = $('#divisionFilters .filter-btn[data-value="' + divisionParam + '"]');
+                if (divisionButton.length > 0) {
+                    $('#divisionFilters .filter-btn').removeClass('active');
+                    divisionButton.addClass('active');
+                    hasFiltersToRestore = true;
+                }
+            }
+            
+            // Restore round filter
+            const roundParam = urlParams.get('round');
+            if (roundParam) {
+                const roundButton = $('#roundFilters .filter-btn[data-filter="round"][data-value="' + roundParam + '"]');
+                if (roundButton.length > 0) {
+                    $('#roundFilters .filter-btn[data-filter="round"]').removeClass('active');
+                    roundButton.addClass('active');
+                    hasFiltersToRestore = true;
+                }
+            }
+            
+            // Restore placement filter
+            const placementParam = urlParams.get('placement');
+            if (placementParam) {
+                const placementButton = $('#roundFilters .filter-btn[data-filter="placement"][data-value="' + placementParam + '"]');
+                if (placementButton.length > 0) {
+                    $('#roundFilters .filter-btn[data-filter="placement"]').removeClass('active');
+                    placementButton.addClass('active');
+                    hasFiltersToRestore = true;
+                }
+            }
+            
+            // Restore bestof filter
+            const bestofParam = urlParams.get('bestof');
+            if (bestofParam) {
+                const bestofButton = $('#roundFilters .filter-btn[data-filter="bestof"][data-value="' + bestofParam + '"]');
+                if (bestofButton.length > 0) {
+                    $('#roundFilters .filter-btn[data-filter="bestof"]').removeClass('active');
+                    bestofButton.addClass('active');
+                    // Clear round selection when bestof is selected
+                    $('#roundFilters .filter-btn[data-filter="round"]').removeClass('active');
+                    hasFiltersToRestore = true;
+                }
+            }
+            
+            // Only apply filter combination if we actually restored some filters
+            if (hasFiltersToRestore) {
+                this.applyFilterCombination();
+            }
         }
     };
 
@@ -2489,6 +2744,60 @@
                     }, CONFIG.SCROLL_DELAY);
                 }
             }
+        },
+        
+        selectTournamentFromUrl: function(sanctionId, view) {
+            // Try to find the tournament with the given sanctionId
+            let found = false;
+            let trickVideoText = '';
+            
+            // First, clear all existing selections
+            document.querySelectorAll('#TList tr').forEach(r => r.classList.remove('selected'));
+            document.querySelectorAll('.mobile-tournament-card').forEach(c => c.classList.remove('selected'));
+            
+            // Check desktop table rows first
+            document.querySelectorAll('#TList table tr').forEach(row => {
+                const sanctionCell = row.querySelector('.sanction-col');
+                if (sanctionCell && sanctionCell.textContent.trim() === sanctionId) {
+                    // Mark row as selected and get trick video text
+                    row.classList.add('selected');
+                    trickVideoText = row.getAttribute('data-trick-video') || '';
+                    found = true;
+                }
+            });
+            
+            // Also check mobile cards and mark selected
+            document.querySelectorAll('.mobile-tournament-card').forEach(card => {
+                if (card.getAttribute('data-sanction-id') === sanctionId) {
+                    card.classList.add('selected');
+                    if (!found) {
+                        // Get trick video text if not already found from desktop
+                        trickVideoText = card.getAttribute('data-trick-video') || '';
+                        found = true;
+                    }
+                }
+            });
+            
+            if (found) {
+                // Now load the tournament info - renderInfo will find the selected card/row
+                TournamentInfo.load(sanctionId, trickVideoText);
+                
+                // If view parameter is specified, trigger that view after a short delay
+                if (view) {
+                    setTimeout(() => {
+                        const viewButton = document.querySelector(`.tnav-btn[data-view="${view}"]`);
+                        if (viewButton) {
+                            viewButton.click();
+                        }
+                    }, 1000); // Wait for tournament info to load
+                }
+            } else {
+                console.log('Tournament with sanctionId ' + sanctionId + ' not found in current view');
+                // Try again after a longer delay in case the list is still loading
+                setTimeout(() => {
+                    this.selectTournamentFromUrl(sanctionId, view);
+                }, 1000);
+            }
         }
     };
 
@@ -2500,6 +2809,38 @@
         if (window.innerWidth <= 1000) {
             $('#tMobile').show();
         }
+
+        // Read URL parameters on page load and populate search input
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchParam = urlParams.get('search');
+        if (searchParam) {
+            $('#TB_SanctionID').val(searchParam);
+        }
+        
+        // Restore selected tournament if sanctionId parameter exists
+        const sanctionIdParam = urlParams.get('sanctionId');
+        const viewParam = urlParams.get('view');
+        if (sanctionIdParam) {
+            // Wait for tournament list to load, then select the tournament
+            setTimeout(function() {
+                TournamentList.selectTournamentFromUrl(sanctionIdParam, viewParam);
+            }, 250);
+        }
+        
+        // Search input field - update URL as user types
+        $('#TB_SanctionID').on('input keyup', function() {
+            // Debounce the URL updates
+            clearTimeout(window.searchInputTimeout);
+            window.searchInputTimeout = setTimeout(function() {
+                const searchValue = $('#TB_SanctionID').val().trim();
+                if (searchValue) {
+                    TournamentInfo.updateUrlParameters({ search: searchValue });
+                } else {
+                    // Clear search parameter if input is empty
+                    TournamentInfo.updateUrlParameters({});
+                }
+            }, 500);
+        });
     });
 
 })();

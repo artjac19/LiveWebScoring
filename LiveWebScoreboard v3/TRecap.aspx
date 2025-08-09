@@ -8,33 +8,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Skier Recap</title>
-    <link rel="stylesheet" href="Content/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" />
+    <link rel="stylesheet" href="Content/styles.css" />
     <!--   <script src="js/bootstrap.bundle.min.js"></script>  -->
     <style>
-        .box2{
-       border: 1px solid blue;
-             }
-        .box{
-            min-height: 50px;
-            font-size: .6em;
-        }
-.legend .row:nth-of-type(odd) div {
-background-color:antiquewhite;
-}
-.legend .row:nth-of-type(even) div {
-background: #FFFFFF;
-}
-.ms-0{
-	margin-left: 0;
-	margin-right: 0;
-    padding-left: 0;
-    padding-right: 0;
-}
 
     </style>
 </head>
 <body>
     <form id="form1" runat="server">
+        <div>
        
          <!-- Store user selections -->
         <asp:Panel ID="Panel_HF" runat="server" Visible="false">
@@ -55,44 +38,22 @@ background: #FFFFFF;
          </asp:Panel>
         <!-- Display title bar and error label -->
         <!-- Display title bar and error label -->
-        <div class="fixed-top">
-            <div id="TName" class="text-bg-dark text-center " runat="Server">
+        <div>
+            <div id="TName" runat="Server">
                 <br /><asp:Label ID="lbl_Errors" runat="server" ForeColor="White"/>
             </div>
-            <div class="bg-aqua"><center><asp:Button ID="Btn_Back" runat="server" Text="Back To Scores" /></center>
+            <div ><center><asp:Button ID="Btn_Back" runat="server" Text="Back To Scores" /></center>
             </div>
 
         </div>
         <!-- Display 4 boxes - one for each event + Overall.  
             Put in skier's performances by round and pass as they become available -->
         
-      <div class="container-fluid ms-0">
-        <div class="text-center" >
-            <div class="row">
-                <div class="col-xxl">
-                    <h4>&nbsp;</h4>
-                   <div id="SlalomRecap" runat="server" class="box"></div> 
-                    
-                </div>
-        
-                <div class="col-xxl">
-                    <h4>&nbsp;</h4>
-                    <div id="TrickRecap" runat="server" class="box"></div>
-                    
-                </div>
-        
-                <div class="col-xxl">
-                    <h4>&nbsp;</h4>
-                    <div id="JumpRecap" runat="server" class="box"></div>
-                    
-                </div>
-
-                <div class="col-xxl">
-                 <h4>&nbsp;</h4>
-                 <div id="OverallRecap" runat="server" class="box"></div>
-     
-                </div>
-           </div>
+        <div style="display: flex; flex-direction: row; gap: 2rem; margin: 3rem; overflow-wrap: normal;">
+            <div id="SlalomRecap" runat="server"></div> 
+            <div id="TrickRecap" runat="server"></div>
+            <div id="JumpRecap" runat="server"></div>
+            <div id="OverallRecap" runat="server" class="box"></div>
        </div>
           
    </div>
