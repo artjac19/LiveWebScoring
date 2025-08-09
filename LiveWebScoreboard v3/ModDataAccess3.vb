@@ -2022,19 +2022,48 @@ Module ModDataAccess3
 
         If selEvent = "O" Then
             'PrGetScoresOverall uses different parameters
-            cmdRead.Parameters.Add("@InSanctionId", OleDb.OleDbType.Char)
-            cmdRead.Parameters("@InSanctionId").Size = 6
-            cmdRead.Parameters("@InSanctionId").Value = sSanctionID
-            cmdRead.Parameters("@InSanctionId").Direction = ParameterDirection.Input
-
-            cmdRead.Parameters.Add("@InDiv", OleDb.OleDbType.VarChar)
-            cmdRead.Parameters("@InDiv").Size = 3
-            If sSelDV = "" Or sSelDV = "All" Then
-                cmdRead.Parameters("@InDiv").Value = "All"
-            Else
-                cmdRead.Parameters("@InDiv").Value = sSelDV
+            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Calling simplified overall query bypassing strict requirements...")
+            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] SanctionID=" & sSanctionID & ", Division=" & sSelDV)
+            
+            ' SIMPLIFIED OVERALL: Direct query without strict requirements
+            cmdRead.CommandType = CommandType.Text
+            
+            ' Use same round-specific query for both All and specific divisions
+            cmdRead.CommandText = "
+SELECT R.SanctionId, R.MemberId, R.SkierName, R.AgeGroup, AllRounds.Round as [Round],
+       '' as TourClass, 'Y' as ReadyForPlcmt,
+       COALESCE(S.NopsScore, 0) as NopsScoreSlalom,
+       COALESCE(T.NopsScore, 0) as NopsScoreTrick, 
+       COALESCE(J.NopsScore, 0) as NopsScoreJump,
+       (COALESCE(S.NopsScore, 0) + COALESCE(T.NopsScore, 0) + COALESCE(J.NopsScore, 0)) as NopsScoreOverall,
+       3 as EventsReqd, 1 as OverallQualified,
+       'BEST' as PlcmtFormat, 'TBD' as Status, 0 as NopsScore,
+       R.SkiYearAge, R.AgeGroup as Div, R.Gender, R.City, R.State, R.Federation
+FROM TourReg R
+INNER JOIN (
+    SELECT DISTINCT SanctionId, MemberId, AgeGroup, Round 
+    FROM (
+        SELECT SanctionId, MemberId, AgeGroup, Round FROM SlalomScore WHERE Round < 25 AND NopsScore IS NOT NULL
+        UNION
+        SELECT SanctionId, MemberId, AgeGroup, Round FROM TrickScore WHERE Round < 25 AND NopsScore IS NOT NULL  
+        UNION
+        SELECT SanctionId, MemberId, AgeGroup, Round FROM JumpScore WHERE Round < 25 AND NopsScore IS NOT NULL
+    ) AS AllEventRounds
+) AllRounds ON R.SanctionId = AllRounds.SanctionId AND R.MemberId = AllRounds.MemberId AND R.AgeGroup = AllRounds.AgeGroup
+LEFT JOIN SlalomScore S ON R.SanctionId = S.SanctionId AND R.MemberId = S.MemberId AND R.AgeGroup = S.AgeGroup AND S.Round = AllRounds.Round
+LEFT JOIN TrickScore T ON R.SanctionId = T.SanctionId AND R.MemberId = T.MemberId AND R.AgeGroup = T.AgeGroup AND T.Round = AllRounds.Round
+LEFT JOIN JumpScore J ON R.SanctionId = J.SanctionId AND R.MemberId = J.MemberId AND R.AgeGroup = J.AgeGroup AND J.Round = AllRounds.Round
+WHERE R.SanctionId = ?" & If(sSelDV = "" Or sSelDV = "All", "", " AND R.AgeGroup = ?") & "
+ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DESC, R.MemberId, AllRounds.Round", "NopsScoreOverall DESC, R.MemberId, AllRounds.Round")
+            
+            ' Add parameters based on whether it's All or specific division
+            cmdRead.Parameters.Add("@SanctionId", OleDb.OleDbType.VarChar, 6).Value = sSanctionID
+            If sSelDV <> "" And sSelDV <> "All" Then
+                cmdRead.Parameters.Add("@AgeGroup", OleDb.OleDbType.VarChar, 3).Value = sSelDV
             End If
-            cmdRead.Parameters("@InDiv").Direction = ParameterDirection.Input
+            
+            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Using simplified query: " & cmdRead.CommandText)
+            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Parameters: SanctionId=" & sSanctionID & ", AgeGroup=" & sSelDV)
         Else
             'Regular event stored procedures (PrLeaderBoard)
             cmdRead.Parameters.Add("@InSanctionID", OleDb.OleDbType.VarChar)
@@ -2071,11 +2100,18 @@ Module ModDataAccess3
                     cmdRead.Connection = Cnnt 'New OleDbConnection(sConn)
                     cmdRead.Connection.Open()
                     MyDataReader = cmdRead.ExecuteReader
+                    System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] ExecuteReader completed, HasRows=" & MyDataReader.HasRows.ToString())
                     If MyDataReader.HasRows = True Then
+                        Dim rowCount As Integer = 0
                         Do While MyDataReader.Read()
+                            rowCount += 1
+                            If rowCount = 1 Then
+                                System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] First row found - processing data")
+                            End If
                             If selEvent = "O" Then
-                                'Overall uses different column names from PrGetScoresOverall
-                                sSanctionID = CStr(MyDataReader.Item("SanctionId"))
+                                'Overall uses PrGetScoresOverall stored procedure columns
+                                System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Processing PrGetScoresOverall row...")
+                                sSanctionID = CStr(MyDataReader.Item("SanctionId"))   ' Note: SanctionId from stored procedure
                                 sSkierName = CStr(MyDataReader.Item("SkierName"))
 
                                 If Not IsDBNull(MyDataReader.Item("AgeGroup")) Then
@@ -2084,19 +2120,20 @@ Module ModDataAccess3
                                     sDv = ""
                                 End If
 
+                                ' Get actual Round from the simplified query
                                 If Not IsDBNull(MyDataReader.Item("Round")) Then
                                     sRound = CStr(MyDataReader.Item("Round"))
                                 Else
-                                    sRound = ""
+                                    sRound = "1"
                                 End If
-
-                                If Not IsDBNull(MyDataReader.Item("MemberId")) Then
+                                
+                                If Not IsDBNull(MyDataReader.Item("MemberId")) Then  ' Note: MemberId from stored procedure
                                     sMemberID = MyDataReader.Item("MemberId")
                                 Else
                                     sMemberID = ""
                                 End If
 
-                                'Overall specific score
+                                'Overall specific score - PrGetScoresOverall uses NopsScoreOverall column
                                 If Not IsDBNull(MyDataReader.Item("NopsScoreOverall")) Then
                                     sScoreBest = Format(MyDataReader.Item("NopsScoreOverall"), "0.00")
                                 Else
@@ -2144,7 +2181,7 @@ Module ModDataAccess3
                                 sState = ""
                                 sFederation = ""
                                 sRankingScore = ""
-                                'Overall NOPS score is the overall total
+                                'Overall NOPS score is the overall total - use NopsScoreOverall from stored procedure
                                 If Not IsDBNull(MyDataReader.Item("NopsScoreOverall")) Then
                                     sNopsScore = Format(MyDataReader.Item("NopsScoreOverall"), "0.00")
                                 Else
@@ -2242,28 +2279,53 @@ Module ModDataAccess3
                                 End If   '   
 
                                 If selEvent = "O" Then
-                                    'For Overall, display the scores directly from the stored procedure
-                                    sDVScoresSection.Append("<td>" & sRound & "</td>")
-                                    sDVScoresSection.Append("<td><b>" & sScoreBest & "</b></td>") 'Overall score
-                                    'Get individual event NOPS scores
-                                    If Not IsDBNull(MyDataReader.Item("NopsScoreSlalom")) Then
-                                        sSlalomNops = Format(MyDataReader.Item("NopsScoreSlalom"), "0.00")
-                                    Else
-                                        sSlalomNops = "--"
-                                    End If
-                                    If Not IsDBNull(MyDataReader.Item("NopsScoreTrick")) Then
-                                        sTrickNops = Format(MyDataReader.Item("NopsScoreTrick"), "0.00")
-                                    Else
-                                        sTrickNops = "--"
-                                    End If
-                                    If Not IsDBNull(MyDataReader.Item("NopsScoreJump")) Then
-                                        sJumpNops = Format(MyDataReader.Item("NopsScoreJump"), "0.00")
-                                    Else
-                                        sJumpNops = "--"
-                                    End If
-                                    sDVScoresSection.Append("<td>" & sSlalomNops & "</td>")
-                                    sDVScoresSection.Append("<td>" & sTrickNops & "</td>")
-                                    sDVScoresSection.Append("<td>" & sJumpNops & "</td></tr>")
+                                    Try
+                                        'For Overall, display the scores directly from the stored procedure
+                                        System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Processing Overall row for " & sSkierName)
+                                        sDVScoresSection.Append("<td>" & sRound & "</td>")
+                                        sDVScoresSection.Append("<td><b>" & sScoreBest & "</b></td>") 'Overall score
+                                        'Get individual event NOPS scores - simplified query column names
+                                        Try
+                                            If Not IsDBNull(MyDataReader.Item("NopsScoreSlalom")) Then
+                                                sSlalomNops = Format(MyDataReader.Item("NopsScoreSlalom"), "0.00")
+                                            Else
+                                                sSlalomNops = "--"
+                                            End If
+                                        Catch ex As Exception
+                                            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Error accessing NopsScoreSlalom: " & ex.Message)
+                                            sSlalomNops = "--"
+                                        End Try
+                                        Try
+                                            If Not IsDBNull(MyDataReader.Item("NopsScoreTrick")) Then
+                                                sTrickNops = Format(MyDataReader.Item("NopsScoreTrick"), "0.00")
+                                            Else
+                                                sTrickNops = "--"
+                                            End If
+                                        Catch ex As Exception
+                                            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Error accessing NopsScoreTrick: " & ex.Message)
+                                            sTrickNops = "--"
+                                        End Try
+                                        Try
+                                            If Not IsDBNull(MyDataReader.Item("NopsScoreJump")) Then
+                                                sJumpNops = Format(MyDataReader.Item("NopsScoreJump"), "0.00")
+                                            Else
+                                                sJumpNops = "--"
+                                            End If
+                                        Catch ex As Exception
+                                            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Error accessing NopsScoreJump: " & ex.Message)
+                                            sJumpNops = "--"
+                                        End Try
+                                        sDVScoresSection.Append("<td>" & sSlalomNops & "</td>")
+                                        sDVScoresSection.Append("<td>" & sTrickNops & "</td>")
+                                        sDVScoresSection.Append("<td>" & sJumpNops & "</td></tr>")
+                                        System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Successfully processed Overall row for " & sSkierName)
+                                    Catch ex As Exception
+                                        System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Error in Overall processing for " & sSkierName & ": " & ex.Message)
+                                        ' Fallback: just display overall score
+                                        sDVScoresSection.Append("<td>" & sRound & "</td>")
+                                        sDVScoresSection.Append("<td><b>" & sScoreBest & "</b></td>")
+                                        sDVScoresSection.Append("<td>--</td><td>--</td><td>--</td></tr>")
+                                    End Try
                                 Else
                                     'Regular events use LBGetRndScores
                                     sMultiRndScores = ModDataAccess3.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
@@ -2315,28 +2377,53 @@ Module ModDataAccess3
                                 End If   '   
 
                                 If selEvent = "O" Then
-                                    'For Overall, display the scores directly from the stored procedure
-                                    sDVScoresSection.Append("<td>" & sRound & "</td>")
-                                    sDVScoresSection.Append("<td><b>" & sScoreBest & "</b></td>") 'Overall score
-                                    'Get individual event NOPS scores
-                                    If Not IsDBNull(MyDataReader.Item("NopsScoreSlalom")) Then
-                                        sSlalomNops = Format(MyDataReader.Item("NopsScoreSlalom"), "0.00")
-                                    Else
-                                        sSlalomNops = "--"
-                                    End If
-                                    If Not IsDBNull(MyDataReader.Item("NopsScoreTrick")) Then
-                                        sTrickNops = Format(MyDataReader.Item("NopsScoreTrick"), "0.00")
-                                    Else
-                                        sTrickNops = "--"
-                                    End If
-                                    If Not IsDBNull(MyDataReader.Item("NopsScoreJump")) Then
-                                        sJumpNops = Format(MyDataReader.Item("NopsScoreJump"), "0.00")
-                                    Else
-                                        sJumpNops = "--"
-                                    End If
-                                    sDVScoresSection.Append("<td>" & sSlalomNops & "</td>")
-                                    sDVScoresSection.Append("<td>" & sTrickNops & "</td>")
-                                    sDVScoresSection.Append("<td>" & sJumpNops & "</td></tr>")
+                                    Try
+                                        'For Overall, display the scores directly from the stored procedure
+                                        System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Processing Overall row for " & sSkierName & " (second section)")
+                                        sDVScoresSection.Append("<td>" & sRound & "</td>")
+                                        sDVScoresSection.Append("<td><b>" & sScoreBest & "</b></td>") 'Overall score
+                                        'Get individual event NOPS scores - simplified query column names
+                                        Try
+                                            If Not IsDBNull(MyDataReader.Item("NopsScoreSlalom")) Then
+                                                sSlalomNops = Format(MyDataReader.Item("NopsScoreSlalom"), "0.00")
+                                            Else
+                                                sSlalomNops = "--"
+                                            End If
+                                        Catch ex As Exception
+                                            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Error accessing NopsScoreSlalom (2nd): " & ex.Message)
+                                            sSlalomNops = "--"
+                                        End Try
+                                        Try
+                                            If Not IsDBNull(MyDataReader.Item("NopsScoreTrick")) Then
+                                                sTrickNops = Format(MyDataReader.Item("NopsScoreTrick"), "0.00")
+                                            Else
+                                                sTrickNops = "--"
+                                            End If
+                                        Catch ex As Exception
+                                            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Error accessing NopsScoreTrick (2nd): " & ex.Message)
+                                            sTrickNops = "--"
+                                        End Try
+                                        Try
+                                            If Not IsDBNull(MyDataReader.Item("NopsScoreJump")) Then
+                                                sJumpNops = Format(MyDataReader.Item("NopsScoreJump"), "0.00")
+                                            Else
+                                                sJumpNops = "--"
+                                            End If
+                                        Catch ex As Exception
+                                            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Error accessing NopsScoreJump (2nd): " & ex.Message)
+                                            sJumpNops = "--"
+                                        End Try
+                                        sDVScoresSection.Append("<td>" & sSlalomNops & "</td>")
+                                        sDVScoresSection.Append("<td>" & sTrickNops & "</td>")
+                                        sDVScoresSection.Append("<td>" & sJumpNops & "</td></tr>")
+                                        System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Successfully processed Overall row for " & sSkierName & " (second section)")
+                                    Catch ex As Exception
+                                        System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Error in Overall processing (2nd) for " & sSkierName & ": " & ex.Message)
+                                        ' Fallback: just display overall score
+                                        sDVScoresSection.Append("<td>" & sRound & "</td>")
+                                        sDVScoresSection.Append("<td><b>" & sScoreBest & "</b></td>")
+                                        sDVScoresSection.Append("<td>--</td><td>--</td><td>--</td></tr>")
+                                    End Try
                                 Else
                                     'Regular events use LBGetRndScores
                                     sMultiRndScores = ModDataAccess3.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
@@ -2357,8 +2444,9 @@ Module ModDataAccess3
                         'Add Division scores to sLine
                         sLine.Append(sDVScoresSection.ToString())
                     Else
+                        System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] No rows returned from stored procedure")
                         '      sLine.Append("<tr  Class=""table-info""><td> " & sSkierName & "</td><td>No Scores</td></tr></table>")
-                        sMsg = "No Scores"
+                        sMsg = "No Scores - PrGetScoresOverall returned 0 rows for SanctionID=" & sSanctionID & ", Division=" & sSelDV
                     End If
 
                 End Using

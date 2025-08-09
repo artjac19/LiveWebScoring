@@ -190,9 +190,11 @@ Public Class GetLeaderboardSP
                 jsonResponse = BuildTournamentInfoJson(sSanctionID, sTournName, sSlalomRounds, sTrickRounds, sJumpRounds, sFormatCode)
             ElseIf String.IsNullOrEmpty(sDivisionCodePkd) Then
                 ' Event specified but no division - return just division data quickly
+                System.Diagnostics.Debug.WriteLine("[ROUTE-DEBUG] Taking division info path for Event=" & sEventCodePkd)
                 jsonResponse = BuildDivisionInfoJson(sSanctionID, sEventCodePkd)
             Else
                 ' Return leaderboard data
+                System.Diagnostics.Debug.WriteLine("[ROUTE-DEBUG] Taking leaderboard path for Event=" & sEventCodePkd & ", Division=" & sDivisionCodePkd)
                 jsonResponse = BuildLeaderboardJson(sSanctionID, sYrPkd, sTournName, sEventCodePkd, sDivisionCodePkd, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, CShort(CInt(sUseNOPS)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric, sForcePlacement)
             End If
 
@@ -251,6 +253,7 @@ Public Class GetLeaderboardSP
     End Function
 
     Private Function BuildLeaderboardJson(sSanctionID As String, sYrPkd As String, sTournName As String, sEventCodePkd As String, sDivisionCodePkd As String, sRndsPkd As String, sSlalomRounds As Int16, sTrickRounds As Int16, sJumpRounds As Int16, sUseNops As Int16, sUseTeams As Int16, sFormatCode As String, sDisplayMetric As Int16, Optional sForcePlacement As String = "") As String
+        System.Diagnostics.Debug.WriteLine("[LEADERBOARD-DEBUG] BuildLeaderboardJson called with Event=" & sEventCodePkd & ", Division=" & sDivisionCodePkd)
         Dim sHtmlContent As String = ""
         Dim sPlcmntFormat As String = ""
 

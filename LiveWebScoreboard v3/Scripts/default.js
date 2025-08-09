@@ -1150,6 +1150,10 @@
             const isAlphabetical = selectedDivision === 'ALL';
             const isMostRecent = selectedDivision === 'MOST_RECENT';
             const isMixed = selectedEvent === 'MIXED';
+            const isOverall = selectedEvent === 'O';
+            
+            console.log('[FILTER-DEBUG] selectedEvent:', selectedEvent, 'selectedDivision:', selectedDivision);
+            console.log('[FILTER-DEBUG] isOverall:', isOverall, 'isMixed:', isMixed, 'hasEvent:', hasEvent);
             
             // Case 0: Mixed recent scores
             if (isMixed) {
@@ -1157,11 +1161,23 @@
                 return;
             }
             
-            // Case 1: No filters selected / Most Recent (default)
+            // Case 0.5: Overall event - load all overall divisions
+            if (isOverall && !hasDivision) {
+                this.loadOverallAllDivisions(selectedRound);
+                return;
+            }
+            
+            // Case 1: No filters selected / Most Recent (default)  
             if (isMostRecent) {
-                if (hasEvent) {
-                    // Most recent for specific event
+                if (hasEvent && !isOverall) {
+                    // Most recent for specific event (but not Overall)
                     this.loadMostRecentDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, selectedEvent, selectedRound);
+                } else if (hasEvent && isOverall) {
+                    // Overall event - default to alphabetical instead of most recent
+                    console.log('[OVERALL-DEBUG] Overall + Most Recent -> redirecting to Alphabetical');
+                    $('#divisionFilters .filter-btn').removeClass('active');
+                    $('#divisionFilters .filter-btn[data-value="ALL"]').addClass('active');
+                    this.loadAlphabeticalDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, selectedEvent, selectedRound);
                 } else {
                     // Most recent across all events
                     this.loadMostRecentDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, null, selectedRound);
@@ -1195,10 +1211,15 @@
             
             // Case 4: Only event selected (no specific division)
             if (hasEvent) {
-                // Default to most recent for that event
-                $('#divisionFilters .filter-btn').removeClass('active');
-                $('#divisionFilters .filter-btn[data-value="MOST_RECENT"]').addClass('active');
-                this.loadMostRecentDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, selectedEvent);
+                if (isOverall) {
+                    // Overall event - show all overall divisions
+                    this.loadOverallAllDivisions(selectedRound);
+                } else {
+                    // Default to most recent for that event (except Overall)
+                    $('#divisionFilters .filter-btn').removeClass('active');
+                    $('#divisionFilters .filter-btn[data-value="MOST_RECENT"]').addClass('active');
+                    this.loadMostRecentDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, selectedEvent);
+                }
                 return;
             }
             
@@ -1382,6 +1403,83 @@
                 
                 this.loadEventDivisionBatch(actualCombinations, 'Loading all existing divisions alphabetically...', selectedRound);
             });
+        },
+
+        loadOverallAllDivisions: function(selectedRound) {
+            // Show loading message
+            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading overall scores...</p></div>');
+            
+            // Test: Direct call to GetLeaderboardSP with Overall event
+            console.log('[OVERALL-JS] Direct call to Overall with All divisions');
+            console.log('[OVERALL-JS] Tournament ID:', AppState.currentSelectedTournamentId);
+            $.getJSON('GetLeaderboardSP.aspx', {
+                SID: AppState.currentSelectedTournamentId,
+                SY: "0",
+                TN: AppState.currentTournamentName,
+                FC: this.currentTournamentInfo.formatCode,
+                EV: 'O',           // Overall event
+                DV: 'All',         // All divisions  
+                RND: selectedRound || '0',
+                FT: '0',
+                UN: '0',
+                UT: '0'
+            })
+            .done((response) => {
+                console.log('[OVERALL-JS] GetLeaderboardSP response:', response);
+                if (response.success && response.htmlContent) {
+                    $('#leaderboardContent').html(response.htmlContent);
+                } else {
+                    $('#leaderboardContent').html('<div class="text-center p-4 text-warning"><p>No overall scores found</p></div>');
+                }
+            })
+            .fail((error) => {
+                console.error('[OVERALL-JS] Error loading overall:', error);
+                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading overall scores</p></div>');
+            });
+            
+            /* COMMENTED OUT - Original approach that loads individual divisions
+            // Get all available divisions from the current tournament
+            $.getJSON('GetLeaderboardSP.aspx', {
+                SID: AppState.currentSelectedTournamentId,
+                SY: "0",
+                TN: AppState.currentTournamentName,
+                FC: this.currentTournamentInfo.formatCode,
+                FT: '0',
+                UN: '0',
+                UT: '0',
+                LOAD_ALL_DIVISIONS: '1'
+            })
+            .done((response) => {
+                if (response.success && response.availableDivisions && response.availableDivisions.length > 0) {
+                    // Create Overall combinations for all available divisions
+                    const overallCombinations = response.availableDivisions
+                        .map(div => div.code) // Get division codes
+                        .filter((div, index, array) => array.indexOf(div) === index) // Remove duplicates
+                        .map(divCode => ({
+                            event: 'O',
+                            division: divCode,
+                            eventName: 'Overall'
+                        }));
+                    
+                    if (overallCombinations.length === 0) {
+                        $('#leaderboardContent').html('<div class="text-center p-4 text-warning"><p>No overall divisions found</p></div>');
+                        return;
+                    }
+                    
+                    // Sort divisions alphabetically
+                    overallCombinations.sort((a, b) => a.division.localeCompare(b.division));
+                    
+                    // Load all Overall divisions
+                    this.loadEventDivisionBatch(overallCombinations, 'Loading all overall divisions...', selectedRound);
+                } else {
+                    $('#leaderboardContent').html('<div class="text-center p-4 text-warning"><p>No overall divisions available</p></div>');
+                }
+            })
+            .fail((error) => {
+                console.error('Failed to load overall divisions:', error);
+                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading overall divisions</p></div>');
+            });
+            */
         },
 
         loadEventDetails: function(eventCode) {
