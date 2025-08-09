@@ -2445,8 +2445,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                         sLine.Append(sDVScoresSection.ToString())
                     Else
                         System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] No rows returned from stored procedure")
-                        '      sLine.Append("<tr  Class=""table-info""><td> " & sSkierName & "</td><td>No Scores</td></tr></table>")
-                        sMsg = "No Scores - PrGetScoresOverall returned 0 rows for SanctionID=" & sSanctionID & ", Division=" & sSelDV
+                        ' Skip this division silently when no data is found - don't set error message
                     End If
 
                 End Using

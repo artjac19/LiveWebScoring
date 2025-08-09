@@ -625,7 +625,7 @@
                     // Set up infinite scroll
                     this.setupInfiniteScroll(sanctionId, skiYear, formatCode, selectedRound);
                 } else {
-                    $('#leaderboardContent').html('<div class="text-center p-4"><p>No recent division activity found</p></div>');
+                    this.checkForEmptyContent();
                 }
             })
             .fail((error) => {
@@ -684,7 +684,7 @@
                     // Set up infinite scroll
                     this.setupInfiniteScroll(sanctionId, skiYear, formatCode, selectedRound);
                 } else {
-                    $('#leaderboardContent').html('<div class="text-center p-4"><p>No divisions found for selected event</p></div>');
+                    this.checkForEmptyContent();
                 }
             })
             .fail((error) => {
@@ -715,7 +715,7 @@
                 if (response.success && response.recentScores && response.recentScores.length > 0) {
                     this.displayRecentScores(response.recentScores);
                 } else {
-                    $('#leaderboardContent').html('<div><p>No recent scores found</p></div>');
+                    this.checkForEmptyContent();
                 }
             })
             .fail((error) => {
@@ -948,9 +948,14 @@
             // Always add "All Rounds" option
             roundFilters.append('<button class="filter-btn" data-filter="round" data-value="0">All Rounds</button>');
             
-            // Add placement format override buttons
-            roundFilters.append('<button class="filter-btn" data-filter="placement" data-value="ROUND">Rounds View</button>');
-            roundFilters.append('<button class="filter-btn" data-filter="placement" data-value="BEST">Divisions View</button>');
+            // Add placement format override buttons (but not for Overall event)
+            if (selectedEvent !== 'O') {
+                roundFilters.append('<button class="filter-btn" data-filter="placement" data-value="ROUND">Rounds View</button>');
+                roundFilters.append('<button class="filter-btn" data-filter="placement" data-value="BEST">Divisions View</button>');
+            } else {
+                // For Overall events, add "Best of" filter
+                roundFilters.append('<button class="filter-btn" data-filter="bestof" data-value="BESTOF">Best of</button>');
+            }
             
             let maxRounds = 0;
             
@@ -1119,15 +1124,25 @@
                 const filterType = $btn.data('filter');
                 const filterValue = $btn.data('value');
                 
-                // For placement format buttons, handle differently
+                // For placement format and bestof buttons, handle differently
                 if (filterType === 'placement') {
                     // Toggle active state for placement buttons only
                     $('#roundFilters .filter-btn[data-filter="placement"]').removeClass('active');
                     $btn.addClass('active');
+                } else if (filterType === 'bestof') {
+                    // Toggle active state for bestof button
+                    $('#roundFilters .filter-btn[data-filter="bestof"]').removeClass('active');
+                    $btn.addClass('active');
+                    // Also clear any round filter selection when Best of is selected
+                    $('#roundFilters .filter-btn[data-filter="round"]').removeClass('active');
                 } else {
                     // Update active state within the same filter group (round or division)
                     $btn.siblings('[data-filter="' + filterType + '"]').removeClass('active');
                     $btn.addClass('active');
+                    // Clear bestof selection when selecting individual rounds
+                    if (filterType === 'round') {
+                        $('#roundFilters .filter-btn[data-filter="bestof"]').removeClass('active');
+                    }
                 }
                 
                 // Apply current filter combination
@@ -1143,6 +1158,7 @@
             const selectedDivision = $('#divisionFilters .filter-btn.active').data('value');
             const selectedRound = $('#roundFilters .filter-btn.active[data-filter="round"]').data('value');
             const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
+            const selectedBestOf = $('#roundFilters .filter-btn.active[data-filter="bestof"]').data('value');
             
             // Get current filter state
             const hasEvent = selectedEvent && selectedEvent !== 'NONE';
@@ -1161,9 +1177,18 @@
                 return;
             }
             
-            // Case 0.5: Overall event - load all overall divisions
+            // Case 0.5: Overall event - default to Best of unless specific round is selected
             if (isOverall && !hasDivision) {
-                this.loadOverallAllDivisions(selectedRound);
+                if (selectedBestOf === 'BESTOF' || !selectedRound || selectedRound === '0') {
+                    // Auto-select the Best of button by default
+                    if (!selectedBestOf) {
+                        $('#roundFilters .filter-btn[data-filter="bestof"]').addClass('active');
+                        $('#roundFilters .filter-btn[data-filter="round"]').removeClass('active');
+                    }
+                    this.loadOverallBestOf();
+                } else {
+                    this.loadOverallAllDivisions(selectedRound);
+                }
                 return;
             }
             
@@ -1250,7 +1275,7 @@
                     } else {
                         // Division doesn't exist in this event
                         const eventName = this.getEventName(eventCode);
-                        $('#leaderboardContent').html('<div class="text-center p-4"><p>No results found for division "' + divisionCode + '" in ' + eventName + '</p></div>');
+                        // Skip empty divisions - don't show error for individual missing divisions
                     }
                 } else {
                     $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error checking division availability</p></div>');
@@ -1388,7 +1413,7 @@
                 });
                 
                 if (actualCombinations.length === 0) {
-                    $('#leaderboardContent').html('<div class="text-center p-4 text-warning"><p>No divisions found</p></div>');
+                    this.checkForEmptyContent();
                     return;
                 }
                 
@@ -1428,8 +1453,12 @@
                 console.log('[OVERALL-JS] GetLeaderboardSP response:', response);
                 if (response.success && response.htmlContent) {
                     $('#leaderboardContent').html(response.htmlContent);
+                    
+                    // Split Overall tables by round in JavaScript
+                    const selectedRound = $('#roundFilters .filter-btn.active[data-filter="round"]').data('value');
+                    this.splitOverallTablesByRound(selectedRound);
                 } else {
-                    $('#leaderboardContent').html('<div class="text-center p-4 text-warning"><p>No overall scores found</p></div>');
+                    this.checkForEmptyContent();
                 }
             })
             .fail((error) => {
@@ -1482,6 +1511,310 @@
             */
         },
 
+        loadOverallBestOf: function() {
+            // Show loading message
+            $('#leaderboardContent').html('<div class="text-center p-4"><p>Calculating best overall scores...</p></div>');
+            
+            console.log('[BESTOF-DEBUG] Loading all rounds of Overall data for Best of calculation');
+            
+            // First, load all Overall data (all rounds)
+            $.getJSON('GetLeaderboardSP.aspx', {
+                SID: AppState.currentSelectedTournamentId,
+                SY: "0",
+                TN: AppState.currentTournamentName,
+                FC: this.currentTournamentInfo.formatCode,
+                EV: 'O',           // Overall event
+                DV: 'All',         // All divisions  
+                RND: '0',          // All rounds
+                FT: '0',
+                UN: '0',
+                UT: '0'
+            })
+            .done((response) => {
+                if (response.success && response.htmlContent) {
+                    // Process the HTML to extract best scores
+                    this.calculateBestOfScores(response.htmlContent);
+                } else {
+                    this.checkForEmptyContent();
+                }
+            })
+            .fail((error) => {
+                console.error('[BESTOF-DEBUG] Error loading overall data:', error);
+                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading overall data</p></div>');
+            });
+        },
+
+        calculateBestOfScores: function(htmlContent) {
+            console.log('[BESTOF-DEBUG] Starting Best of calculation');
+            
+            // Create a temporary container to parse the HTML
+            const $tempContainer = $('<div>').html(htmlContent);
+            
+            // Find all Overall tables
+            const $overallTables = $tempContainer.find('.division-section').filter(function() {
+                return $(this).find('.table-header-row').text().toLowerCase().includes('overall');
+            });
+            
+            // Extract all skier data grouped by division
+            const divisionData = {};
+            
+            $overallTables.each(function() {
+                const $table = $(this);
+                const headerText = $table.find('.table-header-row').text().toLowerCase();
+                
+                // Extract division from header
+                const divisionMatch = headerText.match(/overall\s+([a-z0-9]+)/i);
+                if (!divisionMatch) return;
+                
+                const division = divisionMatch[1].toUpperCase();
+                
+                if (!divisionData[division]) {
+                    divisionData[division] = {};
+                }
+                
+                // Process data rows
+                $table.find('tr').not('.table-header-row').each(function() {
+                    const $row = $(this);
+                    const cells = $row.find('td');
+                    
+                    if (cells.length < 6) return; // Need at least name, round, overall, slalom, trick, jump
+                    
+                    const skierName = $(cells[0]).text().trim();
+                    const round = parseInt($(cells[1]).text().trim());
+                    const overallScore = parseFloat($(cells[2]).text().trim()) || 0;
+                    const slalomNops = parseFloat($(cells[3]).text().trim()) || 0;
+                    const trickNops = parseFloat($(cells[4]).text().trim()) || 0;
+                    const jumpNops = parseFloat($(cells[5]).text().trim()) || 0;
+                    
+                    if (!skierName || isNaN(round)) return;
+                    
+                    if (!divisionData[division][skierName]) {
+                        divisionData[division][skierName] = [];
+                    }
+                    
+                    divisionData[division][skierName].push({
+                        round: round,
+                        overallScore: overallScore,
+                        slalomNops: slalomNops,
+                        trickNops: trickNops,
+                        jumpNops: jumpNops
+                    });
+                });
+            });
+            
+            // Calculate best scores for each skier in each division
+            this.generateBestOfTables(divisionData);
+        },
+
+        generateBestOfTables: function(divisionData) {
+            console.log('[BESTOF-DEBUG] Generating Best of tables for divisions:', Object.keys(divisionData));
+            
+            let tablesHtml = '';
+            
+            // Process each division
+            Object.keys(divisionData).sort().forEach(division => {
+                const skiers = divisionData[division];
+                const bestScores = [];
+                
+                // Calculate superscore for each skier (best of each event)
+                Object.keys(skiers).forEach(skierName => {
+                    const rounds = skiers[skierName];
+                    
+                    // Find the best score in each individual event across all rounds
+                    let bestSlalom = Math.max(...rounds.map(r => r.slalomNops));
+                    let bestTrick = Math.max(...rounds.map(r => r.trickNops));
+                    let bestJump = Math.max(...rounds.map(r => r.jumpNops));
+                    
+                    // Calculate superscore as sum of best individual event scores
+                    let superscore = bestSlalom + bestTrick + bestJump;
+                    
+                    // Find which rounds produced these best scores (for display)
+                    let slalomRound = rounds.find(r => r.slalomNops === bestSlalom)?.round || 0;
+                    let trickRound = rounds.find(r => r.trickNops === bestTrick)?.round || 0;
+                    let jumpRound = rounds.find(r => r.jumpNops === bestJump)?.round || 0;
+                    
+                    bestScores.push({
+                        skierName: skierName,
+                        superscore: superscore,
+                        bestSlalom: bestSlalom,
+                        bestTrick: bestTrick,
+                        bestJump: bestJump,
+                        slalomRound: slalomRound,
+                        trickRound: trickRound,
+                        jumpRound: jumpRound
+                    });
+                });
+                
+                // Sort by superscore (highest first)
+                bestScores.sort((a, b) => b.superscore - a.superscore);
+                
+                // Generate HTML table for this division
+                tablesHtml += `
+                    <table class="division-section" style="margin-bottom: 1rem;">
+                        <tr class="table-header-row">
+                            <td width="25%"><b>Overall ${division}</b></td>
+                            <td>Overall</td><td>Slalom NOPS</td><td>Trick NOPS</td><td>Jump NOPS</td>
+                        </tr>`;
+                
+                bestScores.forEach(skier => {
+                    tablesHtml += `
+                        <tr>
+                            <td><b>${skier.skierName}</b></td>
+                            <td><b>${skier.superscore.toFixed(1)}</b></td>
+                            <td>${skier.bestSlalom.toFixed(1)} (R${skier.slalomRound})</td>
+                            <td>${skier.bestTrick.toFixed(1)} (R${skier.trickRound})</td>
+                            <td>${skier.bestJump.toFixed(1)} (R${skier.jumpRound})</td>
+                        </tr>`;
+                });
+                
+                tablesHtml += '</table>';
+            });
+            
+            // Display the generated tables
+            $('#leaderboardContent').html(tablesHtml);
+            
+            // Check if we actually have any tables to display
+            if (!tablesHtml.trim()) {
+                this.checkForEmptyContent();
+            }
+            
+            console.log('[BESTOF-DEBUG] Best of tables generated successfully');
+        },
+
+        checkForEmptyContent: function() {
+            // Check if leaderboard content is empty or only contains loading messages
+            const content = $('#leaderboardContent');
+            const tables = content.find('table, .division-section');
+            const hasData = tables.length > 0;
+            
+            if (!hasData) {
+                content.html('<div class="text-center p-4"><p>No scores found</p></div>');
+            }
+        },
+
+        splitOverallTablesByRound: function(selectedRound) {
+            console.log('[SPLIT-DEBUG] Starting Overall table splitting for round:', selectedRound);
+            
+            // Find all division-section tables (Overall tables have this class)
+            const divisionTables = $('.division-section');
+            console.log('[SPLIT-DEBUG] Found', divisionTables.length, 'division tables');
+            
+            divisionTables.each((tableIndex, table) => {
+                const $table = $(table);
+                const headerRow = $table.find('tr.table-header-row');
+                
+                if (headerRow.length === 0) return;
+                
+                const headerText = headerRow.text().toLowerCase();
+                console.log('[SPLIT-DEBUG] Table', tableIndex, 'header:', headerText);
+                
+                // Check if this is an Overall table
+                if (!headerText.includes('overall')) {
+                    console.log('[SPLIT-DEBUG] Not an Overall table, skipping');
+                    return;
+                }
+                
+                // Extract division from header pattern: "Overall OM - Round 1 - Sort by: BEST"
+                const divisionMatch = headerText.match(/overall\s+([a-z0-9]+)\s+-/i);
+                if (!divisionMatch) {
+                    console.log('[SPLIT-DEBUG] Could not extract division from header');
+                    return;
+                }
+                
+                const division = divisionMatch[1].toUpperCase();
+                console.log('[SPLIT-DEBUG] Extracted division:', division);
+                
+                // Get all data rows (skip header row)
+                const dataRows = $table.find('tr').not('.table-header-row');
+                
+                if (dataRows.length <= 1) {
+                    console.log('[SPLIT-DEBUG] Not enough data rows to split');
+                    return;
+                }
+                
+                // Group rows by round (round is in the 2nd column, index 1)
+                const roundGroups = {};
+                
+                dataRows.each((rowIndex, row) => {
+                    const $row = $(row);
+                    const cells = $row.find('td');
+                    
+                    if (cells.length < 3) return; // Need at least name, round, score
+                    
+                    // Round is in column 1 (after skier name)
+                    const roundCell = $(cells[1]);
+                    const round = roundCell.text().trim();
+                    
+                    console.log('[SPLIT-DEBUG] Row', rowIndex, 'round:', round);
+                    
+                    if (round && round.match(/^[0-9]+$/)) {
+                        if (!roundGroups[round]) {
+                            roundGroups[round] = [];
+                        }
+                        roundGroups[round].push($row.clone());
+                    }
+                });
+                
+                const rounds = Object.keys(roundGroups);
+                console.log('[SPLIT-DEBUG] Found rounds:', rounds);
+                
+                if (rounds.length > 1) {
+                    // Show all rounds as separate tables
+                    rounds.sort((a, b) => parseInt(a) - parseInt(b));
+                    
+                    let newTablesHtml = '';
+                    rounds.forEach(round => {
+                        const rows = roundGroups[round];
+                        const tableTitle = `Overall ${division} Round ${round}`;
+                        
+                        // Remove the round column from each row (column index 1)
+                        const modifiedRows = rows.map(row => {
+                            const $clonedRow = row.clone();
+                            $clonedRow.find('td:eq(1)').remove(); // Remove round column
+                            return $clonedRow[0].outerHTML;
+                        });
+                        
+                        newTablesHtml += `
+                            <table class="division-section" style="margin-bottom: 1rem;">
+                                <tr class="table-header-row">
+                                    <td width="35%"><b>${tableTitle} - Sort by: BEST</b></td>
+                                    <td>Overall Score</td><td>Slalom NOPS</td><td>Trick NOPS</td><td>Jump NOPS</td>
+                                </tr>
+                                ${modifiedRows.join('')}
+                            </table>
+                        `;
+                    });
+                    
+                    console.log('[SPLIT-DEBUG] Replacing table with', rounds.length, 'separate tables');
+                    $table.replaceWith(newTablesHtml);
+                } else {
+                    console.log('[SPLIT-DEBUG] Only one round found, no splitting needed');
+                }
+            });
+            
+            // After generating all round tables, filter out unwanted rounds if specific round is selected
+            if (selectedRound && selectedRound !== '0') {
+                console.log('[SPLIT-DEBUG] Filtering to show only round', selectedRound);
+                $('#leaderboardContent .division-section').each(function() {
+                    const $table = $(this);
+                    const headerText = $table.find('.table-header-row').text();
+                    
+                    // Check if this table is for the selected round
+                    const roundMatch = headerText.match(/Round\s+(\d+)/i);
+                    if (roundMatch) {
+                        const tableRound = roundMatch[1];
+                        console.log('[SPLIT-DEBUG] Comparing tableRound:', tableRound, 'type:', typeof tableRound, 'vs selectedRound:', selectedRound, 'type:', typeof selectedRound);
+                        if (tableRound == selectedRound) {
+                            console.log('[SPLIT-DEBUG] Keeping table for round', tableRound);
+                        } else {
+                            console.log('[SPLIT-DEBUG] Removing table for round', tableRound);
+                            $table.remove();
+                        }
+                    }
+                });
+            }
+        },
+
         loadEventDetails: function(eventCode) {
             // Load divisions for the selected event (just to populate division filter options)
             const sanctionId = AppState.currentSelectedTournamentId;
@@ -1504,8 +1837,10 @@
                     const divisionFilters = $('#divisionFilters');
                     divisionFilters.empty();
                     
-                    // Always add Most Recent and Alphabetical options first
-                    divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
+                    // Add Most Recent and Alphabetical options (but not Most Recent for Overall)
+                    if (eventCode !== 'O') {
+                        divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
+                    }
                     divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">Alphabetical</button>');
                     
                     // Add event-specific divisions (excluding the "ALL" option from server)
@@ -1515,10 +1850,15 @@
                         }
                     });
                     
-                    // Try to preserve the previous division selection, otherwise default to Most Recent
+                    // Try to preserve the previous division selection, otherwise default appropriately
                     let targetButton = divisionFilters.find(`[data-value="${currentDivisionValue}"]`);
                     if (targetButton.length === 0) {
-                        targetButton = divisionFilters.find('[data-value="MOST_RECENT"]');
+                        // For Overall, default to Alphabetical; for others, default to Most Recent
+                        if (eventCode === 'O') {
+                            targetButton = divisionFilters.find('[data-value="ALL"]');
+                        } else {
+                            targetButton = divisionFilters.find('[data-value="MOST_RECENT"]');
+                        }
                     }
                     targetButton.addClass('active');
                 }
@@ -1622,7 +1962,8 @@
                         }, 100);
                     }
                 } else {
-                    $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading batch divisions</p></div>');
+                    // Batch loading complete - check if we have any content at all
+                    setTimeout(() => this.checkForEmptyContent(), 100);
                 }
             })
             .fail((error) => {
@@ -1892,12 +2233,17 @@
                     
                     $('#leaderboardContent').html(response.htmlContent);
                     
+                    // Split Overall tables by round if this is an Overall event
+                    if (selectedEvent === 'O') {
+                        TournamentInfo.splitOverallTablesByRound(selectedRound);
+                    }
+                    
                     // Clean up empty columns and rows in the loaded content
                     $('#leaderboardContent table').each(function() {
                         TournamentInfo.removeEmptyColumnsAndRows(this);
                     });
                 } else {
-                    $('#leaderboardContent').html('<p class="text-center text-danger">Error loading leaderboard data</p>');
+                    // Individual division load failed - don't show message, just skip
                 }
             })
             .fail(function(xhr, status, error) {

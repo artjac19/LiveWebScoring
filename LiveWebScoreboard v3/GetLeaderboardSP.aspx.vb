@@ -115,13 +115,13 @@ Public Class GetLeaderboardSP
                 })
                 ' Return recent scores from all events
             ElseIf sGetRecentScores = "1" Then
-                ' Use offset parameter for pagination, default to 0
-                Dim offsetRows As Integer = 0
-                If Not String.IsNullOrEmpty(Request("OFFSET")) Then
-                    Integer.TryParse(Request("OFFSET"), offsetRows)
+                ' Use dynamic hours parameter from frontend, default to 10
+                Dim hoursBack As Integer = 10
+                If Not String.IsNullOrEmpty(Request("HOURS_BACK")) Then
+                    Integer.TryParse(Request("HOURS_BACK"), hoursBack)
                 End If
                 
-                Dim recentScores = ModDataAccess3.GetRecentScores(sSanctionID, 20, offsetRows)
+                Dim recentScores = ModDataAccess3.GetRecentScores(sSanctionID, 20, hoursBack)
                 Dim serializer As New JavaScriptSerializer()
                 jsonResponse = serializer.Serialize(New With {
                     .success = True,
@@ -190,11 +190,9 @@ Public Class GetLeaderboardSP
                 jsonResponse = BuildTournamentInfoJson(sSanctionID, sTournName, sSlalomRounds, sTrickRounds, sJumpRounds, sFormatCode)
             ElseIf String.IsNullOrEmpty(sDivisionCodePkd) Then
                 ' Event specified but no division - return just division data quickly
-                System.Diagnostics.Debug.WriteLine("[ROUTE-DEBUG] Taking division info path for Event=" & sEventCodePkd)
                 jsonResponse = BuildDivisionInfoJson(sSanctionID, sEventCodePkd)
             Else
                 ' Return leaderboard data
-                System.Diagnostics.Debug.WriteLine("[ROUTE-DEBUG] Taking leaderboard path for Event=" & sEventCodePkd & ", Division=" & sDivisionCodePkd)
                 jsonResponse = BuildLeaderboardJson(sSanctionID, sYrPkd, sTournName, sEventCodePkd, sDivisionCodePkd, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, CShort(CInt(sUseNOPS)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric, sForcePlacement)
             End If
 
@@ -232,7 +230,8 @@ Public Class GetLeaderboardSP
         If sJumpRounds > 0 Then eventCount += 1
 
         If eventCount > 1 Then
-            info.availableEvents.Add(New With {.code = "O", .name = "Overall", .rounds = 1})
+            Dim maxRounds As Integer = Math.Max(Math.Max(sSlalomRounds, sTrickRounds), sJumpRounds)
+            info.availableEvents.Add(New With {.code = "O", .name = "Overall", .rounds = maxRounds})
         End If
 
         ' Get available divisions using new LoadDvData function
@@ -253,7 +252,6 @@ Public Class GetLeaderboardSP
     End Function
 
     Private Function BuildLeaderboardJson(sSanctionID As String, sYrPkd As String, sTournName As String, sEventCodePkd As String, sDivisionCodePkd As String, sRndsPkd As String, sSlalomRounds As Int16, sTrickRounds As Int16, sJumpRounds As Int16, sUseNops As Int16, sUseTeams As Int16, sFormatCode As String, sDisplayMetric As Int16, Optional sForcePlacement As String = "") As String
-        System.Diagnostics.Debug.WriteLine("[LEADERBOARD-DEBUG] BuildLeaderboardJson called with Event=" & sEventCodePkd & ", Division=" & sDivisionCodePkd)
         Dim sHtmlContent As String = ""
         Dim sPlcmntFormat As String = ""
 
