@@ -3526,7 +3526,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
 
         Dim sLine As String = ""
         Dim Cnnt As New OleDb.OleDbConnection(sConn)
-        sText = "<h3>Slalom Recap for " & sSkierName & " " & sAgeGroup & "</h3>"
+        sText = ""
         Dim cmdRead As New OleDb.OleDbCommand
         Dim MyDataReader As OleDb.OleDbDataReader = Nothing
         Dim sCkRows As Boolean = False
@@ -3733,8 +3733,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
         Dim sEventClass As String = ""
         Dim sLine As String = ""
         Dim Cnnt As New OleDb.OleDbConnection(sConn)
-        Dim sTableMstr As String = "<table>" 'Table row holding first round information
-        Dim sTableRound As String = ""
+        sText = ""
         Dim cmdRead As New OleDb.OleDbCommand
         Dim MyDataReader As OleDb.OleDbDataReader = Nothing
         Dim sCkRows As Boolean = False
@@ -3754,6 +3753,8 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                             sPass = CStr(MyDataReader.Item("Pass"))
                             sResults = CStr(MyDataReader.Item("Results"))
                             sTrkScore = CStr(MyDataReader.Item("TrkScore"))
+                            sRound = CStr(MyDataReader.Item("Round"))
+
                             If IsDBNull(MyDataReader.Item("FScore")) Then
                                 sRoundScore = "N/A"
                             Else
@@ -3778,135 +3779,117 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                 sP2Score = CStr(MyDataReader.Item("P2Score"))
                             End If
 
-                            sRound = CStr(MyDataReader.Item("Round"))
-
                             If IsDBNull(MyDataReader.Item("Pass1VideoURL")) Then
-                                sPass1URL = "Round " & sRound & " Pass 1 Video Not available."
-                            Else  'Have a Url
+                                sPass1URL = ""
+                            Else
                                 sPass1URL = MyDataReader.Item("Pass1VideoURL")
                             End If
+
                             If IsDBNull(MyDataReader.Item("Pass2VideoURL")) Then
-                                sPass2URL = "Round " & sRound & " Pass 2 Video Not available."
+                                sPass2URL = ""
                             Else
                                 sPass2URL = MyDataReader.Item("Pass2VideoURL")
                             End If
+
                             If IsDBNull(MyDataReader.Item("LastUpdateDate")) Then
                                 sLastUpdateDate = ""
                             Else
                                 sLastUpdateDate = CStr(MyDataReader.Item("LastUpdateDate"))
                             End If
 
-                            If sTmpRound = 0 Then 'This is the first round. set up row in master table and round Table that holds both passes
-                                sTmpRound = sRound
-                                sTableMstr += "<tr><td>" 'row that will hold Rounds tables
-                                sTableRound = "<table>"
-                                sTableRound += "<tr><td><b>Trick Recap: " & sSkierName & " &nbsp;" & sAgeGroup & " Class " & sEventClass & " Round " & sRound & "</b></td><td class=""table-primary""><span class=""bg-danger text-white"" >  UNOFFICIAL </span><b> &nbsp;Score " & sRoundScore & "</b> as of " & sLastUpdateDate & "</td></tr>"
-                                sTableRound += "<tr><td>" 'row containing left and right tables
-                                sPassTable = "<table>"  'Pass 1 table
-                                sPassTable += "<thead><tr><th colspan=""4""> Pass: " & sPass & "&nbsp; Score " & sP1Score & "</th></tr>"
-                                sPassTable += "<tr><th>Skis</th><th>Code</th><th>Results</th><th>Score</th></tr></head>"
-                                'reset for new round
-                                sTmpPass = sPass
-                                sTmpPass1Url = sPass1URL
-                                sTmpPass2URL = sPass2URL
-                                sP1SubTotal = 0
-                                sP2SubTotal = 0
-                                sTotalScore = 0
-                            End If
-                            If sRound = sTmpRound Then 'Beginning pass 1
-                                If sTmpPass = sPass Then  'still in same round and pass
-                                    'display next trick.  subtotal points?
-                                    sPassTable += "<tr><td>" & sSkis & "</td><td>" & sCode & "</td><td>" & sResults & "</td><td>" & sTrkScore & "</td></tr>"
+                            ' Start new round section
+                            If sTmpRound <> sRound Then
+                                ' Close previous round if it exists
+                                If sTmpRound > 0 Then
+                                    sText += "</div>" ' Close passes container
+
+                                    ' Add videos after the score tables
+                                    If sPass1URL <> "" Then
+                                        sText += "<div style=""margin: 10px 0;"">"
+                                        sText += "<p><strong>Pass 1 Video:</strong></p>"
+                                        sText += sPass1URL
+                                        sText += "</div>"
+                                    End If
+                                    If sPass2URL <> "" Then
+                                        sText += "<div style=""margin: 10px 0;"">"
+                                        sText += "<p><strong>Pass 2 Video:</strong></p>"
+                                        sText += sPass2URL
+                                        sText += "</div>"
+                                    End If
+                                    sText += "<br/>"
                                 End If
-                                If sTmpPass <> sPass Then  'Could use if sPass = 2
-                                    'close out pass 1 
-                                    sPassTable += "<tr><td colspan=""4"">End Pass " & sTmpPass & "</td></tr>"
-                                    sPassTable += "</table>"
-                                    sTableRound += sPassTable & "</td><td>" 'close column 1 and start second column in Round table prepare for pass 2
-                                    sPassTable = ""
-                                    ' set up pass 2
-                                    sTmpPass = sPass  'should be 2
-                                    sPassTable = "<table>"
-                                    sPassTable += "<thead><tr><th colspan=""4"">  Pass: " & sPass & "&nbsp;Score " & sP2Score & "</th></tr>"
-                                    sPassTable += "<tr><th>Skis</th><th>Code</th><th>Results</th><th>Score</th></tr></thead>"
-                                    'display next trick. subtotal points?
-                                    sPassTable += "<tr><td>" & sSkis & "</td><td>" & sCode & "</td><td>" & sResults & "</td><td>" & sTrkScore & "</td></tr>"
-                                End If
-                            End If
-                            ' COULD USE ELSE
-                            If sRound <> sTmpRound Then
-                                'starting a new round.  Close out previous round
-                                sTotalScore += sP2SubTotal
-                                sPassTable += "<tr><td colspan=""4"">End Pass " & sTmpPass & "</td></tr>"
-                                sPassTable += "</table>"  ' close PassTable
-                                sTableRound += sPassTable & "</td></tr>" 'close column 2
-                                'Add in the video links if available
-                                sTableRound += "<tr><td colspan=""2"">" & sTmpPass1Url & "</td></tr>"
-                                sTableRound += "<tr><td colspan=""2"">" & sTmpPass2URL & "</td></tr>"
-                                sTableRound += "</table>"
-                                'Add round data and close out First Round row in master table
-                                sTableMstr += sTableRound & "</td><td>"
-                                sTableMstr += "<tr><td>"
-                                'reset for new round
+
+                                ' Start new round
+                                sText += "<h4>Round " & sRound & " - Class " & sEventClass & " - Total Score: " & sRoundScore & "</h4>"
+                                sText += "<p><em>Updated: " & sLastUpdateDate & "</em></p>"
+
+                                ' Start passes container (side by side)
+                                sText += "<div style=""display: flex; gap: 20px;"">"
+
                                 sTmpRound = sRound
-                                sTmpPass1Url = sPass1URL
-                                sTmpPass2URL = sPass2URL
-                                sTableRound = "<table>"
-                                sTableRound += "<tr><td><b>Trick Recap: " & sSkierName & " &nbsp;" & sAgeGroup & " Class " & sEventClass & " Round " & sRound & "</b></td><td><b> &nbsp;Score " & sRoundScore & "</b> as of " & sLastUpdateDate & "</td></tr>"
-                                sTableRound += "<tr><td>" 'row containing left and right tables
-                                sPassTable = "<table>"  'Pass 1 table
-                                sPassTable += "<thead><tr><th colspan=""4""> Pass: " & sPass & "&nbsp; Score " & sP1Score & "</th></tr>"
-                                sPassTable += "<tr><th>Skis</th><th>Code</th><th>Results</th><th>Score</th></tr></head>"
-                                'reset for new round
-                                sTmpPass = sPass  'pass number of next round
-                                sP1SubTotal = 0
-                                sP2SubTotal = 0
-                                sTotalScore = 0
-                                'Add first row of new round
-                                sPassTable += "<tr><td>" & sSkis & "</td><td>" & sCode & "</td><td>" & sResults & "</td><td>" & sTrkScore & "</td></tr>"
+                                sTmpPass = ""
                             End If
 
+                            ' Start new pass table
+                            If sTmpPass <> sPass Then
+                                ' Close previous pass column if it exists
+                                If sTmpPass <> "" Then
+                                    sText += "</tbody></table></div>" ' Close table and column
+                                End If
+
+                                ' Start new pass column and table
+                                Dim passScore As String = If(sPass = "1", sP1Score, sP2Score)
+                                sText += "<div style=""flex: 1;"">"
+                                sText += "<h5>Pass " & sPass & " - Score: " & passScore & "</h5>"
+                                sText += "<table class=""trick-pass-table"">"
+                                sText += "<thead>"
+                                sText += "<tr><th>Skis</th><th>Code</th><th>Results</th><th>Score</th></tr>"
+                                sText += "</thead><tbody>"
+                                sTmpPass = sPass
+                            End If
+
+                            ' Add trick row
+                            sText += "<tr><td>" & sSkis & "</td><td>" & sCode & "</td><td>" & sResults & "</td><td>" & sTrkScore & "</td></tr>"
                         Loop
+
+                        ' Close the last table and containers
+                        If sTmpPass <> "" Then
+                            sText += "</tbody></table></div>" ' Close last table and column
+                            sText += "</div>" ' Close passes container
+
+                            ' Add videos after the last round's score tables
+                            If sPass1URL <> "" Then
+                                sText += "<div style=""margin: 10px 0;"">"
+                                sText += "<p><strong>Pass 1 Video:</strong></p>"
+                                sText += sPass1URL
+                                sText += "</div>"
+                            End If
+                            If sPass2URL <> "" Then
+                                sText += "<div style=""margin: 10px 0;"">"
+                                sText += "<p><strong>Pass 2 Video:</strong></p>"
+                                sText += sPass2URL
+                                sText += "</div>"
+                            End If
+                        End If
                     Else
-                        sTableMstr += "<tr colspan=""2""><td>No Trick results Found For selected skier.</td></tr>"  'close row here and table in Finally
+                        sText += "<p>No Trick results found for selected skier.</p>"
                     End If 'end of has rows
                 End Using
 
-                Select Case sPass ' have processed all records.  Close table - hits here if pass ends with no additional rounds present
-
-                    Case "1" 'if only one pass 
-
-                        sTotalScore += sP2SubTotal
-                        sPassTable += "<tr><td colspan=""4"">End Pass " & sTmpPass & "</td></tr>"
-                        sPassTable += "</table>"  ' close PassTable
-                        sTableRound += sPassTable & "</td><td></td></tr>" 'close column 2 empty
-                        'Add in the video links if available
-                        sTableRound += "<tr><td colspan=""2"">" & sPass1URL & "</td></tr>"
-                        sTableRound += "</table>"
-                        sTableMstr += sTableRound & "</td></tr>"
-                    Case "2" 'if two passses but no next round present.
-                        sPassTable += "<tr><td colspan=""4"">End Pass " & sTmpPass & "</td></tr>"
-                        sPassTable += "</table>"
-                        sTableRound += sPassTable & "</td></tr>" 'close row containing both pass tables
-                        sTableRound += "<tr><td colspan=""2"">" & sPass1URL & "</td></tr>"
-                        sTableRound += "<tr><td colspan=""2"">" & sPass2URL & "</td></tr>"
-                        sTableRound += "</table>"
-                        sTableMstr += sTableRound & "</td></tr>"
-                    Case "0" ' no records found = dp nothing
-                End Select
+                ' All table closing is now handled in the main loop above
 
             Catch ex As Exception
                 sMsg += "Error Can't retrieve Trick Scores. "
                 sErrDetails = "error at RecapTrick " & ex.Message & " " & ex.StackTrace & "<br>SQL= " & sSQL
             Finally
-                sTableMstr += "</td></tr></Table>" 'Close round container
+                ' Table closing is now handled properly above
             End Try
         End Using
         If Len(sMsg) > 2 Then
             Return sMsg
             Exit Function
         End If
-        Return sTableMstr
+        Return sText
     End Function
     Friend Function RecapJump(ByVal SanctionID As String, ByVal MemberID As String, ByVal AgeGroup As String, ByVal SkierName As String) As String
         'Pulled from wfwShowScoreRecap.php

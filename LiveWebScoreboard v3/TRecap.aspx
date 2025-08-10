@@ -12,7 +12,56 @@
     <link rel="stylesheet" href="Content/styles.css" />
     <!--   <script src="js/bootstrap.bundle.min.js"></script>  -->
     <style>
+        /* Make everything much smaller on recap page */
+        .recap-container {
+            font-size: 0.65em !important;
+        }
+        
+        /* Make sure all elements inherit the smaller font */
+        .recap-container * {
+            font-size: inherit !important;
+        }
+        
+        /* Light blue background for table headers */
+        .recap-container table thead,
+        .recap-container table thead th,
+        .recap-container table thead td {
+            background-color: #d1ecf1 !important;
+        }
+        
+        /* Trick Pass Table Column Widths */
+        .trick-pass-table {
+            width: 100%;
+            table-layout: auto;
+        }
 
+        .trick-pass-table th:nth-child(1),
+        .trick-pass-table td:nth-child(1) {
+            width: 10%;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .trick-pass-table th:nth-child(2),
+        .trick-pass-table td:nth-child(2) {
+            width: 25%;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .trick-pass-table th:nth-child(3),
+        .trick-pass-table td:nth-child(3) {
+            width: 50%;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .trick-pass-table th:nth-child(4),
+        .trick-pass-table td:nth-child(4) {
+            width: 15%;
+            white-space: nowrap;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -46,10 +95,13 @@
             </div>
 
         </div>
-        <!-- Display 4 boxes - one for each event + Overall.  
-            Put in skier's performances by round and pass as they become available -->
+        <!-- Consolidated title for all recaps -->
+        <div style="text-align: center; margin: 2rem 0;">
+            <h2 id="ConsolidatedTitle" runat="server">Skier Performance Recap</h2>
+        </div>
         
-        <div style="display: flex; flex-direction: row; gap: 2rem; margin: 3rem; overflow-wrap: normal;">
+        <!-- Display 4 boxes - one for each event + Overall with smaller font -->
+        <div class="recap-container" style="display: flex; flex-direction: row; gap: 1rem; margin: 1rem; overflow-wrap: normal;">
             <div id="SlalomRecap" runat="server"></div> 
             <div id="TrickRecap" runat="server"></div>
             <div id="JumpRecap" runat="server"></div>
