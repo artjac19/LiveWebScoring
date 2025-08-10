@@ -3843,7 +3843,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                 sText += "<h5>Pass " & sPass & " - Score: " & passScore & "</h5>"
                                 sText += "<table class=""trick-pass-table"">"
                                 sText += "<thead>"
-                                sText += "<tr><th>Skis</th><th>Code</th><th>Results</th><th>Score</th></tr>"
+                                sText += "<tr><th>Skis</th><th>Code</th><th>Results</th><th>Pts</th></tr>"
                                 sText += "</thead><tbody>"
                                 sTmpPass = sPass
                             End If
@@ -3946,7 +3946,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
         End Try
         Dim sLine As String = ""
         Dim Cnnt As New OleDb.OleDbConnection(sConn)
-        sText = "<Table class=""table table-striped border-1 "">"
+        sText = ""
         Dim cmdRead As New OleDb.OleDbCommand
         Dim MyDataReader As OleDb.OleDbDataReader = Nothing
         Dim sCkRows As Boolean = False
@@ -4028,20 +4028,29 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                 sLastUpdateDate = CStr(MyDataReader.Item("LastUpdateDate"))
                             End If
                             If sTmpRound <> sRound Then
-                                sText += "<tr><td colspan=""7""><b>Round " & sRound & " Distance for " & sSkierName & " " & sAgeGroup & "  Class " & sEventClass & " </b> as of " & sLastUpdateDate & "</td></tr>"
-                                sText += "<tr><th>Result<th>Pass</th><th> Ft  Mtr </th><th>Speed</th><th>RmpHt</th><th>Reride</th><th>Score Protect</th></tr>"
+                                ' Close previous table if exists
+                                If sText <> "" Then
+                                    sText += "</tbody></table>"
+                                End If
+                                ' Start new table for this round
+                                sText += "<h4>Jump Round " & sRound & " - " & sEventClass & " Class</h4>"
+                                sText += "<table class=""table table-striped table-bordered"">"
+                                sText += "<thead><tr><th>Result</th><th>Pass</th><th>Distance</th><th>Speed</th><th>Ramp Height</th><th>Reride</th><th>Protected</th></tr></thead>"
+                                sText += "<tbody>"
                                 sTmpRound = sRound
                             End If
-                            sText += "<tr><td>" & sResults & "</td><td>" & sPass & "</td><td>" & sFeet & "&nbsp;" & sMeters & "</td><td>" & sBSpeed & "</td><td>" & sRmpHt & "</td><td>" & sReride & "</td><td>" & sProtected & "</td></tr>"
+                            sText += "<tr><td>" & sResults & "</td><td>" & sPass & "</td><td>" & sFeet & " ft / " & sMeters & " m</td><td>" & sBSpeed & "</td><td>" & sRmpHt & "</td><td>" & sReride & "</td><td>" & sProtected & "</td></tr>"
                             If sReride = "Y" Then
-                                sHighlightRerideReason = ""
-                                sText += "<tr><td " & sHighlightRerideReason & " colspan=""7"">Pass# " & sPass & " " & sRerideReason & "</td></tr>"
-                                sHighlightRerideReason = ""
+                                sText += "<tr><td colspan=""7"" style=""font-style: italic; color: #6c757d;"">Pass " & sPass & " reride reason: " & sRerideReason & "</td></tr>"
                             End If
 
                         Loop
+                        ' Close final table
+                        If sText <> "" Then
+                            sText += "</tbody></table>"
+                        End If
                     Else
-                        sText += "<tr><td colspan=""6"">No Jump results Found For selected skier.</td></tr>"
+                        sText += "<p>No Jump results found for selected skier.</p>"
                     End If 'end of has rows
                 End Using
 
@@ -4049,7 +4058,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                 sMsg += "Error Can 't retrieve Jump Recap. "
                 sErrDetails = ex.Message & " " & ex.StackTrace & "error at RecapJump:SQL= " & sSQL
             Finally
-                sText += "</table>"
+                ' Table closing is handled in the loop or no results case
             End Try
         End Using
         If Len(sMsg) > 2 Then
@@ -4115,9 +4124,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
         Dim sEventClass As String = ""
         Dim sLine As String = ""
         Dim Cnnt As New OleDb.OleDbConnection(sConn)
-        sText = "<table>"
-        sText += "<thead><tr><td colspan=""6""><b>Overall Scores for " & sSkierName & "</b></td></tr>"
-        sText += "<tr><th>Age Group</th><th>Rnd</th><th>Overall Score</th><th>Slalom Nops</th><th>Trick Nops</th><th>Jump Nops</th></tr></thead>"
+        sText = ""
         Dim cmdRead As New OleDb.OleDbCommand
         Dim MyDataReader As OleDb.OleDbDataReader = Nothing
         Dim sCkRows As Boolean = False
@@ -4128,8 +4135,19 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                     cmdRead.Connection.Open()
                     cmdRead.CommandText = sSQL
                     MyDataReader = cmdRead.ExecuteReader
+                    ' Always start with title and table structure
+                    sText += "<h4>Overall Scores</h4>"
+                    sText += "<table class=""table table-striped table-bordered"">"
+                    sText += "<thead><tr><th>Age Group</th><th>Round</th><th>Overall Score</th><th>Slalom NOPS</th><th>Trick NOPS</th><th>Jump NOPS</th></tr></thead>"
+                    sText += "<tbody>"
+                    
                     If MyDataReader.HasRows = True Then
                         Do While MyDataReader.Read()
+                            ' Get AgeGroup from the data
+                            If Not IsDBNull(MyDataReader.Item("AgeGroup")) Then
+                                sAgeGroup = CStr(MyDataReader.Item("AgeGroup"))
+                            End If
+                            
                             If IsDBNull(MyDataReader.Item("Round")) Then
                                 sRound = "N/A"
                             Else
@@ -4141,7 +4159,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                 sEvent = CStr(MyDataReader.Item("Event"))
                             End If
                             If IsDBNull(MyDataReader.Item("OverallScore")) Then
-                                sEvent = "N/A"
+                                sOverallScore = "N/A"
                             Else
                                 sOverallScore = CStr(MyDataReader.Item("OverallScore"))
                             End If
@@ -4215,27 +4233,23 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                             Else
                                 sScoreMeters = CStr(MyDataReader.Item("ScoreMeters"))
                             End If
-                            If sSlalomNopsScore = "N/A" Or sTrickNopsScore = "N/A" Or sJumpNopsScore = "N/A" Then
-                                sNotOverall += "<tr><td colspan=""6"">No overall results in Round " & sRound & ".</td></tr>"
-                            Else
-                                sDataLine += "<tr><td>" & sAgeGroup & "</td><td>" & sRound & "</td><td>" & sOverallScore & "</td><td>" & sSlalomNopsScore & "</td><td>" & sTrickNopsScore & "</td><td>" & sJumpNopsScore & "</td>"
-                            End If '                            
+                            
+                            ' Add row with overall scores
+                            sText += "<tr><td>" & sAgeGroup & "</td><td>" & sRound & "</td><td><strong>" & sOverallScore & "</strong></td><td>" & sSlalomNopsScore & "</td><td>" & sTrickNopsScore & "</td><td>" & sJumpNopsScore & "</td></tr>"
+                            
                         Loop
-                        If sDataLine <> "" Then
-                            sText += sDataLine
-                        Else
-                            sText = "<table><tr><td colspan=""6"">No Overall results Found For selected skier.</td></tr>"
-                        End If
                     Else
-                        sText += "<tr><td colspan=""6"">No Overall results Found For selected skier.</td></tr>"
+                        sText += "<tr><td colspan=""6"">No Overall results found for selected skier.</td></tr>"
                     End If 'end of has rows
+                    sText += "</tbody></table>"
                 End Using
 
             Catch ex As Exception
                 sMsg += "Error Can't retrieve Overall Scores. " 'SQL= " & SQL & "<br>IndivJumpResults Caught: <br />" & ex.Message & " " & ex.StackTrace & "<br>"
                 sErrDetails = ex.Message & " " & ex.StackTrace & "<br>error at RecapOverall:  SQL= " & sSQL
+                sText += "</tbody></table>"
             Finally
-                sText += "</table>"
+                
             End Try
         End Using
         If Len(sMsg) > 2 Then

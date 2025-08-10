@@ -32,33 +32,33 @@
         /* Trick Pass Table Column Widths */
         .trick-pass-table {
             width: 100%;
-            table-layout: auto;
+            table-layout: fixed !important;
         }
 
         .trick-pass-table th:nth-child(1),
         .trick-pass-table td:nth-child(1) {
-            width: 10%;
+            width: 1.3rem !important;
             white-space: nowrap;
-            text-align: center;
+            text-align: left;
         }
 
         .trick-pass-table th:nth-child(2),
         .trick-pass-table td:nth-child(2) {
-            width: 25%;
+            width: 2.4rem !important;
             white-space: nowrap;
             text-align: center;
         }
 
         .trick-pass-table th:nth-child(3),
         .trick-pass-table td:nth-child(3) {
-            width: 50%;
-            word-wrap: break-word;
+            width: 2.47rem !important;
             white-space: normal;
+            text-align: center;
         }
 
         .trick-pass-table th:nth-child(4),
         .trick-pass-table td:nth-child(4) {
-            width: 15%;
+            width: 1.1rem !important;
             white-space: nowrap;
             text-align: center;
         }
