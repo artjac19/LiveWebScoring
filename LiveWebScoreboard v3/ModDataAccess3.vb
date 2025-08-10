@@ -1511,8 +1511,13 @@ Module ModDataAccess3
                         Do While MyDataReader.Read()
                             sSanctionID = CStr(MyDataReader.Item("SanctionID"))
                             ' Region filter: region is the 3rd character of sanctionID
+                            ' Always show collegiate tournaments (3rd character = 'U') regardless of region filter
                             If region <> "" Then
-                                If sSanctionID.Length < 3 OrElse UCase(Mid(sSanctionID, 3, 1)) <> UCase(region) Then
+                                If sSanctionID.Length < 3 Then
+                                    Continue Do
+                                ElseIf UCase(Mid(sSanctionID, 3, 1)) = "U" Then
+                                    ' Collegiate tournament - always show
+                                ElseIf UCase(Mid(sSanctionID, 3, 1)) <> UCase(region) Then
                                     Continue Do
                                 End If
                             End If
@@ -2271,7 +2276,8 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
 
                             If sTmpDv = sDv Then 'Continue in same Division
                                 'Add the data line
-                                sDVScoresSection.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & sMemberID & "&DV=" & sTmpDv & "&EV=" & sEventPkd & "&TN=" & sTName & "")
+                                Dim linkEventCode As String = If(selEvent = "O", "S", sEventPkd)
+                                sDVScoresSection.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & sMemberID & "&DV=" & sTmpDv & "&EV=" & linkEventCode & "&TN=" & sTName & "")
                                 If sSelRnd = "0" Then
                                     sDVScoresSection.Append("&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a><b> " & sShowBuoys & "</b>" & sHasVideo & sReadyForPlcmt & "</td>")
                                 Else
@@ -2321,7 +2327,8 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                         System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Successfully processed Overall row for " & sSkierName)
                                     Catch ex As Exception
                                         System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Error in Overall processing for " & sSkierName & ": " & ex.Message)
-                                        ' Fallback: just display overall score
+                                        ' Fallback: just display overall score with skier name link
+                                        sDVScoresSection.Append("<td><a runat=""server"" href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & sMemberID & "&DV=" & sTmpDv & "&EV=S&TN=" & sTName & "&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """><b>" & sSkierName & "</b></a></td>")
                                         sDVScoresSection.Append("<td>" & sRound & "</td>")
                                         sDVScoresSection.Append("<td><b>" & sScoreBest & "</b></td>")
                                         sDVScoresSection.Append("<td>--</td><td>--</td><td>--</td></tr>")
@@ -2369,7 +2376,8 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                     sDVScoresSection.Append("<tr><td colspan=""" & sRndCols & """ style=""background-color: #ffebee; padding: 8px; font-style: italic;"">" & sRunoffSectionContent & "</td></tr>")
                                 End If
                                 'Add the data line
-                                sDVScoresSection.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & stmpMemberID & "&DV=" & sTmpDv & "&EV=" & sEventPkd & "&TN=" & sTName & "")
+                                Dim linkEventCode2 As String = If(selEvent = "O", "S", sEventPkd)
+                                sDVScoresSection.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & stmpMemberID & "&DV=" & sTmpDv & "&EV=" & linkEventCode2 & "&TN=" & sTName & "")
                                 If sSelRnd = "0" Then
                                     sDVScoresSection.Append("&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a><b> " & sShowBuoys & "</b>" & sHasVideo & sReadyForPlcmt & "</td>")
                                 Else
@@ -2419,7 +2427,8 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                         System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Successfully processed Overall row for " & sSkierName & " (second section)")
                                     Catch ex As Exception
                                         System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Error in Overall processing (2nd) for " & sSkierName & ": " & ex.Message)
-                                        ' Fallback: just display overall score
+                                        ' Fallback: just display overall score with skier name link
+                                        sDVScoresSection.Append("<td><a runat=""server"" href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & sMemberID & "&DV=" & sTmpDv & "&EV=S&TN=" & sTName & "&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """><b>" & sSkierName & "</b></a></td>")
                                         sDVScoresSection.Append("<td>" & sRound & "</td>")
                                         sDVScoresSection.Append("<td><b>" & sScoreBest & "</b></td>")
                                         sDVScoresSection.Append("<td>--</td><td>--</td><td>--</td></tr>")
@@ -3626,9 +3635,10 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                 End If
 
                                 ' Start new table for this round
-                                sText += "<h4>Round " & sRound & " - Class " & sEventClass & " " & sBuoys & " Buoy</h4>"
-                                sText += "<p><strong>" & sSkierName & " " & sAgeGroup & "</strong> - Ranking Score: " & sRankingScore & " | " & sCity & ", " & sState & " " & sFederation & "</p>"
-                                sText += "<p><em>Updated: " & sLastUpdateDate & "</em></p>"
+                                Dim roundText As String = If(sRound = 25, "Runoff", "Round " & sRound)
+                                sText += "<h4>Slalom " & roundText & " - Class " & sEventClass & " " & sBuoys & " Buoy - " & sSkierName & " " & sAgeGroup & "</h4>"
+                                sText += "<p>Ranking Score: " & sRankingScore & " | " & sCity & ", " & sState & " " & sFederation & "</p>"
+                                sText += "<p style='margin-bottom: 1rem;'><em>Updated: " & sLastUpdateDate & "</em></p>"
                                 sText += "<table class=""table table-striped"">"
                                 sText += "<thead class=""table-dark"">"
                                 sText += "<tr><th>Score</th><th>Pass Detail</th><th>Reride</th><th>Protected</th><th>Class</th></tr>"
@@ -3820,8 +3830,9 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                 End If
 
                                 ' Start new round
-                                sText += "<h4>Round " & sRound & " - Class " & sEventClass & " - Total Score: " & sRoundScore & "</h4>"
-                                sText += "<p><em>Updated: " & sLastUpdateDate & "</em></p>"
+                                Dim trickRoundText As String = If(sRound = 25, "Runoff", "Round " & sRound)
+                                sText += "<h4>Trick " & trickRoundText & " - Class " & sEventClass & " - Total Score: " & sRoundScore & "</h4>"
+                                sText += "<p style='margin-bottom: 1rem;'><em>Updated: " & sLastUpdateDate & "</em></p>"
 
                                 ' Start passes container (side by side)
                                 sText += "<div style=""display: flex; gap: 20px;"">"
@@ -4033,7 +4044,8 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                     sText += "</tbody></table>"
                                 End If
                                 ' Start new table for this round
-                                sText += "<h4>Jump Round " & sRound & " - " & sEventClass & " Class</h4>"
+                                Dim jumpRoundText As String = If(sRound = 25, "Runoff", "Round " & sRound)
+                                sText += "<h4 style='margin-bottom: 1rem;'>Jump " & jumpRoundText & " - " & sEventClass & " Class</h4>"
                                 sText += "<table class=""table table-striped table-bordered"">"
                                 sText += "<thead><tr><th>Result</th><th>Pass</th><th>Distance</th><th>Speed</th><th>Ramp Height</th><th>Reride</th><th>Protected</th></tr></thead>"
                                 sText += "<tbody>"
@@ -4136,18 +4148,18 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                     cmdRead.CommandText = sSQL
                     MyDataReader = cmdRead.ExecuteReader
                     ' Always start with title and table structure
-                    sText += "<h4>Overall Scores</h4>"
+                    sText += "<h4 style='margin-bottom: 1rem;'>Overall Scores</h4>"
                     sText += "<table class=""table table-striped table-bordered"">"
                     sText += "<thead><tr><th>Age Group</th><th>Round</th><th>Overall Score</th><th>Slalom NOPS</th><th>Trick NOPS</th><th>Jump NOPS</th></tr></thead>"
                     sText += "<tbody>"
-                    
+
                     If MyDataReader.HasRows = True Then
                         Do While MyDataReader.Read()
                             ' Get AgeGroup from the data
                             If Not IsDBNull(MyDataReader.Item("AgeGroup")) Then
                                 sAgeGroup = CStr(MyDataReader.Item("AgeGroup"))
                             End If
-                            
+
                             If IsDBNull(MyDataReader.Item("Round")) Then
                                 sRound = "N/A"
                             Else
@@ -4233,10 +4245,10 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                             Else
                                 sScoreMeters = CStr(MyDataReader.Item("ScoreMeters"))
                             End If
-                            
+
                             ' Add row with overall scores
                             sText += "<tr><td>" & sAgeGroup & "</td><td>" & sRound & "</td><td><strong>" & sOverallScore & "</strong></td><td>" & sSlalomNopsScore & "</td><td>" & sTrickNopsScore & "</td><td>" & sJumpNopsScore & "</td></tr>"
-                            
+
                         Loop
                     Else
                         sText += "<tr><td colspan=""6"">No Overall results found for selected skier.</td></tr>"
@@ -4249,7 +4261,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                 sErrDetails = ex.Message & " " & ex.StackTrace & "<br>error at RecapOverall:  SQL= " & sSQL
                 sText += "</tbody></table>"
             Finally
-                
+
             End Try
         End Using
         If Len(sMsg) > 2 Then

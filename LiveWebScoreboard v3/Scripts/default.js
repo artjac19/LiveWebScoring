@@ -141,10 +141,17 @@
                 if (existingPanel) {
                     existingPanel.remove();
                 }
+                // Reset active view when switching to a new tournament
+                AppState.currentActiveView = 'home';
             }
             
             AppState.currentSelectedTournamentId = sanctionId;
             AppState.currentTrickVideoText = trickVideoText || '';
+            
+            // Set default active view to 'home' if no view is currently active
+            if (!AppState.currentActiveView) {
+                AppState.currentActiveView = 'home';
+            }
             
             // Add sanctionId to URL parameters while preserving existing ones
             const currentUrl = new URL(window.location);
@@ -213,6 +220,7 @@
                 '<button class="tnav-btn" data-view="running-order">Running Order</button>' +
                 '<button class="tnav-btn" data-view="entry-list">Entry List</button>' +
                 '<button class="tnav-btn" data-view="reports">Reports</button>' +
+                '<button class="tnav-btn" data-view="home">Home</button>' +
                 '</div>';
             
             if (response.activeEvent && response.activeEvent.trim() !== "") {
@@ -491,6 +499,30 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 
                 switch(view) {
+                    case 'home':
+                        // Navigate back to tournament search with URL params preserved
+                        const homeUrl = new URL(window.location);
+                        const homeParams = new URLSearchParams();
+                        
+                        // Preserve existing filter parameters
+                        if (homeUrl.searchParams.get('YR')) {
+                            homeParams.set('YR', homeUrl.searchParams.get('YR'));
+                        }
+                        if (homeUrl.searchParams.get('RG')) {
+                            homeParams.set('RG', homeUrl.searchParams.get('RG'));
+                        }
+                        if (homeUrl.searchParams.get('search')) {
+                            homeParams.set('search', homeUrl.searchParams.get('search'));
+                        }
+                        // Preserve selected tournament
+                        if (sanctionId) {
+                            homeParams.set('sanctionId', sanctionId);
+                        }
+                        
+                        // Navigate to default.aspx with preserved parameters
+                        const homeUrlString = 'default.aspx' + (homeParams.toString() ? '?' + homeParams.toString() : '');
+                        window.location.href = homeUrlString;
+                        break;
                     case 'scores':
                         // Add view parameter to URL
                         const currentUrl = new URL(window.location);
@@ -816,8 +848,12 @@
                 // Create merged event column: [Event] [Division], [Round]
                 const mergedEvent = `${eventName} ${score.division}, R${score.round}`;
                 
-                // Create skier link similar to other leaderboards
-                const skierLink = `<a href="Trecap?SID=${score.sanctionId}&SY=0&MID=${score.memberId}&DV=${score.division}&EV=${score.event}&TN=${AppState.currentTournamentName}&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=${encodeURIComponent(score.skierName)}"><strong>${score.skierName}</strong></a>`;
+                // Create clickable skier name that redirects directly to TRecap matching server format exactly
+                const tournamentNameEncoded = encodeURIComponent(AppState.currentTournamentName);
+                const eventCode = score.event.trim().charAt(0); // Get first letter of event name
+                const trecapUrl = `Trecap?SID=${score.sanctionId}&SY=0&MID=${score.memberId}&DV=${score.division}&EV=${eventCode}&TN=${tournamentNameEncoded}&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=${score.skierName}`;
+                console.log('[MIXED-LINK-DEBUG] Generated TRecap URL:', trecapUrl);
+                const skierLink = `<a href="#" onclick="window.location.href='${trecapUrl}'; return false;"><strong>${score.skierName}</strong></a>`;
                 
                 // Add a class to the last row for intersection observer
                 const isLastRow = index === this.allRecentScores.length - 1;
@@ -868,6 +904,63 @@
             if (lastRow) {
                 this.recentScoresObserver.observe(lastRow);
             }
+        },
+
+        addOverallSkierLinks: function(htmlContent) {
+            console.log('[OVERALL-LINKS] Adding skier links to Overall results');
+            
+            // Initialize global MID storage if not exists
+            if (!window.leaderboardSkierMids) {
+                window.leaderboardSkierMids = {};
+            }
+            
+            // Create a temporary container to parse the HTML
+            const $tempContainer = $('<div>').html(htmlContent);
+            
+            // Find all Overall tables and add links to skier names
+            $tempContainer.find('table.division-section').each(function() {
+                const $table = $(this);
+                const headerText = $table.find('.table-header-row').text();
+                
+                // Only process Overall tables
+                if (headerText.toLowerCase().includes('overall')) {
+                    // Find all data rows (skip header rows)
+                    $table.find('tr').not('.table-header-row').each(function() {
+                        const $row = $(this);
+                        const $firstCell = $row.find('td:first');
+                        
+                        if ($firstCell.length && $firstCell.find('a').length === 0) {
+                            // This cell contains plain text skier name, convert to link
+                            const skierName = $firstCell.find('b').text() || $firstCell.text().trim();
+                            
+                            if (skierName && !skierName.includes('No') && !skierName.includes('Error')) {
+                                const tournamentName = encodeURIComponent(AppState.currentTournamentName);
+                                const sanctionId = AppState.currentSelectedTournamentId;
+                                
+                                // Create the link (using dummy values for MID/DV - TRecap should still work)
+                                const skierLink = `<a href="#" onclick="window.location.href='Trecap?SID=${sanctionId}&SY=0&MID=000000000&DV=XX&EV=S&TN=${tournamentName}&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=${encodeURIComponent(skierName)}'; return false;"><strong>${skierName}</strong></a>`;
+                                
+                                $firstCell.html(skierLink);
+                            }
+                        } else if ($firstCell.length && $firstCell.find('a').length > 0) {
+                            // This cell already has a link (from server), extract MID and store it
+                            const existingLink = $firstCell.find('a');
+                            const onclickAttr = existingLink.attr('onclick');
+                            const skierName = existingLink.text().trim();
+                            
+                            if (onclickAttr && skierName) {
+                                const midMatch = onclickAttr.match(/MID=([^&]+)/);
+                                if (midMatch && midMatch[1] !== '000000000') {
+                                    window.leaderboardSkierMids[skierName] = midMatch[1];
+                                    console.log('[OVERALL-LINKS] Stored MID for', skierName, ':', midMatch[1]);
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+            
+            return $tempContainer.html();
         },
 
         formatTimeAgo: function(dateString) {
@@ -1243,17 +1336,22 @@
                 return;
             }
             
-            // Case 0.5: Overall event - default to Best of unless specific round is selected
+            // Case 0.5: Overall event - handle Best Of vs All Rounds
             if (isOverall && !hasDivision) {
-                if (selectedBestOf === 'BESTOF' || !selectedRound || selectedRound === '0') {
-                    // Auto-select the Best of button by default
-                    if (!selectedBestOf) {
-                        $('#roundFilters .filter-btn[data-filter="bestof"]').addClass('active');
-                        $('#roundFilters .filter-btn[data-filter="round"]').removeClass('active');
-                    }
+                if (selectedBestOf === 'BESTOF') {
+                    // Best of explicitly selected
                     this.loadOverallBestOf();
-                } else {
+                } else if (selectedRound && selectedRound != '0') {
+                    // Specific round selected (1, 2, 3, etc.)
                     this.loadOverallAllDivisions(selectedRound);
+                } else if (selectedRound == '0' && $('#roundFilters .filter-btn[data-filter="round"][data-value="0"]').hasClass('active')) {
+                    // All Rounds explicitly selected (button is active)
+                    this.loadOverallAllDivisions('0');
+                } else {
+                    // Default to Best of and auto-select the button (first load or no clear selection)
+                    $('#roundFilters .filter-btn[data-filter="bestof"]').addClass('active');
+                    $('#roundFilters .filter-btn[data-filter="round"]').removeClass('active');
+                    this.loadOverallBestOf();
                 }
                 return;
             }
@@ -1524,7 +1622,9 @@
             .done((response) => {
                 console.log('[OVERALL-JS] GetLeaderboardSP response:', response);
                 if (response.success && response.htmlContent) {
-                    $('#leaderboardContent').html(response.htmlContent);
+                    // Add skier links to Overall results before displaying
+                    const htmlWithLinks = this.addOverallSkierLinks(response.htmlContent);
+                    $('#leaderboardContent').html(htmlWithLinks);
                     
                     // Split Overall tables by round in JavaScript
                     const selectedRound = $('#roundFilters .filter-btn.active[data-filter="round"]').data('value');
@@ -1587,9 +1687,9 @@
             // Show loading message
             $('#leaderboardContent').html('<div class="text-center p-4"><p>Calculating best overall scores...</p></div>');
             
-            console.log('[BESTOF-DEBUG] Loading all rounds of Overall data for Best of calculation');
+            console.log('[BESTOF-DEBUG] Loading Overall data same as individual rounds to get real MID links');
             
-            // First, load all Overall data (all rounds)
+            // Load EXACTLY like loadOverallAllDivisions (all rounds)
             $.getJSON('GetLeaderboardSP.aspx', {
                 SID: AppState.currentSelectedTournamentId,
                 SY: "0",
@@ -1597,14 +1697,15 @@
                 FC: this.currentTournamentInfo.formatCode,
                 EV: 'O',           // Overall event
                 DV: 'All',         // All divisions  
-                RND: '0',          // All rounds
+                RND: '0',          // All rounds (same as loadOverallAllDivisions)
                 FT: '0',
                 UN: '0',
                 UT: '0'
             })
             .done((response) => {
+                console.log('[OVERALL-JS] GetLeaderboardSP response:', response);
                 if (response.success && response.htmlContent) {
-                    // Process the HTML to extract best scores
+                    // Work directly with server HTML (don't add dummy links)
                     this.calculateBestOfScores(response.htmlContent);
                 } else {
                     this.checkForEmptyContent();
@@ -1651,7 +1752,33 @@
                     
                     if (cells.length < 6) return; // Need at least name, round, overall, slalom, trick, jump
                     
-                    const skierName = $(cells[0]).text().trim();
+                    const $firstCell = $(cells[0]);
+                    const skierName = $firstCell.text().trim();
+                    
+                    // Extract MID from server-provided link (should be real MID from backend)
+                    let memberID = null;
+                    
+                    // Check if first cell has a link with MID
+                    const existingLink = $firstCell.find('a');
+                    if (existingLink.length > 0) {
+                        const onclickAttr = existingLink.attr('onclick') || '';
+                        const hrefAttr = existingLink.attr('href') || '';
+                        
+                        // Try to extract MID from onclick or href
+                        const midMatch = onclickAttr.match(/MID=([^&\s'"]+)/) || hrefAttr.match(/MID=([^&\s'"]+)/);
+                        if (midMatch && midMatch[1] && midMatch[1] !== '000000000') {
+                            memberID = midMatch[1];
+                            console.log('[BESTOF-DEBUG] Found real MID for', skierName, ':', memberID);
+                        }
+                    }
+                    
+                    // If no MID found, log the cell content for debugging
+                    if (!memberID) {
+                        console.warn('[BESTOF-DEBUG] No MID found for skier:', skierName);
+                        console.warn('[BESTOF-DEBUG] Cell HTML:', $firstCell.html());
+                        memberID = 'NO_MID'; // Placeholder to identify missing MIDs
+                    }
+                    
                     const round = parseInt($(cells[1]).text().trim());
                     const overallScore = parseFloat($(cells[2]).text().trim()) || 0;
                     const slalomNops = parseFloat($(cells[3]).text().trim()) || 0;
@@ -1669,7 +1796,8 @@
                         overallScore: overallScore,
                         slalomNops: slalomNops,
                         trickNops: trickNops,
-                        jumpNops: jumpNops
+                        jumpNops: jumpNops,
+                        memberID: memberID
                     });
                 });
             });
@@ -1705,6 +1833,9 @@
                     let trickRound = rounds.find(r => r.trickNops === bestTrick)?.round || 0;
                     let jumpRound = rounds.find(r => r.jumpNops === bestJump)?.round || 0;
                     
+                    // Get the MID from any round (should be the same across all rounds for this skier)
+                    let memberID = rounds.find(r => r.memberID && r.memberID !== '000000000')?.memberID || '000000000';
+                    
                     bestScores.push({
                         skierName: skierName,
                         superscore: superscore,
@@ -1713,7 +1844,8 @@
                         bestJump: bestJump,
                         slalomRound: slalomRound,
                         trickRound: trickRound,
-                        jumpRound: jumpRound
+                        jumpRound: jumpRound,
+                        memberID: memberID
                     });
                 });
                 
@@ -1729,9 +1861,15 @@
                         </tr>`;
                 
                 bestScores.forEach(skier => {
+                    // Create clickable link using the memberID extracted during calculation
+                    const tournamentNameEncoded = encodeURIComponent(AppState.currentTournamentName);
+                    const sanctionId = AppState.currentSelectedTournamentId;
+                    const trecapUrl = `Trecap?SID=${sanctionId}&SY=0&MID=${skier.memberID}&DV=${division}&EV=S&TN=${tournamentNameEncoded}&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=${skier.skierName}`;
+                    const skierLink = `<a href="#" onclick="window.location.href='${trecapUrl}'; return false;"><strong>${skier.skierName}</strong></a>`;
+                    
                     tablesHtml += `
                         <tr>
-                            <td><b>${skier.skierName}</b></td>
+                            <td>${skierLink}</td>
                             <td><b>${skier.superscore.toFixed(1)}</b></td>
                             <td>${skier.bestSlalom.toFixed(1)} (R${skier.slalomRound})</td>
                             <td>${skier.bestTrick.toFixed(1)} (R${skier.trickRound})</td>

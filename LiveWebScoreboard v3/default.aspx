@@ -24,8 +24,8 @@
     <form id="form1" runat="server">
         <!-- Blue Navbar -->
         <div class="blue-bar">
-            <a href="javascript:void(0)" onclick="window.location.href=window.location.href"
-                title="Refresh page" style="text-decoration: none;">
+            <a href="javascript:void(0)" onclick="window.location.href='default.aspx'"
+                title="Go to Home" style="text-decoration: none;">
                 <img src="images/skigirl.svg" alt="LiveWeb Ski Girl Logo" class="logo" />
             </a>
             <asp:TextBox ID="TB_SanctionID" runat="server" CssClass="search-input"

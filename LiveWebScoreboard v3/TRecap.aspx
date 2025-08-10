@@ -12,15 +12,6 @@
     <link rel="stylesheet" href="Content/styles.css" />
     <!--   <script src="js/bootstrap.bundle.min.js"></script>  -->
     <style>
-        /* Make everything much smaller on recap page */
-        .recap-container {
-            font-size: 0.65em !important;
-        }
-        
-        /* Make sure all elements inherit the smaller font */
-        .recap-container * {
-            font-size: inherit !important;
-        }
         
         /* Light blue background for table headers */
         .recap-container table thead,
@@ -29,6 +20,20 @@
             background-color: #d1ecf1 !important;
         }
         
+        /* Force all tables to fit within containers */
+        .recap-container table {
+            width: 100% !important;
+            table-layout: fixed !important;
+            word-wrap: break-word !important;
+        }
+        
+        .recap-container th,
+        .recap-container td {
+            overflow-wrap: break-word !important;
+            word-break: break-word !important;
+            white-space: normal !important;
+        }
+
         /* Trick Pass Table Column Widths */
         .trick-pass-table {
             width: 100%;
@@ -37,29 +42,25 @@
 
         .trick-pass-table th:nth-child(1),
         .trick-pass-table td:nth-child(1) {
-            width: 1.3rem !important;
-            white-space: nowrap;
+            width: 20% !important;
             text-align: left;
         }
 
         .trick-pass-table th:nth-child(2),
         .trick-pass-table td:nth-child(2) {
-            width: 2.4rem !important;
-            white-space: nowrap;
+            width: 25% !important;
             text-align: center;
         }
 
         .trick-pass-table th:nth-child(3),
         .trick-pass-table td:nth-child(3) {
-            width: 2.47rem !important;
-            white-space: normal;
+            width: 35% !important;
             text-align: center;
         }
 
         .trick-pass-table th:nth-child(4),
         .trick-pass-table td:nth-child(4) {
-            width: 1.1rem !important;
-            white-space: nowrap;
+            width: 20% !important;
             text-align: center;
         }
     </style>
@@ -85,27 +86,33 @@
          <asp:HiddenField ID="HF_UseTeams" runat="server" />
          <asp:HiddenField ID="HF_DisplayMetric" runat="server" />
          </asp:Panel>
-        <!-- Display title bar and error label -->
-        <!-- Display title bar and error label -->
-        <div>
-            <div id="TName" runat="Server">
-                <br /><asp:Label ID="lbl_Errors" runat="server" ForeColor="White"/>
+        <!-- Blue header bar -->
+        <div class="blue-bar">
+            <a href="javascript:void(0)" onclick="window.location.href='default.aspx'" title="Go to Home" style="text-decoration: none;">
+                <img src="images/skigirl.svg" alt="Skier Logo" class="logo" />
+            </a>
+            <div style="flex: 1; color: white; font-size: 1.2rem; font-weight: bold; display: flex; gap: 1rem; align-items: center; justify-content: center;">
+                <span id="PerformanceRecapTitle" runat="Server">Performance Recap for [Skier Name] [Division]</span>
+                <span style="font-size: 1rem; font-weight: normal;" id="TName" runat="Server"></span>
             </div>
-            <div ><center><asp:Button ID="Btn_Back" runat="server" Text="Back To Scores" /></center>
-            </div>
-
-        </div>
-        <!-- Consolidated title for all recaps -->
-        <div style="text-align: center; margin: 2rem 0;">
-            <h2 id="ConsolidatedTitle" runat="server">Skier Performance Recap</h2>
+            <asp:Button ID="Btn_Back" runat="server" Text="Back To Scores" OnClientClick="history.back(); return false;"
+                style="background: transparent; color: white; border: 2px solid white; padding: 8px 16px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: all 0.2s;"
+                onmouseover="this.style.backgroundColor='white'; this.style.color='#15274D';"
+                onmouseout="this.style.backgroundColor='transparent'; this.style.color='white';" />
+            <asp:Label ID="lbl_Errors" runat="server" ForeColor="White" style="margin-left: 10px;"/>
         </div>
         
-        <!-- Display 4 boxes - one for each event + Overall with smaller font -->
-        <div class="recap-container" style="display: flex; flex-direction: row; gap: 1rem; margin: 1rem; overflow-wrap: normal;">
-            <div id="SlalomRecap" runat="server"></div> 
-            <div id="TrickRecap" runat="server"></div>
-            <div id="JumpRecap" runat="server"></div>
-            <div id="OverallRecap" runat="server" class="box"></div>
+        
+        <!-- Display recap in two-column layout: left column has overall/slalom/jump, right column has trick -->
+        <div class="recap-container" style="display: flex; flex-direction: row; gap: 2rem; margin: 1rem; overflow: hidden; width: calc(100vw - 3rem); box-sizing: border-box;">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 1.5rem; overflow: hidden;">
+                <div id="OverallRecap" runat="server"></div>
+                <div id="SlalomRecap" runat="server"></div> 
+                <div id="JumpRecap" runat="server"></div>
+            </div>
+            <div style="flex: 1; overflow: hidden;">
+                <div id="TrickRecap" runat="server" style="overflow: hidden;"></div>
+            </div>
        </div>
           
    </div>

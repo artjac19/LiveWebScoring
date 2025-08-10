@@ -2,8 +2,8 @@
 
 Public Class TRecap
     Inherits System.Web.UI.Page
-    
-    Protected WithEvents ConsolidatedTitle As Global.System.Web.UI.HtmlControls.HtmlGenericControl
+
+    Protected WithEvents PerformanceRecapTitle As Global.System.Web.UI.HtmlControls.HtmlGenericControl
     Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         Dim sEM As String = ""
         Dim sMsg As String = ""
@@ -143,10 +143,10 @@ Public Class TRecap
 
             'Not used in sql statement so just display what is there
             TName.InnerHtml = "<h4>" & sTournName & " - " & sSanctionID & "</h4>"
-            
-            'Set the consolidated title with skier name
-            ConsolidatedTitle.InnerHtml = "Performance Recap for " & sSkierName & " (" & sAgeGroup & ")"
-            
+
+            'Set the performance recap title with skier name and division
+            PerformanceRecapTitle.InnerHtml = "Performance Recap for " & sSkierName & " (" & sAgeGroup & ")"
+
             'For recap display all events offered.
             If sSlalomRounds > 0 Then
                 SlalomRecap.InnerHtml = ModDataAccess3.RecapSlalom(sSanctionID, sMemberID, sAgeGroup, sSkierName)
