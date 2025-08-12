@@ -3931,7 +3931,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
 
                                 ' Start new pass column and table
                                 Dim passScore As String = If(sPass = "1", sP1Score, sP2Score)
-                                sText += "<div style=""flex: 1;"">"
+                                sText += "<div style=""flex: 0 1 auto; width: fit-content;"">"
                                 sText += "<h5>Pass " & sPass & " - Score: " & passScore & "</h5>"
                                 sText += "<table class=""trick-pass-table"">"
                                 sText += "<thead>"

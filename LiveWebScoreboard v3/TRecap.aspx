@@ -36,8 +36,8 @@
 
         /* Trick Pass Table Column Widths */
         .trick-pass-table {
-            width: 100%;
-            table-layout: fixed !important;
+            width: auto !important;
+            table-layout: auto !important;
             min-width: 300px;
         }
 
@@ -80,6 +80,7 @@
         /* Trick section gets fixed space */
         .recap-container > div:last-child {
             flex: 0 0 auto;
+            width: fit-content;
         }
 
         /* Make sure tables in the shrinking section can compress */
