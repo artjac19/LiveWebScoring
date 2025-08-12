@@ -69,225 +69,120 @@
                 return;
             }
 
-            const combinedHtml = this.buildDetailsHtml(response, trickVideoText);
+            const combinedHtml = TournamentHTML.buildDetailsHtml(response, trickVideoText);
             this.renderInfo(combinedHtml);
             this.bindCollapseEvents(response);
             this.bindTNav();
         },
 
-        buildDetailsHtml: function(response, trickVideoText) {
-            let combinedHtml = '<div class="tournament-detail-panel">';
-            let tournamentName = '';
 
-            const detailsResult = this.buildDetailsSection(response, trickVideoText);
-            tournamentName = detailsResult.tournamentName;
-            
-            // Store tournament name in AppState for leaderboard use
-            AppState.currentTournamentName = tournamentName;
-            
-            if (tournamentName) {
-                const sizeClass = tournamentName.length > 25 ? 'tournament-name-small' : 'tournament-name-large';
-                combinedHtml += '<div class="tournament-name ' + sizeClass + '">' + tournamentName + '</div>';
-            }
-            
-            combinedHtml += '<div class="tnav-buttons">' +
-                '<button class="tnav-btn" data-view="scores">Scores</button>' +
-                '<button class="tnav-btn" data-view="running-order">Running Order</button>' +
-                '<button class="tnav-btn" data-view="entry-list">Entry List</button>' +
-                '<button class="tnav-btn" data-view="reports">Reports</button>' +
-                '<button class="tnav-btn" data-view="legacy-view">Legacy View</button>' +
-                '<button class="tnav-btn" data-view="home">Home</button>' +
-                '</div>';
-            
-            if (response.activeEvent && response.activeEvent.trim() !== "") {
-                combinedHtml += '<div class="active-event-banner">' +
-                    '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f8f9fa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="active-event-icon"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2.5 2.5"/></svg>' +
-                    response.activeEvent +
-                    '</div>';
-            }
-            
-            combinedHtml += detailsResult.html;
-            combinedHtml += this.buildOfficialsSection(response);
-            combinedHtml += this.buildTeamsSection(response);
-            combinedHtml += '</div>';
-            return combinedHtml;
-        },
 
-        buildDetailsSection: function(response, trickVideoText) {
-            // Skip fields already shown elsewhere in the UI
-            const EXCLUDED_TOURNAMENT_FIELDS = new Set([
-                'name',
-                'sanction id',
-                'sanctionid', 
-                'sanction',
-                'start date',
-                'startdate',
-                'location',
-                'loc'
-            ]);
 
-            let html = '<div class="tournament-section-header" id="tournamentDetailsToggleHeader">';
-            html += '<h5>Tournament Details</h5>';
-            html += '<span id="tournamentDetailsChevron" class="section-chevron"><svg viewBox="0 0 20 20"><polyline points="5,8 10,13 15,8"/></svg></span>';
-            html += '</div>';
-
-            let tournamentName = '';
-            
-            html += '<div id="tournamentDetailsCollapse" class="tournament-section-collapsible">';
-            if (response.tDetails && Array.isArray(response.tDetails) && response.tDetails.length > 0) {
-                html += '<ul class="tournament-section-content">';
-                for (let i = 0; i < response.tDetails.length; i++) {
-                    const row = response.tDetails[i];
-                    if (row && row.length >= 2 && row[0] && row[1]) {
-                        const labelKey = row[0].toLowerCase().trim();
-                        
-                        if (labelKey.includes('name')) {
-                            tournamentName = row[1];
-                            continue;
-                        }
-                        
-                        if (!EXCLUDED_TOURNAMENT_FIELDS.has(labelKey)) {
-                            html += '<li>';
-                            html += '<span class="tournament-section-label">- ' + row[0] + (row[0].trim().endsWith(':') ? ' ' : ': ') + '</span>';
-                            html += '<span class="tournament-section-value">' + row[1] + '</span>';
-                            html += '</li>';
-                        }
-                    }
-                }
-                html += '<li><span class="tournament-section-label">- Trick Video: </span><span class="tournament-section-value">' + (trickVideoText || '<span class="tournament-section-value muted">N/A</span>') + '</span></li>';
-                html += '</ul>';
-            } else {
-                html += '<div class="tournament-section-error">No tournament details available.</div>';
-            }
-            html += '</div>';
-            
-            return { html: html, tournamentName: tournamentName };
-        },
-
-        buildOfficialsSection: function(response) {
-            let html = '<div class="tournament-section-header with-border" id="officialsToggleHeader">';
-            html += '<h5>Tournament Officials</h5>';
-            html += '<span id="officialsChevron" class="section-chevron"><svg viewBox="0 0 20 20"><polyline points="5,8 10,13 15,8"/></svg></span>';
-            html += '</div>';
-
-            html += '<div id="officialsCollapse" class="tournament-section-collapsible">';
-            if (response.officials && Array.isArray(response.officials) && response.officials.length > 0) {
-                html += '<ul class="tournament-section-content">';
-                for (let j = 0; j < response.officials.length; j++) {
-                    const o = response.officials[j];
-                    if (o && o.role) {
-                        html += '<li>';
-                        html += '<span class="tournament-section-label">- ' + o.role + ': </span>';
-                        html += '<span class="tournament-section-value">' + (o.firstName ? o.firstName + ' ' : '') + (o.lastName || '') + '</span>';
-                        html += '</li>';
-                    }
-                }
-                html += '</ul>';
-            } else {
-                html += '<div class="tournament-section-error">No officials available.</div>';
-            }
-            html += '</div>';
-            return html;
-        },
-
-        buildTeamsSection: function(response) {
-            if (response.teams && Array.isArray(response.teams) && response.teams.length > 0) {
-                let html = '<div class="tournament-section-header with-top-border" id="teamsToggleHeader">';
-                html += '<h5>Participating Teams</h5>';
-                html += '<span id="teamsChevron" class="section-chevron"><svg viewBox="0 0 20 20"><polyline points="5,8 10,13 15,8"/></svg></span>';
-                html += '</div>';
-
-                html += '<div id="teamsCollapse" class="tournament-section-collapsible">';
-                html += '<ul class="teams-section-content">';
-                for (let t = 0; t < response.teams.length; t++) {
-                    const team = response.teams[t];
-                    html += '<li>';
-                    html += '<span class="team-name">- ' + team.Name + '</span>';
-                    html += '</li>';
-                }
-                html += '</ul>';
-                html += '</div>';
-                return html;
-            }
-            return '';
-        },
 
         renderInfo: function(combinedHtml) {
-            // Find or create the unified tournament info panel
+            const tournamentInfoPanel = this.createOrGetTournamentPanel();
+            const isScoresPage = this.isOnScoresPage();
+            
+            this.positionTournamentPanel(tournamentInfoPanel, isScoresPage);
+            this.updatePanelContent(tournamentInfoPanel, combinedHtml);
+            
+            if (combinedHtml) {
+                this.applyViewportSpecificStyling(tournamentInfoPanel, isScoresPage);
+            }
+        },
+
+        createOrGetTournamentPanel: function() {
             let tournamentInfoPanel = document.querySelector('#tInfo');
             
-            // Position the panel based on current context
-            const leaderboardSection = document.getElementById('leaderboardSection');
-            const isScoresPage = leaderboardSection && leaderboardSection.style.display !== 'none';
-            
-            // Create panel only if it doesn't exist
             if (!tournamentInfoPanel) {
                 tournamentInfoPanel = document.createElement('div');
                 tournamentInfoPanel.id = 'tInfo';
                 tournamentInfoPanel.className = 'tournament-info';
             }
             
-            // Always position/reposition the panel based on current context
+            return tournamentInfoPanel;
+        },
+
+        isOnScoresPage: function() {
+            const leaderboardSection = document.getElementById('leaderboardSection');
+            return leaderboardSection && leaderboardSection.style.display !== 'none';
+        },
+
+        positionTournamentPanel: function(panel, isScoresPage) {
             if (isScoresPage) {
-                if (window.innerWidth <= 1000) {
-                    const firstChild = leaderboardSection.firstChild;
-                    if (firstChild) {
-                        leaderboardSection.insertBefore(tournamentInfoPanel, firstChild);
-                    } else {
-                        leaderboardSection.appendChild(tournamentInfoPanel);
-                    }
+                this.positionPanelForScoresPage(panel);
+            } else {
+                this.positionPanelForSearchPage(panel);
+            }
+        },
+
+        positionPanelForScoresPage: function(panel) {
+            const leaderboardSection = document.getElementById('leaderboardSection');
+            
+            if (window.innerWidth <= 1000) {
+                const firstChild = leaderboardSection.firstChild;
+                if (firstChild) {
+                    leaderboardSection.insertBefore(panel, firstChild);
                 } else {
-                    document.querySelector('.tournament-display').appendChild(tournamentInfoPanel);
+                    leaderboardSection.appendChild(panel);
                 }
             } else {
-                if (window.innerWidth <= 1000) {
-                    const selectedCard = document.querySelector('.mobile-tournament-card.selected');
-                    if (selectedCard && selectedCard.parentNode) {
-                        selectedCard.parentNode.insertBefore(tournamentInfoPanel, selectedCard.nextSibling);
-                    } else {
-                        document.querySelector('.tournament-display').appendChild(tournamentInfoPanel);
-                    }
-                } else {
-                    document.querySelector('.tournament-display').appendChild(tournamentInfoPanel);
-                }
+                document.querySelector('.tournament-display').appendChild(panel);
             }
-            
-            // Show loading state if no content yet
+        },
+
+        positionPanelForSearchPage: function(panel) {
+            if (window.innerWidth <= 1000) {
+                const selectedCard = document.querySelector('.mobile-tournament-card.selected');
+                if (selectedCard && selectedCard.parentNode) {
+                    selectedCard.parentNode.insertBefore(panel, selectedCard.nextSibling);
+                } else {
+                    document.querySelector('.tournament-display').appendChild(panel);
+                }
+            } else {
+                document.querySelector('.tournament-display').appendChild(panel);
+            }
+        },
+
+        updatePanelContent: function(panel, combinedHtml) {
             if (!combinedHtml) {
-                tournamentInfoPanel.innerHTML = '<p>Loading tournament information...</p>';
+                panel.innerHTML = '<p>Loading tournament information...</p>';
+            } else {
+                panel.innerHTML = combinedHtml;
             }
+        },
+
+        applyViewportSpecificStyling: function(panel, isScoresPage) {
+            if (window.innerWidth <= 1000) {
+                this.applyMobileStyling(panel);
+            } else {
+                this.applyDesktopStyling(panel, isScoresPage);
+            }
+        },
+
+        applyMobileStyling: function(panel) {
+            // Mobile: Clear any desktop transform positioning and scroll to panel
+            panel.style.transform = '';
+            panel.style.position = '';
+            setTimeout(() => {
+                const panelRect = panel.getBoundingClientRect();
+                const currentScroll = window.scrollY;
+                const targetY = currentScroll + panelRect.top - 140; 
+                window.scrollTo({ top: targetY, behavior: 'smooth' });
+            }, CONFIG.SCROLL_DELAY);
+        },
+
+        applyDesktopStyling: function(panel, isScoresPage) {
+            // Desktop: Remove mobile compact styling and apply desktop positioning
+            $(panel).removeClass('compact-mobile-scores');
+            panel.style.position = 'relative';
             
-            // Update with actual content
-            if (combinedHtml) {
-                tournamentInfoPanel.innerHTML = combinedHtml;
-                
-                // Position panel based on viewport
-                if (window.innerWidth <= 1000) {
-                    // Mobile: Clear any desktop transform positioning and scroll to panel for better UX with offset
-                    tournamentInfoPanel.style.transform = '';
-                    tournamentInfoPanel.style.position = '';
-                    setTimeout(() => {
-                        const panelRect = tournamentInfoPanel.getBoundingClientRect();
-                        const currentScroll = window.scrollY;
-                        const targetY = currentScroll + panelRect.top - 140; 
-                        window.scrollTo({ top: targetY, behavior: 'smooth' });
-                    }, CONFIG.SCROLL_DELAY);
-                } else {
-                    // Desktop: Remove mobile compact styling and apply desktop positioning
-                    $(tournamentInfoPanel).removeClass('compact-mobile-scores');
-                    
-                    const leaderboardSection = document.getElementById('leaderboardSection');
-                    const isScoresPage = leaderboardSection && leaderboardSection.style.display !== 'none';
-                    
-                    tournamentInfoPanel.style.position = 'relative';
-                    if (isScoresPage) {
-                        // Scores page: Position at top
-                        tournamentInfoPanel.style.transform = 'translateY(0px)';
-                    } else {
-                        // Tournament search page: Position at current scroll location
-                        tournamentInfoPanel.style.transform = `translateY(${window.scrollY}px)`;
-                    }
-                }
+            if (isScoresPage) {
+                // Scores page: Position at top
+                panel.style.transform = 'translateY(0px)';
+            } else {
+                // Tournament search page: Position at current scroll location
+                panel.style.transform = `translateY(${window.scrollY}px)`;
             }
         },
 
@@ -531,7 +426,7 @@
             })
             .done((response) => {
                 if (response.success) {
-                    this.setupLeaderboardFilters(response);
+                    TournamentFilters.setupLeaderboardFilters(response);
                     this.restoreFilterStateFromUrl();
                     this.loadInitialContent(sanctionId, skiYear, formatCode);
                 } else {
@@ -665,60 +560,6 @@
             }
         },
 
-        addOverallSkierLinks: function(htmlContent) {
-            
-            // Initialize global MID storage if not exists
-            if (!window.leaderboardSkierMids) {
-                window.leaderboardSkierMids = {};
-            }
-            
-            // Create a temporary container to parse the HTML
-            const $tempContainer = $('<div>').html(htmlContent);
-            
-            // Find all Overall tables and add links to skier names
-            $tempContainer.find('table.division-section').each(function() {
-                const $table = $(this);
-                const headerText = $table.find('.table-header-row').text();
-                
-                // Only process Overall tables
-                if (headerText.toLowerCase().includes('overall')) {
-                    // Find all data rows (skip header rows)
-                    $table.find('tr').not('.table-header-row').each(function() {
-                        const $row = $(this);
-                        const $firstCell = $row.find('td:first');
-                        
-                        if ($firstCell.length && $firstCell.find('a').length === 0) {
-                            // This cell contains plain text skier name, convert to link
-                            const skierName = $firstCell.find('b').text() || $firstCell.text().trim();
-                            
-                            if (skierName && !skierName.includes('No') && !skierName.includes('Error')) {
-                                const tournamentName = encodeURIComponent(AppState.currentTournamentName);
-                                const sanctionId = AppState.currentSelectedTournamentId;
-                                
-                                // Create the link (using dummy values for MID/DV - TRecap should still work)
-                                const skierLink = `<a href="#" onclick="window.location.href='Trecap?SID=${sanctionId}&SY=0&MID=000000000&DV=XX&EV=S&TN=${tournamentName}&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=${encodeURIComponent(skierName)}'; return false;"><strong>${skierName}</strong></a>`;
-                                
-                                $firstCell.html(skierLink);
-                            }
-                        } else if ($firstCell.length && $firstCell.find('a').length > 0) {
-                            // This cell already has a link (from server), extract MID and store it
-                            const existingLink = $firstCell.find('a');
-                            const onclickAttr = existingLink.attr('onclick');
-                            const skierName = existingLink.text().trim();
-                            
-                            if (onclickAttr && skierName) {
-                                const midMatch = onclickAttr.match(/MID=([^&]+)/);
-                                if (midMatch && midMatch[1] !== '000000000') {
-                                    window.leaderboardSkierMids[skierName] = midMatch[1];
-                                }
-                            }
-                        }
-                    });
-                }
-            });
-            
-            return $tempContainer.html();
-        },
 
         formatTimeAgo: function(dateString) {
             try {
@@ -789,286 +630,28 @@
             }
         },
 
-        setupRoundFilters: function(data, selectedEvent) {
-            const roundFilters = $('#roundFilters');
-            
-            // Hide round filters for collegiate tournaments (NCWL format code)
-            if (this.currentTournamentInfo && this.currentTournamentInfo.formatCode === 'NCWL') {
-                roundFilters.hide();
-                return;
-            } else {
-                roundFilters.show();
-            }
-            
-            // Preserve current round and placement format selections
-            const currentRoundValue = $('#roundFilters .filter-btn.active[data-filter="round"]').data('value') || '0';
-            const currentPlacementValue = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
-            
-            roundFilters.empty();
-            
-            // Always add "All Rounds" option
-            roundFilters.append('<button class="filter-btn" data-filter="round" data-value="0">All Rounds</button>');
-            
-            // Add placement format override buttons (but not for Overall event, running order mode, or by-division mode)
-            if (selectedEvent !== 'O' && AppState.currentDisplayMode !== 'running-order' && AppState.currentDisplayMode !== 'by-division') {
-                roundFilters.append('<button class="filter-btn" data-filter="placement" data-value="ROUND">Rounds View</button>');
-                roundFilters.append('<button class="filter-btn" data-filter="placement" data-value="BEST">Divisions View</button>');
-            } else if (selectedEvent === 'O') {
-                // For Overall events, add "Best of" filter
-                roundFilters.append('<button class="filter-btn" data-filter="bestof" data-value="BESTOF">Best of</button>');
-            }
-            
-            let maxRounds = 0;
-            
-            if (selectedEvent && selectedEvent !== 'NONE') {
-                // Event selected - find rounds for that specific event
-                if (data.availableEvents) {
-                    const event = data.availableEvents.find(e => e.code === selectedEvent);
-                    if (event) {
-                        maxRounds = event.rounds || 0;
-                    }
-                }
-            } else {
-                // No event selected - use max rounds across all events
-                if (data.availableEvents) {
-                    data.availableEvents.forEach(event => {
-                        if (event.rounds && event.rounds > maxRounds) {
-                            maxRounds = event.rounds;
-                        }
-                    });
-                }
-            }
-            
-            // Add round buttons (only regular rounds 1-6, exclude runoffs like Round 25)
-            for (let i = 1; i <= maxRounds && i <= 6; i++) {
-                roundFilters.append(`<button class="filter-btn" data-filter="round" data-value="${i}">Round ${i}</button>`);
-            }
-            
-            // Restore previous round selection if it still exists
-            const targetRoundButton = roundFilters.find(`[data-filter="round"][data-value="${currentRoundValue}"]`);
-            if (targetRoundButton.length > 0) {
-                targetRoundButton.addClass('active');
-            } else {
-                // Default to "All Rounds" if previous selection not found
-                roundFilters.find('[data-filter="round"][data-value="0"]').addClass('active');
-            }
-            
-            // Restore previous placement selection if it existed
-            if (currentPlacementValue) {
-                const targetPlacementButton = roundFilters.find(`[data-filter="placement"][data-value="${currentPlacementValue}"]`);
-                if (targetPlacementButton.length > 0) {
-                    targetPlacementButton.addClass('active');
-                }
-            }
-        },
-
-        setupLeaderboardFilters: function(data) {
-            this.tournamentData = data;
-            
-            this.setupLeaderboardTitle(data);
-            this.setupEventFilters(data);
-            this.setupDivisionFilters();
-            this.loadDynamicDivisions();
-            this.setupRoundFilters(data, null);
-            this.setupOnWaterDisplay(data);
-            this.bindFilterEvents();
-        },
-
-        setupLeaderboardTitle: function(data) {
-            const displayMode = AppState.currentDisplayMode || 'leaderboard';
-            const titleText = displayMode === 'running-order' ? 'Running Order' : 'Leaderboard';
-            $('#leaderboardTitle').text(data.tournamentName + ' - ' + data.sanctionId + ' ' + titleText);
-        },
-
-        setupEventFilters: function(data) {
-            const eventFilters = $('#eventFilters');
-            eventFilters.empty();
-            
-            const displayMode = AppState.currentDisplayMode || 'leaderboard';
-            
-            if (displayMode === 'running-order') {
-                this.setupRunningOrderEventFilters(eventFilters, data);
-            } else if (displayMode === 'by-division') {
-                this.setupByDivisionEventFilters(eventFilters, data);
-            } else {
-                this.setupLeaderboardEventFilters(eventFilters, data);
-            }
-        },
-
-        setupRunningOrderEventFilters: function(eventFilters, data) {
-            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
-            
-            if (data.availableEvents && data.availableEvents.length > 0) {
-                data.availableEvents.forEach(event => {
-                    // Only show individual events (S, T, J), exclude Overall (O)
-                    if (event.code !== 'O') {
-                        eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
-                    }
-                });
-            }
-        },
-
-        setupByDivisionEventFilters: function(eventFilters, data) {
-            if (data.availableEvents && data.availableEvents.length > 0) {
-                data.availableEvents.forEach(event => {
-                    eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
-                });
-            }
-        },
-
-        setupLeaderboardEventFilters: function(eventFilters, data) {
-            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
-            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="MIXED">Mixed</button>');
-            
-            if (data.availableEvents && data.availableEvents.length > 0) {
-                data.availableEvents.forEach(event => {
-                    eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
-                });
-            }
-        },
-
-        setupDivisionFilters: function() {
-            const divisionFilters = $('#divisionFilters');
-            divisionFilters.empty();
-            
-            const displayMode = AppState.currentDisplayMode || 'leaderboard';
-            
-            if (displayMode === 'running-order' || displayMode === 'by-division') {
-                divisionFilters.append('<button class="filter-btn active" data-filter="division" data-value="ALL">All</button>');
-            } else {
-                divisionFilters.append('<button class="filter-btn active" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
-                divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">Alphabetical</button>');
-            }
-        },
-
-        loadDynamicDivisions: function() {
-            if (!AppState.currentSelectedTournamentId || AppState.currentSelectedTournamentId.length < 6) {
-                return;
-            }
-
-            $.getJSON('GetLeaderboardSP.aspx', {
-                SID: AppState.currentSelectedTournamentId,
-                SY: "0",
-                TN: AppState.currentTournamentName,
-                FC: 'LBSP',
-                FT: '0',
-                UN: '0',
-                UT: '0',
-                LOAD_ALL_DIVISIONS: '1'
-            })
-            .done((response) => {
-                if (response.success && response.availableDivisions) {
-                    const uniqueDivisions = new Map();
-                    
-                    response.availableDivisions.forEach(division => {
-                        if (division.code && division.code !== 'ALL' && division.code !== '0') {
-                            uniqueDivisions.set(division.code, division.name);
-                        }
-                    });
-                    
-                    const divisionFilters = $('#divisionFilters');
-                    uniqueDivisions.forEach((name, code) => {
-                        divisionFilters.append(`<button class="filter-btn" data-filter="division" data-value="${code}">${name}</button>`);
-                    });
-                }
-            })
-            .fail((error) => {
-                // Silently fail - division filters will just show default
-            });
-        },
-
-        setupOnWaterDisplay: function(data) {
-            if (data.onWaterData && data.onWaterData.activeEvent && data.onWaterData.activeEvent.trim() !== '') {
-                $('#currentEventText').text('Current Event: ' + data.onWaterData.activeEvent);
-                
-                let onWaterContent = '';
-                if (data.onWaterData.slalomOnWater) onWaterContent += '<div class="mb-2">' + data.onWaterData.slalomOnWater + '</div>';
-                if (data.onWaterData.trickOnWater) onWaterContent += '<div class="mb-2">' + data.onWaterData.trickOnWater + '</div>';
-                if (data.onWaterData.jumpOnWater) onWaterContent += '<div class="mb-2">' + data.onWaterData.jumpOnWater + '</div>';
-                
-                $('#onWaterContent').html(onWaterContent);
-                $('#onWaterDisplay').show();
-            } else {
-                $('#onWaterDisplay').hide();
-            }
-        },
 
 
-        bindFilterEvents: function() {
-            const self = this;
-            
-            // Remove existing handlers to avoid duplicates
-            $('.filter-bubbles .filter-btn').off('click.leaderboard');
-            
-            // Event filter clicks
-            $('#eventFilters .filter-btn').on('click.leaderboard', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const $btn = $(this);
-                const eventCode = $btn.data('value');
-                
-                // Update active state
-                $('#eventFilters .filter-btn').removeClass('active');
-                $btn.addClass('active');
-                
-                // Special handling for NONE filter - deactivate all other filters like tournament search screen
-                if (eventCode === 'NONE') {
-                    // Reset division to MOST_RECENT to always show Most Recent button
-                    $('#divisionFilters .filter-btn').removeClass('active');
-                    $('#divisionFilters .filter-btn[data-value="MOST_RECENT"]').addClass('active');
-                    
-                    // Reset round filters to defaults
-                    $('#roundFilters .filter-btn').removeClass('active');
-                    $('#roundFilters .filter-btn[data-filter="round"][data-value="0"]').addClass('active');
-                    
-                    // Don't load event details for NONE
-                } else {
-                    // Update round filters based on selected event
-                    self.setupRoundFilters(self.tournamentData, eventCode);
-                    
-                    // Load event details if specific event is selected (for division options)
-                    self.loadEventDetails(eventCode);
-                }
-                
-                // Apply current filter combination
-                self.applyFilterCombination();
-            });
-            
-            // Division and round filter clicks
-            $('#divisionFilters, #roundFilters').on('click.leaderboard', '.filter-btn', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const $btn = $(this);
-                const filterType = $btn.data('filter');
-                const filterValue = $btn.data('value');
-                
-                // For placement format and bestof buttons, handle differently
-                if (filterType === 'placement') {
-                    // Toggle active state for placement buttons only
-                    $('#roundFilters .filter-btn[data-filter="placement"]').removeClass('active');
-                    $btn.addClass('active');
-                } else if (filterType === 'bestof') {
-                    // Toggle active state for bestof button
-                    $('#roundFilters .filter-btn[data-filter="bestof"]').removeClass('active');
-                    $btn.addClass('active');
-                    // Also clear any round filter selection when Best of is selected
-                    $('#roundFilters .filter-btn[data-filter="round"]').removeClass('active');
-                } else {
-                    // Update active state within the same filter group (round or division)
-                    $btn.siblings('[data-filter="' + filterType + '"]').removeClass('active');
-                    $btn.addClass('active');
-                    // Clear bestof selection when selecting individual rounds
-                    if (filterType === 'round') {
-                        $('#roundFilters .filter-btn[data-filter="bestof"]').removeClass('active');
-                    }
-                }
-                
-                // Apply current filter combination
-                self.applyFilterCombination();
-            });
-        },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         applyFilterCombination: function() {
             Utils.cancelAllRequests();

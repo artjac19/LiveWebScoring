@@ -27,6 +27,8 @@
     
     <!-- Tournament modules (load after default.js) -->
     <script src="Scripts/tournament/data-loader.js"></script>
+    <script src="Scripts/tournament/tournament-filters.js"></script>
+    <script src="Scripts/tournament/tournament-html.js"></script>
     
     <!-- Components (load after default.js since they reference TournamentInfo) -->
     <script src="Scripts/components/dropdown-menu.js"></script>
