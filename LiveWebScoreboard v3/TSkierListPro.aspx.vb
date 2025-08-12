@@ -34,19 +34,5 @@
 
             End If
     End Sub
-    Private Sub Btn_2TList_Click(sender As Object, e As EventArgs) Handles Btn_2TList.Click
-        Dim sYrPkd As String = HF_YearPkd.Value
-        Response.Redirect("TList.aspx?YR=" & sYrPkd)
-    End Sub
-
-    Private Sub Btn_2Tournament_Click(sender As Object, e As EventArgs) Handles Btn_2Tournament.Click
-        Dim sSanctionID As String = HF_SanctionID.Value
-        Dim sSkiYr As String = HF_YearPkd.Value
-        Response.Redirect("Tournament.aspx?SN= " & sSanctionID & " &SY=" & sSkiYr & "")
-    End Sub
-
-    Private Sub Btn_Home_Click(sender As Object, e As EventArgs) Handles Btn_Home.Click
-        Response.Redirect("Default.aspx")
-    End Sub
 
 End Class

@@ -13,7 +13,7 @@
     <style>
         /* TRecap-style navbar overrides */
         .blue-bar {
-            background: linear-gradient(135deg, #15274D 0%, #1e3a5f 100%);
+            background-color: #15274D;
             padding: 10px 20px;
             display: flex;
             align-items: center;

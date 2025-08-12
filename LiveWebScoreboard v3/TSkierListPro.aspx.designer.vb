@@ -86,6 +86,15 @@ Partial Public Class TSkierListPro
     Protected WithEvents TName As Global.System.Web.UI.HtmlControls.HtmlGenericControl
 
     '''<summary>
+    '''Btn_Back control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_Back As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
     '''lbl_Errors control.
     '''</summary>
     '''<remarks>
@@ -93,33 +102,6 @@ Partial Public Class TSkierListPro
     '''To modify move field declaration from designer file to code-behind file.
     '''</remarks>
     Protected WithEvents lbl_Errors As Global.System.Web.UI.WebControls.Label
-
-    '''<summary>
-    '''Btn_2Tournament control.
-    '''</summary>
-    '''<remarks>
-    '''Auto-generated field.
-    '''To modify move field declaration from designer file to code-behind file.
-    '''</remarks>
-    Protected WithEvents Btn_2Tournament As Global.System.Web.UI.WebControls.Button
-
-    '''<summary>
-    '''Btn_2TList control.
-    '''</summary>
-    '''<remarks>
-    '''Auto-generated field.
-    '''To modify move field declaration from designer file to code-behind file.
-    '''</remarks>
-    Protected WithEvents Btn_2TList As Global.System.Web.UI.WebControls.Button
-
-    '''<summary>
-    '''Btn_Home control.
-    '''</summary>
-    '''<remarks>
-    '''Auto-generated field.
-    '''To modify move field declaration from designer file to code-behind file.
-    '''</remarks>
-    Protected WithEvents Btn_Home As Global.System.Web.UI.WebControls.Button
 
     '''<summary>
     '''InsertHere control.

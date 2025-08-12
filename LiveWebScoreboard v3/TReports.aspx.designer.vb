@@ -23,13 +23,13 @@ Partial Public Class TReports
     Protected WithEvents form1 As Global.System.Web.UI.HtmlControls.HtmlForm
 
     '''<summary>
-    '''lbl_Errors control.
+    '''TName control.
     '''</summary>
     '''<remarks>
     '''Auto-generated field.
     '''To modify move field declaration from designer file to code-behind file.
     '''</remarks>
-    Protected WithEvents lbl_Errors As Global.System.Web.UI.WebControls.Label
+    Protected WithEvents TName As Global.System.Web.UI.HtmlControls.HtmlGenericControl
 
     '''<summary>
     '''Btn_Back control.
@@ -39,6 +39,15 @@ Partial Public Class TReports
     '''To modify move field declaration from designer file to code-behind file.
     '''</remarks>
     Protected WithEvents Btn_Back As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
+    '''lbl_Errors control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents lbl_Errors As Global.System.Web.UI.WebControls.Label
 
     '''<summary>
     '''ReportList control.
