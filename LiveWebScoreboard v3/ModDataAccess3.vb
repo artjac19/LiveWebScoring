@@ -46,7 +46,7 @@ Module ModDataAccess3
                 If sSelRnd = 0 Then
                     sRndsOffered = sRndsSlalomOffered
                     Dim compactClass As String = If(CInt(sRndsSlalomOffered) >= 3, " class=""compact""", "")
-                    sLine.Append("<table style=""width: 100%;"" " & compactClass & ">") '& sSlalomHeader) '& sSlalomDVHeader)
+                    sLine.Append("<table class=""recap-left-table slalom-table"" " & compactClass & ">") '& sSlalomHeader) '& sSlalomDVHeader)
                     sSlalomHeader = "<thead><tr><th style=""background-color: #15274D; color: white; font-size: 0.7rem;"">SLALOM</th><th style=""background-color: #15274D; color: white; font-size: 0.7rem;"">Group / Div</th>"
                     For i = 1 To RndsSlalomOffered
                         If i <= 6 Then  ' Only show regular rounds, not runoffs
@@ -58,7 +58,7 @@ Module ModDataAccess3
                     sLine.Append(sSlalomHeader & "</tr></thead>")
                 Else
                     Dim compactClass As String = If(CInt(sRndsSlalomOffered) >= 3, " class=""compact""", "")
-                    sLine.Append("<table style=""width: 100%;"" " & compactClass & ">") '& sSlalomHeader) '& sSlalomDVHeader)
+                    sLine.Append("<table class=""recap-left-table slalom-table"" " & compactClass & ">") '& sSlalomHeader) '& sSlalomDVHeader)
                     Dim roundText As String = If(sSelRnd = "25", "Runoff", "Round " & sSelRnd)
                     sLine.Append("<thead><tr><th style=""background-color: #15274D; color: white;"">SLALOM</th><th style=""background-color: #15274D; color: white;"">Group / Div</th><th style=""background-color: #15274D; color: white;"">Score " & roundText & "</th></tr></thead>")
                 End If
@@ -68,7 +68,7 @@ Module ModDataAccess3
                 If sSelRnd = 0 Then
                     sRndsOffered = sRndsTrickOffered
                     Dim compactClass As String = If(CInt(sRndsTrickOffered) >= 3, " class=""compact""", "")
-                    sLine.Append("<table style=""width: 100%;"" " & compactClass & ">") '& sTrickHeader) '& sTrickDVHeader)
+                    sLine.Append("<table class=""recap-left-table"" " & compactClass & ">") '& sTrickHeader) '& sTrickDVHeader)
                     sTrickHeader = "<thead><tr><th style=""background-color: #15274D; color: white; font-size: 0.7rem;"">TRICK</th><th style=""background-color: #15274D; color: white; font-size: 0.7rem;"">Group / Div</th>"
                     For i = 1 To RndsTrickOffered
                         If i <= 6 Then  ' Only show regular rounds, not runoffs
@@ -78,7 +78,7 @@ Module ModDataAccess3
                     sLine.Append(sTrickHeader & "</tr></thead>")
                 Else
                     Dim compactClass As String = If(CInt(sRndsTrickOffered) >= 3, " class=""compact""", "")
-                    sLine.Append("<table style=""width: 100%;"" " & compactClass & ">") '& sTrickHeader) '& sTrickDVHeader)
+                    sLine.Append("<table class=""recap-left-table"" " & compactClass & ">") '& sTrickHeader) '& sTrickDVHeader)
                     Dim roundText As String = If(sSelRnd = "25", "Runoff", "Round " & sSelRnd)
                     sLine.Append("<thead><tr><th style=""background-color: #15274D; color: white;"">TRICK</th><th style=""background-color: #15274D; color: white;"">Group / Div</th><th style=""background-color: #15274D; color: white;"">Score " & roundText & "</th></tr></thead>")
                 End If
@@ -88,7 +88,7 @@ Module ModDataAccess3
                 If sSelRnd = 0 Then
                     sRndsOffered = sRndsJumpOffered
                     Dim compactClass As String = If(CInt(sRndsJumpOffered) >= 3, " class=""compact""", "")
-                    sLine.Append("<table style=""width: 100%;"" " & compactClass & ">") '& sJumpHeader)  ' & sJumpDVHeader)
+                    sLine.Append("<table class=""recap-left-table jump-table"" " & compactClass & ">") '& sJumpHeader)  ' & sJumpDVHeader)
                     sJumpHeader = "<thead><tr><th style=""background-color: #15274D; color: white; font-size: 0.7rem;"">JUMP</th><th style=""background-color: #15274D; color: white; font-size: 0.7rem;"">Group / Div</th>"
                     For i = 1 To sRndsJumpOffered
                         If i <= 6 Then  ' Only show regular rounds, not runoffs
@@ -99,7 +99,7 @@ Module ModDataAccess3
 
                 Else
                     Dim compactClass As String = If(CInt(sRndsJumpOffered) >= 3, " class=""compact""", "")
-                    sLine.Append("<table style=""width: 100%;"" " & compactClass & ">") '& sJumpHeader)  ' & sJumpDVHeader)
+                    sLine.Append("<table class=""recap-left-table jump-table"" " & compactClass & ">") '& sJumpHeader)  ' & sJumpDVHeader)
                     Dim roundText As String = If(sSelRnd = "25", "Runoff", "Round " & sSelRnd)
                     sLine.Append("<thead><tr><th style=""background-color: #15274D; color: white;"">JUMP</th><th style=""background-color: #15274D; color: white;"">Group / Div</th><th style=""background-color: #15274D; color: white;"">Score " & roundText & "</th></tr></thead>")
                 End If
@@ -2323,7 +2323,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
 
                             If sTmpDv = "" Then
                                 'Get the division header for first division
-                                sDVHeader = "<table class=""division-section"" style=""margin-bottom: 1rem;"">"
+                                sDVHeader = "<table class=""table table-striped division-section"" style=""margin-bottom: 1rem;"">"
                                 'Start the first Dataline
                                 ' Add round info if specific round is selected
                                 Dim sRoundInfo As String = ""
@@ -2432,7 +2432,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                 stmpMemberID = sMemberID
                                 sTmpDv = sDv
                                 'start new division header
-                                sDVHeader = "<table class=""division-section"" style=""margin-bottom: 1rem;"">"
+                                sDVHeader = "<table class=""table table-striped division-section"" style=""margin-bottom: 1rem;"">"
                                 ' Add round info if specific round is selected
                                 Dim sRoundInfo As String = ""
                                 If sSelRnd <> "0" And sSelRnd <> "" Then
@@ -2850,7 +2850,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
 
                             If sTmpRnd = "" Then
                                 'Make first round table with proper header
-                                sMasterTable.Append("<table class=""division-section"" style=""margin-bottom: 1rem;"">")
+                                sMasterTable.Append("<table class=""table table-striped division-section"" style=""margin-bottom: 1rem;"">")
                                 sMasterTable.Append("<tr class=""table-header-row""><td colspan=""2""><b>" & UCase(sSelEvent) & " " & sDv & " — ROUND " & sCurRnd & " — Sort by: ROUND</b></td></tr>")
                                 ' Add runoff row for new division (always show if specific round selected, otherwise only on first round)
                                 Dim shouldShowRunoff As Boolean = selEvent <> "O" And ((sSelRnd <> "0") Or (sTmpRnd = ""))
@@ -2875,7 +2875,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
 
                             Else 'Round changed - close current table and start new round table
                                 sMasterTable.Append("</table>")
-                                sMasterTable.Append("<table class=""division-section"" style=""margin-bottom: 1rem;"">")
+                                sMasterTable.Append("<table class=""table table-striped division-section"" style=""margin-bottom: 1rem;"">")
                                 sMasterTable.Append("<tr class=""table-header-row""><td colspan=""2""><b>" & UCase(sSelEvent) & " " & sDv & " — ROUND " & sCurRnd & " — Sort by: ROUND</b></td></tr>")
                                 ' Add runoff row - always show if specific round selected, otherwise only if division changed
                                 Dim shouldShowRunoff As Boolean = selEvent <> "O" And ((sSelRnd <> "0") Or (sTmpDv <> sDv))
@@ -3158,7 +3158,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                 If sSelRnd <> "0" And sSelRnd <> "" Then
                                     sRoundInfo = "Round " & sSelRnd & " -"
                                 End If
-                                sLine.Append("<table class=""division-section"" style=""margin-bottom: 1rem;""><tr class=""table-header-row""><td width=""35%""><b>" & sSelEvent & " " & sDv & " - " & sRoundInfo & " Sort by: " & "</b></td>" & sRoundsHTML)
+                                sLine.Append("<table class=""table table-striped division-section"" style=""margin-bottom: 1rem;""><tr class=""table-header-row""><td width=""35%""><b>" & sSelEvent & " " & sDv & " - " & sRoundInfo & " Sort by: " & "</b></td>" & sRoundsHTML)
                                 sTmpDv = sDv
                             End If
                             'Get the first MemberID' first record in first pass through data
@@ -3289,13 +3289,10 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
         Dim Cnnt As New OleDb.OleDbConnection(sConn)
         Dim sTVidAvail As String = "N"
         Dim sHasVideo As String = ""
-        Dim sTableWidth As String = "100%"
         Dim sTSB As New StringBuilder
         Dim sText As String = ""
-        sTSB.Append("<table class=""table table-striped border-1"" width=" & sTableWidth & " cellpadding=""5"">")
-        'space down from under header div
-        sTSB.Append("<tr><td colspan=""4""><h4>&nbsp;</h4></td></tr>")
-        sTSB.Append("<tr><td><b>Select Skier</b></td><td><b>Events Entered</b></td><td><b>Team</b></td><td><b>OK2Ski</b></td></tr>")
+        sTSB.Append("<table class=""table table-striped border-1"" style=""width: auto; margin: 2rem auto;"" cellpadding=""5"">")
+        sTSB.Append("<tr style=""background-color: #d6eded;""><td><b>Select Skier</b></td><td><b>Events Entered</b></td><td><b>Team</b></td><td><b>OK2Ski</b></td></tr>")
         Dim cmdRead As New OleDb.OleDbCommand
         Dim MyDataReader As OleDb.OleDbDataReader = Nothing
         Dim sCkRows As Boolean = False
@@ -3889,7 +3886,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                 ' Close previous round if it exists
                                 If sTmpRound > 0 Then
                                     sText += "</div>" ' Close passes container
-                                    
+
                                     ' Add videos for the previous round using stored URLs
                                     If sTmpPass1Url <> "" Then
                                         sText += "<div style=""margin: 10px 0;"">"
@@ -3912,12 +3909,12 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
 
                                 ' Start new round with div wrapper
                                 Dim trickRoundText As String = If(sRound = 25, "Runoff", "Round " & sRound)
-                                sText += "<div style=""margin-bottom: 2rem; min-width: 300px;"">"
+                                sText += "<div class=""trick-round-container"">"
                                 sText += "<h4>Trick " & trickRoundText & " - Class " & sEventClass & " - Total Score: " & sRoundScore & "</h4>"
                                 sText += "<p style='margin-bottom: 1rem;'><em>Updated: " & sLastUpdateDate & "</em></p>"
 
                                 ' Start passes container (side by side)
-                                sText += "<div style=""display: flex; gap: 20px;"">"
+                                sText += "<div class=""trick-passes-container"">"
 
                                 sTmpRound = sRound
                             End If
@@ -3931,7 +3928,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
 
                                 ' Start new pass column and table
                                 Dim passScore As String = If(sPass = "1", sP1Score, sP2Score)
-                                sText += "<div style=""flex: 0 1 auto; width: fit-content;"">"
+                                sText += "<div class=""trick-pass-column"">"
                                 sText += "<h5>Pass " & sPass & " - Score: " & passScore & "</h5>"
                                 sText += "<table class=""trick-pass-table"">"
                                 sText += "<thead>"
@@ -4654,9 +4651,9 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
             Exit Function
         End Try
 
-        Dim sList As New StringBuilder
-        sList.Append("<table class=""table"">")
-        sList.Append("<thead><tr class=""table-primary"" ><th colspan=""2"">Official Published Reports</th></tr></thead>")
+        ' First pass: collect all data and organize by report type + event
+        Dim reportData As New Dictionary(Of String, List(Of Tuple(Of String, String)))
+        Dim headers As New List(Of String)
 
         Dim Cnnt As New OleDb.OleDbConnection(sConn)
         Dim cmdRead As New OleDb.OleDbCommand
@@ -4673,11 +4670,10 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
         cmdRead.Parameters("@InReportType").Direction = ParameterDirection.Input
 
         Dim MyDataReader As OleDb.OleDbDataReader = Nothing
-        Dim sCkRows As Boolean = False
         Using Cnnt
             Try
                 Using cmdRead
-                    cmdRead.Connection = Cnnt 'New OleDbConnection(sConn)
+                    cmdRead.Connection = Cnnt
                     cmdRead.Connection.Open()
                     MyDataReader = cmdRead.ExecuteReader
                     If MyDataReader.HasRows = True Then
@@ -4695,42 +4691,80 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                             If Not IsDBNull(MyDataReader.Item("ReportType")) Then
                                 sReportType = CStr(MyDataReader.Item("ReportType"))
                             Else
-                                sReportFileUri = "N/A"
+                                sReportType = "N/A"
                             End If
                             If Not IsDBNull(MyDataReader.Item("Event")) Then
                                 sEvent = CStr(MyDataReader.Item("Event"))
                             Else
                                 sEvent = "N/A"
                             End If
-                            'Build the Header
-                            If sTmpReportType = "" Then  'Only occurs on first pass. set first header
-                                sTmpReportType = sReportType
-                                sTmpEvent = sEvent
-                                sList.Append("<tr class=""table-info""><td colspan=""2"">Report Type: " & sReportType & " - Event:" & sEvent & " </td></tr>")
+
+                            ' Create column key
+                            Dim columnKey As String = sReportType & " - " & sEvent
+                            If Not headers.Contains(columnKey) Then
+                                headers.Add(columnKey)
                             End If
-                            If sTmpEvent <> sEvent Or sTmpReportType <> sTmpReportType Then 'If report type or event changes make a new header
-                                sList.Append("<tr class=""table-info""><td colspan=""2"">Report Type: " & sReportType & " - Event: " & sEvent & " </td></tr>")
-                                sTmpReportType = sReportType
-                                sTmpEvent = sEvent
+
+                            ' Add to data collection
+                            If Not reportData.ContainsKey(columnKey) Then
+                                reportData(columnKey) = New List(Of Tuple(Of String, String))
                             End If
-                            'Build the list
-                            sList.Append("<tr><td width=""5%"">&nbsp;</td><td><a href=""" & sReportFileUri & """ target=""_blank"" >" & sReportTitle & "</a></td></tr>")
+                            reportData(columnKey).Add(New Tuple(Of String, String)(sReportTitle, sReportFileUri))
                         Loop
-
-                    Else 'No reports found
-                        sList.Append("<tr><td>No Reports found for " & sSanctionID)
                     End If
-
                 End Using
             Catch ex As Exception
-                sMsg = "Error at GetBestRndXEvDv"
+                sMsg = "Error at GetReportList"
                 sErrDetails = sMsg & " " & ex.Message & " " & ex.StackTrace
             End Try
         End Using
+
+        ' Build the table
+        Dim sList As New StringBuilder
+        If headers.Count > 0 Then
+            sList.Append("<table class=""table table-striped border-1"" style=""width: auto; margin: 2rem auto;"">")
+
+            ' Build header row
+            sList.Append("<thead><tr style=""background-color: #d6eded !important;"">")
+            For Each header As String In headers
+                sList.Append("<th><b>" & header & "</b></th>")
+            Next
+            sList.Append("</tr></thead>")
+
+            ' Find maximum number of reports in any column
+            Dim maxReports As Integer = 0
+            For Each kvp In reportData
+                If kvp.Value.Count > maxReports Then
+                    maxReports = kvp.Value.Count
+                End If
+            Next
+
+            ' Build data rows
+            sList.Append("<tbody>")
+            For i As Integer = 0 To maxReports - 1
+                sList.Append("<tr>")
+                For Each header As String In headers
+                    sList.Append("<td>")
+                    If reportData.ContainsKey(header) AndAlso i < reportData(header).Count Then
+                        Dim report = reportData(header)(i)
+                        sList.Append("<a href=""" & report.Item2 & """ target=""_blank"">" & report.Item1 & "</a>")
+                    Else
+                        sList.Append("&nbsp;")
+                    End If
+                    sList.Append("</td>")
+                Next
+                sList.Append("</tr>")
+            Next
+            sList.Append("</tbody>")
+            sList.Append("</table>")
+        Else
+            sList.Append("<table class=""table table-striped border-1"" style=""width: auto; margin: 2rem auto;"">")
+            sList.Append("<tr><td>No Reports found for " & sSanctionID & "</td></tr>")
+            sList.Append("</table>")
+        End If
         If Len(sMsg) > 2 Then
             Return sMsg
         Else
-            sList.Append("</table>")
             sReturn = sList.ToString()
             Return sReturn
         End If
@@ -5046,7 +5080,7 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
         Dim sEventTable As New StringBuilder
         Dim sRoundTable As New StringBuilder
         Dim compactClass As String = If(CInt(sRndCols) >= 3, " compact", "")
-        
+
         ' Start with container div (no big header)
         sEventTable.Append("<div>")
         sEventTable.Append("<div class=""multi-running-order-container"">")  ' Container for side-by-side tables
@@ -5187,8 +5221,8 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                                     sTmpEventGroup = sEventGroup
                                     'Make event group header - create individual table for this round
                                     Dim innerCompactClass As String = If(CInt(sRndCols) >= 3, " class=""compact""", "")
-                                    sRoundTable.Append("<table" & innerCompactClass & " style=""min-width: 300px; max-width: 500px; width: 100%;"">")
-                                    sRoundTable.Append("<thead><tr><th colspan=""2"" style=""background-color: #15274D; color: white; text-align: center;"">" & sPREventCode & " Round " & sRndCount & ", " & sEventGroup & "</th></tr></thead><tbody>")
+                                    sRoundTable.Append("<table" & innerCompactClass & " class=""table table-striped recap-left-table"">")
+                                    sRoundTable.Append("<thead><tr><th colspan=""2"" style=""background-color: #15274D !important; color: white; text-align: center;"">" & sPREventCode & " Round " & sRndCount & ", " & sEventGroup & "</th></tr></thead><tbody>")
                                 End If
 
                                 If sTmpDV = "" Then
@@ -5220,8 +5254,8 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                             sRoundTable.Clear()
 
                         Else 'No data
-                            sRoundTable.Append("<table" & If(CInt(sRndCols) >= 3, " class=""compact""", "") & " style=""min-width: 300px; max-width: 500px; width: 100%;"">")
-                            sRoundTable.Append("<thead><tr><th style=""background-color: #15274D; color: white; text-align: center;"">" & sPREventCode & " Round " & sRndCount & "</th></tr></thead>")
+                            sRoundTable.Append("<table" & If(CInt(sRndCols) >= 3, " class=""compact""", "") & " class=""table table-striped recap-left-table"">")
+                            sRoundTable.Append("<thead><tr><th style=""background-color: #15274D !important; color: white; text-align: center;"">" & sPREventCode & " Round " & sRndCount & "</th></tr></thead>")
                             sRoundTable.Append("<tbody><tr><td>No " & sPREventCode & " Skiers Found</td></tr></tbody></table>")
                             sEventTable.Append(sRoundTable.ToString())
                             sRoundTable.Clear()

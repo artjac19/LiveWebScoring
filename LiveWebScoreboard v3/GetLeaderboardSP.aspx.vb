@@ -31,6 +31,7 @@ Public Class GetLeaderboardSP
             Dim sForcePlacement As String = Request("FORCE_PLACEMENT")
             Dim sGetRecentScores As String = Request("GET_RECENT_SCORES")
             Dim sGetRunningOrder As String = Request("GET_RUNNING_ORDER")
+            Dim sGetByDivision As String = Request("GET_BY_DIVISION")
 
             ' Validate required parameters
             If String.IsNullOrEmpty(sSanctionID) OrElse String.IsNullOrEmpty(sYrPkd) OrElse
@@ -192,6 +193,9 @@ Public Class GetLeaderboardSP
             ElseIf sGetRunningOrder = "1" Then
                 ' Return running order data
                 jsonResponse = BuildRunningOrderJson(sSanctionID, sYrPkd, sTournName, sEventCodePkd, sDivisionCodePkd, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, CShort(CInt(sUseNOPS)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
+            ElseIf sGetByDivision = "1" Then
+                ' Return by division view data
+                jsonResponse = BuildByDivisionJson(sSanctionID, sYrPkd, sTournName, sEventCodePkd, sDivisionCodePkd, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, CShort(CInt(sUseNOPS)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
             ElseIf String.IsNullOrEmpty(sDivisionCodePkd) Then
                 ' Event specified but no division - return just division data quickly
                 jsonResponse = BuildDivisionInfoJson(sSanctionID, sEventCodePkd)
@@ -415,6 +419,175 @@ Public Class GetLeaderboardSP
         
         Dim serializer As New JavaScriptSerializer()
         Return serializer.Serialize(result)
+    End Function
+
+    Private Function BuildByDivisionJson(sSanctionID As String, sYrPkd As String, sTournName As String, sEventCodePkd As String, sDivisionCodePkd As String, sRndsPkd As String, sSlalomRounds As Int16, sTrickRounds As Int16, sJumpRounds As Int16, sUseNops As Int16, sUseTeams As Int16, sFormatCode As String, sDisplayMetric As Int16) As String
+        Dim sHtmlContent As String = ""
+        
+        ' Determine which case we're in based on parameters
+        Dim hasEvent As Boolean = Not String.IsNullOrEmpty(sEventCodePkd) AndAlso sEventCodePkd <> "0"
+        Dim hasDivision As Boolean = Not String.IsNullOrEmpty(sDivisionCodePkd) AndAlso sDivisionCodePkd <> "ALL"
+        Dim hasRound As Boolean = Not String.IsNullOrEmpty(sRndsPkd) AndAlso sRndsPkd <> "0"
+        
+        ' Case 1: No division selected - return simple message
+        If Not hasDivision Then
+            sHtmlContent = "<div class='text-center p-4 text-muted'><p>Select a division to load information</p></div>"
+        Else
+            ' Cases 2-5: Generate running order + leaderboard pairs
+            sHtmlContent = BuildByDivisionContent(sSanctionID, sYrPkd, sTournName, sEventCodePkd, sDivisionCodePkd, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, sUseNops, sUseTeams, sFormatCode, sDisplayMetric, hasEvent, hasRound)
+        End If
+        
+        ' Get on-water data
+        Dim onWaterData = GetOnWaterData(sSanctionID, sSlalomRounds, sTrickRounds, sJumpRounds)
+        
+        Dim result As New With {
+            .success = True,
+            .htmlContent = sHtmlContent,
+            .onWaterData = onWaterData,
+            .eventCode = sEventCodePkd,
+            .divisionCode = sDivisionCodePkd,
+            .roundCode = sRndsPkd,
+            .displayType = "BY_DIVISION",
+            .availableDivisions = ModDataAccess3.LoadDvData(sSanctionID, sEventCodePkd)
+        }
+        
+        Dim serializer As New JavaScriptSerializer()
+        Return serializer.Serialize(result)
+    End Function
+
+    Private Function BuildByDivisionContent(sSanctionID As String, sYrPkd As String, sTournName As String, sEventCodePkd As String, sDivisionCodePkd As String, sRndsPkd As String, sSlalomRounds As Int16, sTrickRounds As Int16, sJumpRounds As Int16, sUseNops As Int16, sUseTeams As Int16, sFormatCode As String, sDisplayMetric As Int16, hasEvent As Boolean, hasRound As Boolean) As String
+        Dim sHtmlContent As String = ""
+        
+        ' Determine which events to show
+        Dim eventsToShow As New List(Of String)
+        If hasEvent Then
+            eventsToShow.Add(sEventCodePkd)
+        Else
+            ' Show all events that have rounds
+            If sSlalomRounds > 0 Then eventsToShow.Add("S")
+            If sTrickRounds > 0 Then eventsToShow.Add("T")  
+            If sJumpRounds > 0 Then eventsToShow.Add("J")
+        End If
+        
+        ' Determine which rounds to show for each event
+        sHtmlContent = "<div class='by-division-content'>"
+        sHtmlContent += "<h3>Division " & sDivisionCodePkd & " - Running Order & Leaderboards by Round</h3>"
+        
+        For Each eventCode As String In eventsToShow
+            Dim maxRounds As Integer = 0
+            Select Case eventCode
+                Case "S"
+                    maxRounds = sSlalomRounds
+                Case "T"
+                    maxRounds = sTrickRounds
+                Case "J"
+                    maxRounds = sJumpRounds
+            End Select
+            
+            If maxRounds > 0 Then
+                sHtmlContent += "<h4>" & GetEventName(eventCode) & "</h4>"
+                
+                ' Show specific round or all rounds
+                If hasRound Then
+                    Dim roundNum As Integer = CInt(sRndsPkd)
+                    If roundNum <= maxRounds Then
+                        sHtmlContent += BuildRoundContent(sSanctionID, sYrPkd, sTournName, eventCode, sDivisionCodePkd, roundNum.ToString(), sSlalomRounds, sTrickRounds, sJumpRounds, sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                    End If
+                Else
+                    ' Show all rounds for this event
+                    For round As Integer = 1 To maxRounds
+                        sHtmlContent += BuildRoundContent(sSanctionID, sYrPkd, sTournName, eventCode, sDivisionCodePkd, round.ToString(), sSlalomRounds, sTrickRounds, sJumpRounds, sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                    Next
+                End If
+            End If
+        Next
+        
+        sHtmlContent += "</div>"
+        Return sHtmlContent
+    End Function
+
+    Private Function BuildRoundContent(sSanctionID As String, sYrPkd As String, sTournName As String, eventCode As String, divisionCode As String, roundNum As String, sSlalomRounds As Int16, sTrickRounds As Int16, sJumpRounds As Int16, sUseNops As Int16, sUseTeams As Int16, sFormatCode As String, sDisplayMetric As Int16) As String
+        Dim content As String = ""
+        
+        ' Create side-by-side layout for running order and leaderboard
+        content += "<div class='round-pair-container' style='display: flex; gap: 2rem; margin: 1rem 0;'>"
+        
+        ' Left side: Running Order
+        content += "<div class='running-order-section' style='flex: 1;'>"
+        content += "<h5>Round " & roundNum & " - Running Order</h5>"
+        
+        ' Get running order count to determine if multi or single running order is needed
+        Dim sRunOrdCountArray(0 To 4)
+        sRunOrdCountArray = ModDataAccess3.GetRunOrdercount(sSanctionID, "0", "0", "0")
+        
+        Try
+            Dim runningOrderHtml As String = ""
+            If Left(sRunOrdCountArray(0), 5) <> "Error" Then
+                Dim sMulti As String = ""
+                Select Case eventCode
+                    Case "S"
+                        sMulti = sRunOrdCountArray(1)
+                    Case "T"
+                        sMulti = sRunOrdCountArray(2) 
+                    Case "J"
+                        sMulti = sRunOrdCountArray(3)
+                End Select
+                
+                ' Call appropriate running order function with proper round parameters
+                If sMulti = "1" Then
+                    runningOrderHtml = ModDataAccess3.ScoresXMultiRunOrdHoriz(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, roundNum, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                Else
+                    runningOrderHtml = ModDataAccess3.ScoresXRunOrdHoriz(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, roundNum, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                End If
+            End If
+            
+            If String.IsNullOrEmpty(runningOrderHtml) Then
+                content += "<p>Running order not available</p>"
+            Else
+                content += runningOrderHtml
+            End If
+        Catch ex As Exception
+            content += "<p>Running order error: " & ex.Message & "</p>"
+        End Try
+        
+        content += "</div>"
+        
+        ' Right side: Leaderboard (by round)
+        content += "<div class='leaderboard-section' style='flex: 1;'>"
+        content += "<h5>Round " & roundNum & " - Leaderboard</h5>"
+        
+        ' Get leaderboard BY ROUND using LeaderBoardROUND function
+        Try
+            Dim leaderboardHtml As String = ModDataAccess3.LeaderBoardROUND(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, roundNum, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+            
+            If String.IsNullOrEmpty(leaderboardHtml) Then
+                content += "<p>Leaderboard not available</p>"
+            Else
+                content += leaderboardHtml
+            End If
+        Catch ex As Exception
+            content += "<p>Leaderboard error: " & ex.Message & "</p>"
+        End Try
+        
+        content += "</div>"
+        content += "</div>" ' Close round-pair-container
+        
+        Return content
+    End Function
+
+    Private Function GetEventName(eventCode As String) As String
+        Select Case eventCode
+            Case "S"
+                Return "Slalom"
+            Case "T"
+                Return "Trick"
+            Case "J"
+                Return "Jump"
+            Case "O"
+                Return "Overall"
+            Case Else
+                Return "Event"
+        End Select
     End Function
 
     Private Function GetOnWaterData(sSanctionID As String, sSlalomRounds As Int16, sTrickRounds As Int16, sJumpRounds As Int16) As Object

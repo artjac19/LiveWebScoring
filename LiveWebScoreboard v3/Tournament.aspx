@@ -9,6 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Tournament Detail</title>
     <link rel="stylesheet" href="Content/bootstrap.min.css" />
+    <link rel="stylesheet" href="Content/styles.css" />
    <!--   <script src="js/bootstrap.bundle.min.js"></script>  -->
     
 </head>

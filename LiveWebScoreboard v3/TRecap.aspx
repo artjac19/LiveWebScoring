@@ -17,15 +17,9 @@
         .recap-container table thead,
         .recap-container table thead th,
         .recap-container table thead td {
-            background-color: #d1ecf1 !important;
+            background-color: #d6eded !important;
         }
         
-        /* Force all tables to fit within containers */
-        .recap-container table {
-            width: 100% !important;
-            table-layout: fixed !important;
-            word-wrap: break-word !important;
-        }
         
         .recap-container th,
         .recap-container td {
@@ -38,55 +32,77 @@
         .trick-pass-table {
             width: auto !important;
             table-layout: auto !important;
-            min-width: 300px;
+            min-width: auto !important;
         }
 
-        .trick-pass-table th:nth-child(1),
-        .trick-pass-table td:nth-child(1) {
-            width: 20% !important;
-            text-align: left;
-        }
-
-        .trick-pass-table th:nth-child(2),
-        .trick-pass-table td:nth-child(2) {
-            width: 25% !important;
+        .trick-pass-table th,
+        .trick-pass-table td {
             text-align: center;
         }
 
-        .trick-pass-table th:nth-child(3),
-        .trick-pass-table td:nth-child(3) {
-            width: 35% !important;
-            text-align: center;
+        /* Left column event tables */
+        .recap-left-table {
+            width: auto !important;
+            table-layout: auto !important;
         }
 
-        .trick-pass-table th:nth-child(4),
-        .trick-pass-table td:nth-child(4) {
-            width: 20% !important;
-            text-align: center;
+        /* Slalom table - Pass Detail column wrapping */
+        .slalom-table th:nth-child(3),
+        .slalom-table td:nth-child(3) {
+            max-width: 75px;
+            word-wrap: break-word;
+            white-space: normal;
         }
 
-        /* Trick section never shrinks */
-        .recap-container > div:last-child {
-            flex-shrink: 0;
+        /* Jump table - Distance column wrapping */
+        .jump-table th:nth-child(3),
+        .jump-table td:nth-child(3) {
+            max-width: 75px;
+            word-wrap: break-word;
+            white-space: normal;
         }
 
-        /* Other events can shrink aggressively */
-        .recap-container > div:first-child {
-            flex: 1 1 0;
-            min-width: 250px;
+        /* Specific layout classes */
+        .recap-left-column {
+            flex: 1 1 auto;
+            min-width: 400px;
             overflow-x: auto;
         }
 
-        /* Trick section gets fixed space */
-        .recap-container > div:last-child {
-            flex: 0 0 auto;
-            width: fit-content;
+        .recap-trick-column {
+            width: auto;
+            display: inline-block;
+            vertical-align: top;
         }
 
-        /* Make sure tables in the shrinking section can compress */
-        .recap-container > div:first-child table {
-            min-width: 200px;
-            width: 100%;
+        .trick-round-container {
+            margin-bottom: 2rem;
+        }
+
+        .trick-passes-container {
+            display: inline-flex;
+            gap: 20px;
+        }
+
+        .trick-pass-column {
+            display: inline-block;
+        }
+
+        /* Navbar height adjustment */
+        .blue-bar {
+            min-height: fit-content !important;
+            height: auto !important;
+        }
+
+        /* Mobile responsive styling */
+        @media (max-width: 1000px) {
+            .navbar-title {
+                font-size: 0.9rem !important;
+            }
+            
+            .tournament-name-mobile {
+                display: none !important;
+            }
         }
 
     </style>
@@ -117,9 +133,9 @@
             <a href="javascript:void(0)" onclick="window.location.href='default.aspx'" title="Go to Home" style="text-decoration: none;">
                 <img src="images/skigirl.svg" alt="Skier Logo" class="logo" />
             </a>
-            <div style="flex: 1; color: white; font-size: 1.2rem; font-weight: bold; display: flex; gap: 1rem; align-items: center; justify-content: center;">
+            <div class="navbar-title" style="flex: 1; color: white; font-size: 1.2rem; font-weight: bold; display: flex; gap: 1rem; align-items: center; justify-content: center;">
                 <span id="PerformanceRecapTitle" runat="Server">Performance Recap for [Skier Name] [Division]</span>
-                <span style="font-size: 1rem; font-weight: normal;" id="TName" runat="Server"></span>
+                <span class="tournament-name-mobile" style="font-size: 1rem; font-weight: normal;" id="TName" runat="Server"></span>
             </div>
             <asp:Button ID="Btn_Back" runat="server" Text="Back To Scores" OnClientClick="history.back(); return false;"
                 style="background: transparent; color: white; border: 2px solid white; padding: 8px 16px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: all 0.2s;"
@@ -131,13 +147,13 @@
         
         <!-- Display recap in two-column layout: left column has overall/slalom/jump, right column has trick -->
         <div class="recap-container" style="display: flex; flex-direction: row; gap: 2rem; margin: 1rem; overflow: hidden; width: calc(100vw - 3rem); box-sizing: border-box;">
-            <div style="flex: 1 1 0; min-width: 250px; display: flex; flex-direction: column; gap: 1.5rem; overflow-x: auto;">
+            <div class="recap-left-column" style="display: flex; flex-direction: column; gap: 1.5rem;">
                 <div id="OverallRecap" runat="server"></div>
                 <div id="SlalomRecap" runat="server"></div> 
                 <div id="JumpRecap" runat="server"></div>
             </div>
-            <div style="flex: 0 0 auto; overflow: hidden;">
-                <div id="TrickRecap" runat="server" style="overflow: hidden;"></div>
+            <div class="recap-trick-column">
+                <div id="TrickRecap" runat="server"></div>
             </div>
        </div>
           

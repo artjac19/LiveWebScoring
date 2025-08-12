@@ -221,6 +221,7 @@
                 '<button class="tnav-btn" data-view="running-order">Running Order</button>' +
                 '<button class="tnav-btn" data-view="entry-list">Entry List</button>' +
                 '<button class="tnav-btn" data-view="reports">Reports</button>' +
+                '<button class="tnav-btn" data-view="legacy-view">Legacy View</button>' +
                 '<button class="tnav-btn" data-view="home">Home</button>' +
                 '</div>';
             
@@ -567,13 +568,34 @@
                         // Do the same DOM setup as loadScores
                         TournamentInfo.loadScores(sanctionId);
                         break;
+                    case 'by-division':
+                        // Update URL to reflect by division view
+                        const byDivisionParams = {
+                            view: 'by-division',
+                            sid: sanctionId
+                        };
+                        TournamentInfo.updateUrlParameters(byDivisionParams);
+                        
+                        // Set by division mode 
+                        AppState.currentDisplayMode = 'by-division';
+                        
+                        // Do the same DOM setup as loadScores
+                        TournamentInfo.loadScores(sanctionId);
+                        break;
                     case 'entry-list':
-                        // TODO: Implement later
-                        console.log('Entry List clicked for:', sanctionId);
+                        // Redirect to the old website entry list page with exact parameter structure
+                        const entryListUrl = `TSkierListPro?SY=0&SID=${sanctionId}&TN=${encodeURIComponent(AppState.currentTournamentName)}&UN=0&FC=EL&FT=1&UT=0`;
+                        window.location.href = entryListUrl;
                         break;
                     case 'reports':
-                        // TODO: Implement later
-                        console.log('Reports clicked for:', sanctionId);
+                        // Redirect to the reports page
+                        const reportsUrl = `TReports?SID=${sanctionId}`;
+                        window.location.href = reportsUrl;
+                        break;
+                    case 'legacy-view':
+                        // Redirect to legacy Tournament.aspx page with correct parameters
+                        const legacyUrl = `Tournament?SN=${sanctionId}&FM=1&SY=0`;
+                        window.location.href = legacyUrl;
                         break;
                 }
             });
@@ -662,6 +684,12 @@
                     if (AppState.currentDisplayMode === 'running-order') {
                         // For running order, show message to select event
                         $('#leaderboardContent').html('<div class="text-center p-4"><p>Select an event to view running order...</p></div>');
+                    } else if (AppState.currentDisplayMode === 'by-division') {
+                        // For by-division, initialize with default "ALL" division selection to trigger proper filter logic
+                        $('#leaderboardContent').html('<div class="text-center p-4"><p>Select a division to load information...</p></div>');
+                        
+                        // Trigger the filter combination logic to handle by-division cases
+                        this.applyFilterCombination();
                     } else {
                         // Then load most recent 10 divisions immediately for leaderboard  
                         this.loadMostRecentDivisions(sanctionId, skiYear, formatCode, 'NONE', '0');
@@ -1120,8 +1148,8 @@
             // Always add "All Rounds" option
             roundFilters.append('<button class="filter-btn" data-filter="round" data-value="0">All Rounds</button>');
             
-            // Add placement format override buttons (but not for Overall event or running order mode)
-            if (selectedEvent !== 'O' && AppState.currentDisplayMode !== 'running-order') {
+            // Add placement format override buttons (but not for Overall event, running order mode, or by-division mode)
+            if (selectedEvent !== 'O' && AppState.currentDisplayMode !== 'running-order' && AppState.currentDisplayMode !== 'by-division') {
                 roundFilters.append('<button class="filter-btn" data-filter="placement" data-value="ROUND">Rounds View</button>');
                 roundFilters.append('<button class="filter-btn" data-filter="placement" data-value="BEST">Divisions View</button>');
             } else if (selectedEvent === 'O') {
@@ -1198,6 +1226,13 @@
                         }
                     });
                 }
+            } else if (displayMode === 'by-division') {
+                // By-division mode: show all events including Overall, but no Mixed or None
+                if (data.availableEvents && data.availableEvents.length > 0) {
+                    data.availableEvents.forEach(event => {
+                        eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
+                    });
+                }
             } else {
                 // Leaderboard mode: show all options including Mixed and Overall
                 eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
@@ -1214,8 +1249,8 @@
             const divisionFilters = $('#divisionFilters');
             divisionFilters.empty();
             
-            if (displayMode === 'running-order') {
-                // Running order mode: only show "All" option as default
+            if (displayMode === 'running-order' || displayMode === 'by-division') {
+                // Running order or by-division mode: only show "All" option as default
                 divisionFilters.append('<button class="filter-btn active" data-filter="division" data-value="ALL">All</button>');
             } else {
                 // Leaderboard mode: show Most Recent and Alphabetical
@@ -1342,6 +1377,12 @@
                     // Clear bestof selection when selecting individual rounds
                     if (filterType === 'round') {
                         $('#roundFilters .filter-btn[data-filter="bestof"]').removeClass('active');
+                        
+                        // Auto-select "Rounds View" when a specific round is selected (not "All Rounds")
+                        if (filterValue !== '0') {
+                            $('#roundFilters .filter-btn[data-filter="placement"]').removeClass('active');
+                            $('#roundFilters .filter-btn[data-filter="placement"][data-value="ROUND"]').addClass('active');
+                        }
                     }
                 }
                 
@@ -1372,6 +1413,12 @@
             const isMixed = selectedEvent === 'MIXED';
             const isOverall = selectedEvent === 'O';
             
+            // Special handling for by-division mode - intercept early
+            if (AppState.currentDisplayMode === 'by-division') {
+                this.loadByDivisionContent(selectedEvent, selectedDivision, selectedRound);
+                return;
+            }
+            
             console.log('[FILTER-DEBUG] selectedEvent:', selectedEvent, 'selectedDivision:', selectedDivision);
             console.log('[FILTER-DEBUG] isOverall:', isOverall, 'isMixed:', isMixed, 'hasEvent:', hasEvent);
             
@@ -1380,6 +1427,7 @@
                 this.loadRecentScores();
                 return;
             }
+            
             
             // Case 0.5: Overall event - handle Best Of vs All Rounds
             if (isOverall && !hasDivision) {
@@ -1499,6 +1547,53 @@
             
             // Case 5: No meaningful filters (fallback)
             $('#leaderboardContent').html('<div class="text-center p-4 text-muted"><p>Select filters to display leaderboard data</p></div>');
+        },
+
+        loadByDivisionContent: function(selectedEvent, selectedDivision, selectedRound) {
+            // Show loading state
+            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading by-division view...</p></div>');
+            
+            // Use the exact same parameter structure as existing API calls
+            const requestData = {
+                SID: AppState.currentSelectedTournamentId,
+                SY: "0",
+                TN: AppState.currentTournamentName,
+                FC: this.currentTournamentInfo.formatCode,
+                FT: '0',
+                UN: '0', 
+                UT: '0',
+                EV: selectedEvent || '0',
+                DV: selectedDivision || 'ALL',
+                RND: selectedRound || '0',
+                GET_BY_DIVISION: '1'
+            };
+            
+            // Add placement format override if selected (same as other calls)
+            const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
+            if (selectedPlacement) {
+                requestData.FORCE_PLACEMENT = selectedPlacement;
+            }
+            
+            // Make API call using exact same pattern as loadEventDivisionCombination
+            const request = Utils.createCancellableRequest('GetLeaderboardSP.aspx', requestData);
+            
+            request.promise.done(function(response) {
+                if (!request.isCurrent()) {
+                    return;
+                }
+                
+                if (response.success && response.htmlContent) {
+                    $('#leaderboardContent').html(response.htmlContent);
+                } else {
+                    $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading by-division view</p></div>');
+                }
+            })
+            .fail(function(error) {
+                if (!request.isCurrent()) {
+                    return;
+                }
+                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error: Could not load by-division view</p></div>');
+            });
         },
 
         loadEventDivisionCombination: function(eventCode, divisionCode, roundCode) {
@@ -2195,8 +2290,8 @@
                     divisionFilters.empty();
                     
                     // Add division filter options based on display mode
-                    if (AppState.currentDisplayMode === 'running-order') {
-                        // Running order mode: only show "All" option
+                    if (AppState.currentDisplayMode === 'running-order' || AppState.currentDisplayMode === 'by-division') {
+                        // Running order or by-division mode: only show "All" option
                         divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">All</button>');
                     } else {
                         // Leaderboard mode: Add Most Recent and Alphabetical options (but not Most Recent for Overall)
@@ -2216,8 +2311,8 @@
                     // Try to preserve the previous division selection, otherwise default appropriately
                     let targetButton = divisionFilters.find(`[data-value="${currentDivisionValue}"]`);
                     if (targetButton.length === 0) {
-                        if (AppState.currentDisplayMode === 'running-order') {
-                            // Running order mode: always default to "All"
+                        if (AppState.currentDisplayMode === 'running-order' || AppState.currentDisplayMode === 'by-division') {
+                            // Running order or by-division mode: always default to "All"
                             targetButton = divisionFilters.find('[data-value="ALL"]');
                         } else {
                             // Leaderboard mode: For Overall, default to Alphabetical; for others, default to Most Recent
@@ -2239,11 +2334,33 @@
 
         loadDivisionsBatch: function(divisions, sanctionId, skiYear, formatCode, selectedRound) {
             
-            // Show loading message
-            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading ' + divisions.length + ' divisions...</p></div>');
+            // Filter out events that don't have the selected round when a specific round is selected
+            let validCombinations = divisions;
+            if (selectedRound && selectedRound !== '0' && this.tournamentData && this.tournamentData.availableEvents) {
+                const selectedRoundNum = parseInt(selectedRound);
+                
+                validCombinations = divisions.filter(combo => {
+                    const event = this.tournamentData.availableEvents.find(e => e.code === combo.event);
+                    if (!event) return false;
+                    
+                    const eventMaxRounds = event.rounds || 0;
+                    
+                    // Only include if the event has at least the selected round number
+                    return selectedRoundNum <= eventMaxRounds;
+                });
+                
+                // If all combinations were filtered out, show appropriate message
+                if (validCombinations.length === 0) {
+                    $('#leaderboardContent').html(`<div class="text-center p-4 text-muted"><p>No events have Round ${selectedRound}</p></div>`);
+                    return;
+                }
+            }
             
-            // Prepare batch request data
-            const batchData = divisions.map(combo => ({
+            // Show loading message
+            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading ' + validCombinations.length + ' divisions...</p></div>');
+            
+            // Prepare batch request data with valid combinations
+            const batchData = validCombinations.map(combo => ({
                 event: combo.event,
                 division: combo.division
             }));
@@ -2406,8 +2523,30 @@
         loadDivisionsBatchAppend: function(divisions, sanctionId, skiYear, formatCode, selectedRound) {
             const self = this;
             
-            // Prepare batch request data
-            const batchData = divisions.map(combo => ({
+            // Filter out events that don't have the selected round when a specific round is selected
+            let validCombinations = divisions;
+            if (selectedRound && selectedRound !== '0' && this.tournamentData && this.tournamentData.availableEvents) {
+                const selectedRoundNum = parseInt(selectedRound);
+                
+                validCombinations = divisions.filter(combo => {
+                    const event = this.tournamentData.availableEvents.find(e => e.code === combo.event);
+                    if (!event) return false;
+                    
+                    const eventMaxRounds = event.rounds || 0;
+                    
+                    // Only include if the event has at least the selected round number
+                    return selectedRoundNum <= eventMaxRounds;
+                });
+                
+                // If no valid combinations, just remove the loading indicator
+                if (validCombinations.length === 0) {
+                    $('#batchLoading').remove();
+                    return;
+                }
+            }
+            
+            // Prepare batch request data with valid combinations
+            const batchData = validCombinations.map(combo => ({
                 event: combo.event,
                 division: combo.division
             }));
@@ -2591,6 +2730,11 @@
             // Add running order parameter if in running order mode
             if (AppState.currentDisplayMode === 'running-order') {
                 requestData.GET_RUNNING_ORDER = '1';
+            }
+            
+            // Add by division parameter if in by division mode
+            if (AppState.currentDisplayMode === 'by-division') {
+                requestData.GET_BY_DIVISION = '1';
             }
             
             // Make API call for leaderboard content

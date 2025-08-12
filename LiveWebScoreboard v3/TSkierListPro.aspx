@@ -9,23 +9,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Entry List</title>
     <link rel="stylesheet" href="Content/bootstrap.min.css" />
-   <!--   <script src="js/bootstrap.bundle.min.js"></script>  -->
+    <link rel="stylesheet" href="Content/styles.css" />
     <style>
-      .down75{
-          margin-left: 0;
-          margin-right: 0;
-          min-height: 75px;
-      }
-      .down125{
-    margin-left: 0;
-    margin-right: 0;
-    min-height: 125px;
-}
-            .down100{
-    margin-left: 0;
-    margin-right: 0;
-    min-height: 100px;
-}
+        /* TRecap-style navbar overrides */
+        .blue-bar {
+            background: linear-gradient(135deg, #15274D 0%, #1e3a5f 100%);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            min-height: fit-content;
+            height: auto;
+        }
+
+        .logo {
+            height: 40px;
+            width: 40px;
+            margin-right: 15px;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+            transition: transform 0.2s;
+        }
+
+        /* Center the entry list table */
+        #InsertHere {
+            text-align: center;
+        }
+
+        /* Mobile responsive styling */
+        @media (max-width: 1000px) {
+            .navbar-title {
+                font-size: 0.9rem !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -37,22 +58,21 @@
         <asp:HiddenField ID="HF_AgeGroup" runat="server" />
         <asp:HiddenField ID="HF_YearPkd" runat="server" /> <!-- Stores ddl_PkYear.selected value on home page.  Recent = 0 -->
         <asp:HiddenField ID="HF_TournName" runat="server" />
-        <!-- Display title bar and error label -->
-       <div class="fixed-top">
-        <div id="TName" runat="Server">
-           <asp:Label ID="lbl_Errors" runat="server"  ForeColor="White" Font-Bold="true"/>
-        
-       </div>
-        <!-- Display droplist and button controls -->
-        <div>
-            <asp:Button ID="Btn_2Tournament" runat="server" Text="Tourn Home" />
-                
-            <asp:Button ID="Btn_2TList" runat="server" Text="Tournament List" />
-                <asp:Button ID="Btn_Home" runat="server" Text="Home Page" />
-                
+        <!-- Blue header bar -->
+        <div class="blue-bar">
+            <a href="javascript:void(0)" onclick="window.location.href='default.aspx'" title="Go to Home" style="text-decoration: none;">
+                <img src="images/skigirl.svg" alt="Skier Logo" class="logo" />
+            </a>
+            <div class="navbar-title" style="flex: 1; color: white; font-size: 1.2rem; font-weight: bold; display: flex; gap: 1rem; align-items: center; justify-content: center;">
+                <span>Entry List</span>
+                <span style="font-size: 1rem; font-weight: normal;" id="TName" runat="Server"></span>
+            </div>
+            <asp:Button ID="Btn_Back" runat="server" Text="Back To Scores" OnClientClick="history.back(); return false;"
+                style="background: transparent; color: white; border: 2px solid white; padding: 8px 16px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: all 0.2s;"
+                onmouseover="this.style.backgroundColor='white'; this.style.color='#15274D';"
+                onmouseout="this.style.backgroundColor='transparent'; this.style.color='white';" />
+            <asp:Label ID="lbl_Errors" runat="server" ForeColor="White" style="margin-left: 10px;"/>
         </div>
-</div>
-        <div class="down125"></div>
         <!-- Display One column.   -->
          <div id="InsertHere" runat="server">
 
