@@ -353,10 +353,10 @@
                 $('.tnav-btn[data-view="' + AppState.currentActiveView + '"]').addClass('active');
             }
             
-            $('.tnav-btn').on('click.tnav', function(e) {
+            $('.tnav-btn').on('click.tnav', (e) => {
                 e.preventDefault();
                 
-                const $btn = $(this);
+                const $btn = $(e.target);
                 const view = $btn.data('view');
                 const sanctionId = AppState.currentSelectedTournamentId;
                 
@@ -365,166 +365,149 @@
                     return;
                 }
                 
-                $('.tnav-btn').removeClass('active');
-                $btn.addClass('active');
-                
-                // Save the current active view
-                AppState.currentActiveView = view;
-                
-                // Scroll to top for better UX
+                this.setActiveNavButton($btn, view);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-                
-                switch(view) {
-                    case 'home':
-                        // Navigate back to tournament search with URL params preserved
-                        const homeUrl = new URL(window.location);
-                        const homeParams = new URLSearchParams();
-                        
-                        // Preserve existing filter parameters
-                        if (homeUrl.searchParams.get('YR')) {
-                            homeParams.set('YR', homeUrl.searchParams.get('YR'));
-                        }
-                        if (homeUrl.searchParams.get('RG')) {
-                            homeParams.set('RG', homeUrl.searchParams.get('RG'));
-                        }
-                        if (homeUrl.searchParams.get('search')) {
-                            homeParams.set('search', homeUrl.searchParams.get('search'));
-                        }
-                        // Preserve selected tournament
-                        if (sanctionId) {
-                            homeParams.set('sanctionId', sanctionId);
-                        }
-                        
-                        // Navigate to default.aspx with preserved parameters
-                        const homeUrlString = 'default.aspx' + (homeParams.toString() ? '?' + homeParams.toString() : '');
-                        window.location.href = homeUrlString;
-                        break;
-                    case 'scores':
-                        // Add view parameter to URL
-                        const currentUrl = new URL(window.location);
-                        const params = {};
-                        
-                        // Preserve existing parameters
-                        if (currentUrl.searchParams.get('search')) {
-                            params.search = currentUrl.searchParams.get('search');
-                        }
-                        if (currentUrl.searchParams.get('YR')) {
-                            params.YR = currentUrl.searchParams.get('YR');
-                        }
-                        if (currentUrl.searchParams.get('RG')) {
-                            params.RG = currentUrl.searchParams.get('RG');
-                        }
-                        if (currentUrl.searchParams.get('sanctionId')) {
-                            params.sanctionId = currentUrl.searchParams.get('sanctionId');
-                        }
-                        
-                        // Add view parameter
-                        params.view = 'scores';
-                        
-                        // Update URL
-                        TournamentInfo.updateUrlParameters(params);
-                        
-                        // Set leaderboard mode and load scores
-                        AppState.currentDisplayMode = 'leaderboard';
-                        TournamentInfo.loadScores(sanctionId);
-                        break;
-                    case 'running-order':
-                        // Update URL to reflect running order view
-                        const runningOrderParams = {
-                            view: 'running-order',
-                            sid: sanctionId
-                        };
-                        TournamentInfo.updateUrlParameters(runningOrderParams);
-                        
-                        // Set running order mode 
-                        AppState.currentDisplayMode = 'running-order';
-                        
-                        // Do the same DOM setup as loadScores
-                        TournamentInfo.loadScores(sanctionId);
-                        break;
-                    case 'by-division':
-                        // Update URL to reflect by division view
-                        const byDivisionParams = {
-                            view: 'by-division',
-                            sid: sanctionId
-                        };
-                        TournamentInfo.updateUrlParameters(byDivisionParams);
-                        
-                        // Set by division mode 
-                        AppState.currentDisplayMode = 'by-division';
-                        
-                        // Do the same DOM setup as loadScores
-                        TournamentInfo.loadScores(sanctionId);
-                        break;
-                    case 'entry-list':
-                        // Redirect to the old website entry list page with exact parameter structure
-                        const entryListUrl = `TSkierListPro?SY=0&SID=${sanctionId}&TN=${encodeURIComponent(AppState.currentTournamentName)}&UN=0&FC=EL&FT=1&UT=0`;
-                        window.location.href = entryListUrl;
-                        break;
-                    case 'reports':
-                        // Redirect to the reports page
-                        const reportsUrl = `TReports?SID=${sanctionId}`;
-                        window.location.href = reportsUrl;
-                        break;
-                    case 'legacy-view':
-                        // Redirect to legacy Tournament.aspx page with correct parameters
-                        const legacyUrl = `Tournament?SN=${sanctionId}&FM=1&SY=0`;
-                        window.location.href = legacyUrl;
-                        break;
-                }
+                this.handleViewNavigation(view, sanctionId);
             });
         },
 
-        loadScores: function(sanctionId) {
+        setActiveNavButton: function($btn, view) {
+            $('.tnav-btn').removeClass('active');
+            $btn.addClass('active');
+            AppState.currentActiveView = view;
+        },
+
+        handleViewNavigation: function(view, sanctionId) {
+            const handlers = {
+                'home': () => this.navigateToHome(sanctionId),
+                'scores': () => this.navigateToScores(sanctionId),
+                'running-order': () => this.navigateToRunningOrder(sanctionId),
+                'by-division': () => this.navigateToByDivision(sanctionId),
+                'entry-list': () => this.navigateToEntryList(sanctionId),
+                'reports': () => this.navigateToReports(sanctionId),
+                'legacy-view': () => this.navigateToLegacyView(sanctionId)
+            };
+
+            const handler = handlers[view];
+            if (handler) {
+                handler();
+            } else {
+                console.error('Unknown view:', view);
+            }
+        },
+
+        navigateToHome: function(sanctionId) {
+            const homeUrl = new URL(window.location);
+            const homeParams = new URLSearchParams();
             
-            // Move the leaderboard section into the tournament-list-container FIRST
+            // Preserve existing filter parameters
+            ['YR', 'RG', 'search'].forEach(param => {
+                const value = homeUrl.searchParams.get(param);
+                if (value) homeParams.set(param, value);
+            });
+            
+            if (sanctionId) {
+                homeParams.set('sanctionId', sanctionId);
+            }
+            
+            const homeUrlString = 'default.aspx' + (homeParams.toString() ? '?' + homeParams.toString() : '');
+            window.location.href = homeUrlString;
+        },
+
+        navigateToScores: function(sanctionId) {
+            const currentUrl = new URL(window.location);
+            const params = { view: 'scores' };
+            
+            // Preserve existing parameters
+            ['search', 'YR', 'RG', 'sanctionId'].forEach(param => {
+                const value = currentUrl.searchParams.get(param);
+                if (value) params[param] = value;
+            });
+            
+            this.updateUrlParameters(params);
+            AppState.currentDisplayMode = 'leaderboard';
+            this.loadScores(sanctionId);
+        },
+
+        navigateToRunningOrder: function(sanctionId) {
+            this.updateUrlParameters({ view: 'running-order', sid: sanctionId });
+            AppState.currentDisplayMode = 'running-order';
+            this.loadScores(sanctionId);
+        },
+
+        navigateToByDivision: function(sanctionId) {
+            this.updateUrlParameters({ view: 'by-division', sid: sanctionId });
+            AppState.currentDisplayMode = 'by-division';
+            this.loadScores(sanctionId);
+        },
+
+        navigateToEntryList: function(sanctionId) {
+            const entryListUrl = `TSkierListPro?SY=0&SID=${sanctionId}&TN=${encodeURIComponent(AppState.currentTournamentName)}&UN=0&FC=EL&FT=1&UT=0`;
+            window.location.href = entryListUrl;
+        },
+
+        navigateToReports: function(sanctionId) {
+            window.location.href = `TReports?SID=${sanctionId}`;
+        },
+
+        navigateToLegacyView: function(sanctionId) {
+            window.location.href = `Tournament?SN=${sanctionId}&FM=1&SY=0`;
+        },
+
+        loadScores: function(sanctionId) {
+            this.prepareScoresPageDOM();
+            this.repositionTournamentPanel();
+            this.loadTournamentInfo(sanctionId);
+            this.initializeScoresData(sanctionId);
+        },
+
+        prepareScoresPageDOM: function() {
+            // Move the leaderboard section into the tournament-list-container
             const leaderboardSection = $('#leaderboardSection');
             const tournamentListContainer = $('.tournament-list-container');
             
-            // Move leaderboard section into the tournament list container if it's not already there
             if (leaderboardSection.parent()[0] !== tournamentListContainer[0]) {
                 leaderboardSection.appendTo(tournamentListContainer);
             }
             
-            // Hide tournament search elements FIRST
-            $('#tFilters').hide();  // Tournament year/region filter bubbles
-            $('#tDesktop').hide();  // Desktop tournament table
-            $('#tMobile').hide();  // Mobile tournament cards
-            $('#noResultsMessage').hide();  // No results message
+            // Hide tournament search elements
+            $('#tFilters').hide();
+            $('#tDesktop').hide();
+            $('#tMobile').hide();
+            $('#noResultsMessage').hide();
             
-            // Show the leaderboard section BEFORE loading tournament info
+            // Show leaderboard section and clean up
             leaderboardSection.show();
-            
-            // Remove any previous format classes
             $('#leaderboardContent').removeClass('round-format');
-            
-            // Reposition existing tournament info panel for scores page
+        },
+
+        repositionTournamentPanel: function() {
             const existingPanel = document.querySelector('#tInfo');
-            if (existingPanel) {
-                if (window.innerWidth <= 1000) {
-                    // Mobile: Move panel above leaderboard filters
-                    const firstChild = leaderboardSection[0].firstChild;
-                    if (firstChild) {
-                        leaderboardSection[0].insertBefore(existingPanel, firstChild);
-                    } else {
-                        leaderboardSection[0].appendChild(existingPanel);
-                    }
-                    
-                    
+            if (!existingPanel) return;
+            
+            const leaderboardSection = $('#leaderboardSection')[0];
+            
+            if (window.innerWidth <= 1000) {
+                // Mobile: Move panel above leaderboard filters
+                const firstChild = leaderboardSection.firstChild;
+                if (firstChild) {
+                    leaderboardSection.insertBefore(existingPanel, firstChild);
                 } else {
-                    // Desktop: Move panel to the side of results (tournament-display)
-                    document.querySelector('.tournament-display').appendChild(existingPanel);
+                    leaderboardSection.appendChild(existingPanel);
                 }
+            } else {
+                // Desktop: Move panel to the side
+                document.querySelector('.tournament-display').appendChild(existingPanel);
             }
-            
-            // NOW load tournament info panel - renderInfo will detect we're on scores page
+        },
+
+        loadTournamentInfo: function(sanctionId) {
+            // Load tournament info panel - renderInfo will detect we're on scores page
             TournamentInfo.load(sanctionId, AppState.currentTrickVideoText);
-            
-            
-            // Use "0" for recent (matches Tournament.aspx behavior)  
+        },
+
+        initializeScoresData: function(sanctionId) {
             const skiYear = '0';
-            
-            // Determine format code based on sanction ID
             const isNCWSA = sanctionId.length >= 3 && sanctionId.charAt(2).toUpperCase() === 'U';
             const formatCode = isNCWSA ? 'NCWL' : 'LBSP';
             
@@ -536,7 +519,7 @@
                 formatCode: formatCode
             };
             
-            // First load the normal tournament info and filter bubbles
+            // Load tournament data and setup filters
             $.getJSON('GetLeaderboardSP.aspx', {
                 SID: sanctionId,
                 SY: skiYear,
@@ -548,26 +531,9 @@
             })
             .done((response) => {
                 if (response.success) {
-                    // Set up the normal filter bubbles
                     this.setupLeaderboardFilters(response);
-                    
-                    // Restore filter state from URL parameters if they exist
                     this.restoreFilterStateFromUrl();
-                    
-                    // Load appropriate initial data based on display mode
-                    if (AppState.currentDisplayMode === 'running-order') {
-                        // For running order, show message to select event
-                        $('#leaderboardContent').html('<div class="text-center p-4"><p>Select an event to view running order...</p></div>');
-                    } else if (AppState.currentDisplayMode === 'by-division') {
-                        // For by-division, initialize with default "ALL" division selection to trigger proper filter logic
-                        $('#leaderboardContent').html('<div class="text-center p-4"><p>Select a division to load information...</p></div>');
-                        
-                        // Trigger the filter combination logic to handle by-division cases
-                        this.applyFilterCombination();
-                    } else {
-                        // Then load most recent 10 divisions immediately for leaderboard  
-                        this.loadMostRecentDivisions(sanctionId, skiYear, formatCode, 'NONE', '0');
-                    }
+                    this.loadInitialContent(sanctionId, skiYear, formatCode);
                 } else {
                     $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error: ' + response.error + '</p></div>');
                 }
@@ -575,6 +541,20 @@
             .fail((error) => {
                 $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading tournament information: ' + error + '</p></div>');
             });
+        },
+
+        loadInitialContent: function(sanctionId, skiYear, formatCode) {
+            const displayMode = AppState.currentDisplayMode;
+            
+            if (displayMode === 'running-order') {
+                $('#leaderboardContent').html('<div class="text-center p-4"><p>Select an event to view running order...</p></div>');
+            } else if (displayMode === 'by-division') {
+                $('#leaderboardContent').html('<div class="text-center p-4"><p>Select a division to load information...</p></div>');
+                this.applyFilterCombination();
+            } else {
+                // Load most recent divisions for leaderboard mode
+                this.loadMostRecentDivisions(sanctionId, skiYear, formatCode, 'NONE', '0');
+            }
         },
 
         loadMostRecentDivisions: function(sanctionId, skiYear, formatCode, eventCode, selectedRound) {
@@ -1019,11 +999,22 @@
                 $('#eventFilters .filter-btn').removeClass('active');
                 $btn.addClass('active');
                 
-                // Update round filters based on selected event
-                self.setupRoundFilters(self.tournamentData, eventCode);
-                
-                // Load event details if specific event is selected (for division options)
-                if (eventCode !== 'NONE') {
+                // Special handling for NONE filter - deactivate all other filters like tournament search screen
+                if (eventCode === 'NONE') {
+                    // Reset division to MOST_RECENT to always show Most Recent button
+                    $('#divisionFilters .filter-btn').removeClass('active');
+                    $('#divisionFilters .filter-btn[data-value="MOST_RECENT"]').addClass('active');
+                    
+                    // Reset round filters to defaults
+                    $('#roundFilters .filter-btn').removeClass('active');
+                    $('#roundFilters .filter-btn[data-filter="round"][data-value="0"]').addClass('active');
+                    
+                    // Don't load event details for NONE
+                } else {
+                    // Update round filters based on selected event
+                    self.setupRoundFilters(self.tournamentData, eventCode);
+                    
+                    // Load event details if specific event is selected (for division options)
                     self.loadEventDetails(eventCode);
                 }
                 
@@ -1058,12 +1049,6 @@
                     // Clear bestof selection when selecting individual rounds
                     if (filterType === 'round') {
                         $('#roundFilters .filter-btn[data-filter="bestof"]').removeClass('active');
-                        
-                        // Auto-select "Rounds View" when a specific round is selected (not "All Rounds")
-                        if (filterValue !== '0') {
-                            $('#roundFilters .filter-btn[data-filter="placement"]').removeClass('active');
-                            $('#roundFilters .filter-btn[data-filter="placement"][data-value="ROUND"]').addClass('active');
-                        }
                     }
                 }
                 
@@ -1073,158 +1058,170 @@
         },
 
         applyFilterCombination: function() {
-            // Cancel any pending requests from previous filter selections
             Utils.cancelAllRequests();
             
+            const filterState = this.getFilterState();
+            this.updateLeaderboardUrl(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound, filterState.selectedPlacement, filterState.selectedBestOf);
+            
+            // Handle special cases first
+            if (AppState.currentDisplayMode === 'by-division') {
+                this.loadByDivisionContent(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound);
+                return;
+            }
+            
+            if (filterState.isMixed) {
+                this.loadRecentScores();
+                return;
+            }
+            
+            if (filterState.isOverall && !filterState.hasDivision) {
+                this.handleOverallEvent(filterState);
+                return;
+            }
+            
+            if (filterState.isMostRecent) {
+                this.handleMostRecentView(filterState);
+                return;
+            }
+            
+            if (filterState.isAlphabetical) {
+                this.handleAlphabeticalView(filterState);
+                return;
+            }
+            
+            if (filterState.hasDivision) {
+                this.handleSpecificDivision(filterState);
+                return;
+            }
+            
+            if (filterState.hasEvent) {
+                this.handleEventOnly(filterState);
+                return;
+            }
+            
+            // Fallback case
+            $('#leaderboardContent').html('<div class="text-center p-4 text-muted"><p>Select filters to display leaderboard data</p></div>');
+        },
+
+        getFilterState: function() {
             const selectedEvent = $('#eventFilters .filter-btn.active').data('value');
             const selectedDivision = $('#divisionFilters .filter-btn.active').data('value');
             const selectedRound = $('#roundFilters .filter-btn.active[data-filter="round"]').data('value');
             const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
             const selectedBestOf = $('#roundFilters .filter-btn.active[data-filter="bestof"]').data('value');
             
-            
-            // Update URL with current filter parameters
-            this.updateLeaderboardUrl(selectedEvent, selectedDivision, selectedRound, selectedPlacement, selectedBestOf);
-            
-            // Get current filter state
-            const hasEvent = selectedEvent && selectedEvent !== 'NONE';
-            const hasDivision = selectedDivision && selectedDivision !== 'MOST_RECENT' && selectedDivision !== 'ALL';
-            const isAlphabetical = selectedDivision === 'ALL';
-            const isMostRecent = selectedDivision === 'MOST_RECENT';
-            const isMixed = selectedEvent === 'MIXED';
-            const isOverall = selectedEvent === 'O';
-            
-            // Special handling for by-division mode - intercept early
-            if (AppState.currentDisplayMode === 'by-division') {
-                this.loadByDivisionContent(selectedEvent, selectedDivision, selectedRound);
-                return;
+            return {
+                selectedEvent,
+                selectedDivision,
+                selectedRound,
+                selectedPlacement,
+                selectedBestOf,
+                hasEvent: selectedEvent && selectedEvent !== 'NONE',
+                hasDivision: selectedDivision && selectedDivision !== 'MOST_RECENT' && selectedDivision !== 'ALL',
+                isAlphabetical: selectedDivision === 'ALL',
+                isMostRecent: selectedDivision === 'MOST_RECENT',
+                isMixed: selectedEvent === 'MIXED',
+                isOverall: selectedEvent === 'O'
+            };
+        },
+
+        handleOverallEvent: function(filterState) {
+            if (filterState.selectedBestOf === 'BESTOF') {
+                this.loadOverallBestOf();
+            } else if (filterState.selectedRound && filterState.selectedRound != '0') {
+                this.loadOverallAllDivisions(filterState.selectedRound);
+            } else if (filterState.selectedRound == '0' && $('#roundFilters .filter-btn[data-filter="round"][data-value="0"]').hasClass('active')) {
+                this.loadOverallAllDivisions('0');
+            } else {
+                // Default to Best of and auto-select the button
+                $('#roundFilters .filter-btn[data-filter="bestof"]').addClass('active');
+                $('#roundFilters .filter-btn[data-filter="round"]').removeClass('active');
+                this.loadOverallBestOf();
             }
-            
-            
-            // Case 0: Mixed recent scores
-            if (isMixed) {
-                this.loadRecentScores();
-                return;
+        },
+
+        handleMostRecentView: function(filterState) {
+            if (filterState.hasEvent && !filterState.isOverall) {
+                this.loadMostRecentDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, filterState.selectedEvent, filterState.selectedRound);
+            } else if (filterState.hasEvent && filterState.isOverall) {
+                // Overall event - default to alphabetical instead
+                $('#divisionFilters .filter-btn').removeClass('active');
+                $('#divisionFilters .filter-btn[data-value="ALL"]').addClass('active');
+                this.loadAlphabeticalDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, filterState.selectedEvent, filterState.selectedRound);
+            } else {
+                this.loadMostRecentDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, null, filterState.selectedRound);
             }
-            
-            
-            // Case 0.5: Overall event - handle Best Of vs All Rounds
-            if (isOverall && !hasDivision) {
-                if (selectedBestOf === 'BESTOF') {
-                    // Best of explicitly selected
-                    this.loadOverallBestOf();
-                } else if (selectedRound && selectedRound != '0') {
-                    // Specific round selected (1, 2, 3, etc.)
-                    this.loadOverallAllDivisions(selectedRound);
-                } else if (selectedRound == '0' && $('#roundFilters .filter-btn[data-filter="round"][data-value="0"]').hasClass('active')) {
-                    // All Rounds explicitly selected (button is active)
-                    this.loadOverallAllDivisions('0');
-                } else {
-                    // Default to Best of and auto-select the button (first load or no clear selection)
-                    $('#roundFilters .filter-btn[data-filter="bestof"]').addClass('active');
-                    $('#roundFilters .filter-btn[data-filter="round"]').removeClass('active');
-                    this.loadOverallBestOf();
-                }
-                return;
+        },
+
+        handleAlphabeticalView: function(filterState) {
+            if (AppState.currentDisplayMode === 'running-order') {
+                this.handleRunningOrderAlphabetical(filterState);
+            } else {
+                this.handleLeaderboardAlphabetical(filterState);
             }
-            
-            // Case 1: No filters selected / Most Recent (default)  
-            if (isMostRecent) {
-                if (hasEvent && !isOverall) {
-                    // Most recent for specific event (but not Overall)
-                    this.loadMostRecentDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, selectedEvent, selectedRound);
-                } else if (hasEvent && isOverall) {
-                    // Overall event - default to alphabetical instead of most recent
-                    $('#divisionFilters .filter-btn').removeClass('active');
-                    $('#divisionFilters .filter-btn[data-value="ALL"]').addClass('active');
-                    this.loadAlphabeticalDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, selectedEvent, selectedRound);
-                } else {
-                    // Most recent across all events
-                    this.loadMostRecentDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, null, selectedRound);
-                }
-                return;
+        },
+
+        handleRunningOrderAlphabetical: function(filterState) {
+            if (filterState.hasEvent) {
+                const requestData = {
+                    SID: AppState.currentSelectedTournamentId,
+                    SY: "0",
+                    TN: AppState.currentTournamentName,
+                    FC: this.currentTournamentInfo.formatCode,
+                    FT: '0',
+                    UN: '0', 
+                    UT: '0',
+                    EV: filterState.selectedEvent,
+                    DV: 'ALL',
+                    RND: filterState.selectedRound || '0',
+                    GET_RUNNING_ORDER: '1'
+                };
+                
+                $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading running order...</p></div>');
+                
+                $.getJSON('GetLeaderboardSP.aspx', requestData)
+                    .done((response) => {
+                        if (response.success && response.htmlContent) {
+                            $('#leaderboardContent').html(response.htmlContent);
+                        } else {
+                            $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No running order data available</p></div>');
+                        }
+                    })
+                    .fail(() => {
+                        // Error handling removed - let content stay as-is
+                    });
+            } else {
+                $('#leaderboardContent').html('<div class="text-center p-4"><p>Select an event to view running order...</p></div>');
             }
-            
-            // Case 2: Alphabetical view (or "All" for running order)
-            if (isAlphabetical) {
-                if (AppState.currentDisplayMode === 'running-order') {
-                    // Running order mode: simple call with DV=ALL
-                    if (hasEvent) {
-                        // Direct API call to GetLeaderboardSP with running order parameters
-                        const requestData = {
-                            SID: AppState.currentSelectedTournamentId,
-                            SY: "0",
-                            TN: AppState.currentTournamentName,
-                            FC: this.currentTournamentInfo.formatCode,
-                            FT: '0',
-                            UN: '0', 
-                            UT: '0',
-                            EV: selectedEvent,
-                            DV: 'ALL',  // Always "ALL" for running order
-                            RND: selectedRound || '0',  // Always include RND parameter
-                            GET_RUNNING_ORDER: '1'
-                        };
-                        
-                        $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading running order...</p></div>');
-                        
-                        $.getJSON('GetLeaderboardSP.aspx', requestData)
-                        .done((response) => {
-                            if (response.success && response.htmlContent) {
-                                $('#leaderboardContent').html(response.htmlContent);
-                            } else {
-                                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No running order data available</p></div>');
-                            }
-                        })
-                        .fail(() => {
-                            // Error handling removed - let content stay as-is
-                        });
-                    } else {
-                        $('#leaderboardContent').html('<div class="text-center p-4"><p>Select an event to view running order...</p></div>');
-                    }
-                } else {
-                    // Leaderboard mode: normal alphabetical behavior
-                    if (hasEvent) {
-                        // Alphabetical for specific event
-                        this.loadAlphabeticalDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, selectedEvent, selectedRound);
-                    } else {
-                        // Alphabetical across all events - use existing division list, events in S,T,J order
-                        this.loadAlphabeticalAllEvents(selectedRound);
-                    }
-                }
-                return;
+        },
+
+        handleLeaderboardAlphabetical: function(filterState) {
+            if (filterState.hasEvent) {
+                this.loadAlphabeticalDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, filterState.selectedEvent, filterState.selectedRound);
+            } else {
+                this.loadAlphabeticalAllEvents(filterState.selectedRound);
             }
-            
-            // Case 3: Specific division selected
-            if (hasDivision) {
-                if (hasEvent) {
-                    // Check if division exists in selected event, then show event+division or error
-                    this.loadEventDivisionCombination(selectedEvent, selectedDivision, selectedRound);
-                } else if (AppState.currentDisplayMode === 'running-order') {
-                    // Running order mode: require event selection
-                    $('#leaderboardContent').html('<div class="text-center p-4"><p>Select an event to view running order...</p></div>');
-                } else {
-                    // Show division across all events that have it
-                    this.loadDivisionAcrossEvents(selectedDivision, selectedRound);
-                }
-                return;
+        },
+
+        handleSpecificDivision: function(filterState) {
+            if (filterState.hasEvent) {
+                this.loadEventDivisionCombination(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound);
+            } else if (AppState.currentDisplayMode === 'running-order') {
+                $('#leaderboardContent').html('<div class="text-center p-4"><p>Select an event to view running order...</p></div>');
+            } else {
+                this.loadDivisionAcrossEvents(filterState.selectedDivision, filterState.selectedRound);
             }
-            
-            // Case 4: Only event selected (no specific division)
-            if (hasEvent) {
-                if (isOverall) {
-                    // Overall event - show all overall divisions
-                    this.loadOverallAllDivisions(selectedRound);
-                } else {
-                    // Default to most recent for that event (except Overall)
-                    $('#divisionFilters .filter-btn').removeClass('active');
-                    $('#divisionFilters .filter-btn[data-value="MOST_RECENT"]').addClass('active');
-                    this.loadMostRecentDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, selectedEvent);
-                }
-                return;
+        },
+
+        handleEventOnly: function(filterState) {
+            if (filterState.isOverall) {
+                this.loadOverallAllDivisions(filterState.selectedRound);
+            } else {
+                // Default to most recent for that event
+                $('#divisionFilters .filter-btn').removeClass('active');
+                $('#divisionFilters .filter-btn[data-value="MOST_RECENT"]').addClass('active');
+                this.loadMostRecentDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, filterState.selectedEvent);
             }
-            
-            // Case 5: No meaningful filters (fallback)
-            $('#leaderboardContent').html('<div class="text-center p-4 text-muted"><p>Select filters to display leaderboard data</p></div>');
         },
 
         loadByDivisionContent: function(selectedEvent, selectedDivision, selectedRound) {
@@ -1297,55 +1294,7 @@
         },
 
         loadDivisionAcrossEvents: function(divisionCode, roundCode) {
-            // Get all available events
-            const availableEvents = [];
-            $('#eventFilters .filter-btn').each(function() {
-                const eventCode = $(this).data('value');
-                if (eventCode !== 'NONE') {
-                    availableEvents.push(eventCode);
-                }
-            });
-            
-            if (availableEvents.length === 0) {
-                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No events available</p></div>');
-                return;
-            }
-            
-            // Check each event to see which ones have this division
-            const divisionPromises = availableEvents.map(eventCode => {
-                return $.getJSON('GetLeaderboardSP.aspx', {
-                    SID: AppState.currentSelectedTournamentId,
-                    SY: "0", 
-                    TN: AppState.currentTournamentName,
-                    FC: this.currentTournamentInfo.formatCode,
-                    EV: eventCode
-                }).then(response => {
-                    if (response.success && response.availableDivisions) {
-                        const divisionExists = response.availableDivisions.some(div => div.code === divisionCode);
-                        return divisionExists ? eventCode : null;
-                    }
-                    return null;
-                }).catch(() => null);
-            });
-            
-            // Wait for all event checks to complete
-            Promise.all(divisionPromises).then(results => {
-                const eventsWithDivision = results.filter(event => event !== null);
-                
-                if (eventsWithDivision.length === 0) {
-                    $('#leaderboardContent').html('<div class="text-center p-4 text-warning"><p>Division "' + divisionCode + '" not found in any event</p></div>');
-                    return;
-                }
-                
-                // Create event-division combinations for batch loading
-                const divisionBatch = eventsWithDivision.map(eventCode => ({
-                    event: eventCode,
-                    division: divisionCode,
-                    eventName: this.getEventName(eventCode)
-                }));
-                
-                this.loadEventDivisionBatch(divisionBatch, 'Loading division "' + divisionCode + '" across all events...', roundCode);
-            });
+            return TournamentDataLoader.loadDivisionAcrossEvents(divisionCode, roundCode);
         },
 
         loadAlphabeticalAllEvents: function(selectedRound) {
