@@ -2093,7 +2093,6 @@ Module ModDataAccess3
         cmdRead.CommandText = sSql
 
         If selEvent = "O" Then
-            'PrGetScoresOverall uses different parameters
             System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Calling simplified overall query bypassing strict requirements...")
             System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] SanctionID=" & sSanctionID & ", Division=" & sSelDV)
 

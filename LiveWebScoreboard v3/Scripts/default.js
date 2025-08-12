@@ -578,155 +578,15 @@
         },
 
         loadMostRecentDivisions: function(sanctionId, skiYear, formatCode, eventCode, selectedRound) {
-            
-            // Show loading message
-            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading most recent divisions...</p></div>');
-            
-            // First, get the prioritized list of event-division combinations
-            // We'll use a special parameter to get our recent divisions data
-            const requestData = {
-                SID: sanctionId,
-                SY: skiYear,
-                TN: AppState.currentTournamentName,
-                FC: formatCode,
-                FT: '0',  // From Tournament parameter like TLeaderBoardSP expects
-                UN: '0',  // Use NOPS parameter
-                UT: '0',  // Use Teams parameter
-                GET_MOST_RECENT: '1'  // This will trigger our GetDvMostRecent function
-            };
-            
-            // Add event code if specified
-            if (eventCode) {
-                requestData.EV = eventCode;
-            }
-            
-            $.getJSON('GetLeaderboardSP.aspx', requestData)
-            .done((response) => {
-                if (response.success && response.prioritizedDivisions) {
-                    // Convert the VB.NET results to JavaScript format
-                    const prioritizedDivisions = response.prioritizedDivisions.map(div => ({
-                        event: div.event,  // Server already returns 'S', 'T', 'J'
-                        division: div.division,
-                        eventName: div.event,
-                        rank: div.rank,
-                        lastActivity: div.lastActivity
-                    }));
-                    
-                    // Store all prioritized divisions for infinite scroll
-                    this.allPrioritizedDivisions = prioritizedDivisions;
-                    this.currentBatchIndex = 0;
-                    this.isLoading = false;
-                    
-                    // Load first batch of 5 divisions
-                    const firstBatch = prioritizedDivisions.slice(0, 5);
-                    this.currentBatchIndex = 5;
-                    this.loadDivisionsBatch(firstBatch, sanctionId, skiYear, formatCode, selectedRound);
-                    
-                    // Set up infinite scroll
-                    this.setupInfiniteScroll(sanctionId, skiYear, formatCode, selectedRound);
-                } else {
-                    this.checkForEmptyContent();
-                }
-            })
-            .fail((error) => {
-                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading recent divisions</p></div>');
-            });
+            return TournamentDataLoader.loadMostRecentDivisions(sanctionId, skiYear, formatCode, eventCode, selectedRound);
         },
 
         loadAlphabeticalDivisions: function(sanctionId, skiYear, formatCode, eventCode, selectedRound) {
-            // Use the passed event code
-            const selectedEvent = eventCode;
-            
-            if (!selectedEvent || selectedEvent === '0') {
-                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Please select an event first</p></div>');
-                return;
-            }
-            
-            // Show loading message
-            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading divisions alphabetically for selected event...</p></div>');
-            
-            // Get divisions for the selected event (already in alphabetical order from server)
-            $.getJSON('GetLeaderboardSP.aspx', {
-                SID: sanctionId,
-                SY: skiYear,
-                TN: AppState.currentTournamentName,
-                FC: formatCode,
-                FT: '0',
-                UN: '0',
-                UT: '0',
-                EV: selectedEvent
-            })
-            .done((response) => {
-                if (response.success && response.availableDivisions) {
-                    // Create event-division combinations for the selected event only
-                    const allDivisions = [];
-                    
-                    response.availableDivisions.forEach(division => {
-                        if (division.code && division.code !== 'ALL' && division.code !== '0') {
-                            allDivisions.push({
-                                event: selectedEvent,
-                                division: division.code,
-                                eventName: this.getEventName(selectedEvent)
-                            });
-                        }
-                    });
-                    
-                    // Store all divisions for infinite scroll (server order preserved - alphabetical)
-                    this.allPrioritizedDivisions = allDivisions;
-                    this.currentBatchIndex = 0;
-                    this.isLoading = false;
-                    
-                    // Load first batch of 5 divisions using existing batch function
-                    const firstBatch = allDivisions.slice(0, 5);
-                    this.currentBatchIndex = 5;
-                    this.loadDivisionsBatch(firstBatch, sanctionId, skiYear, formatCode, selectedRound);
-                    
-                    // Set up infinite scroll
-                    this.setupInfiniteScroll(sanctionId, skiYear, formatCode, selectedRound);
-                } else {
-                    this.checkForEmptyContent();
-                }
-            })
-            .fail((error) => {
-                // Error handling removed - let content stay as-is
-            });
+            return TournamentDataLoader.loadAlphabeticalDivisions(sanctionId, skiYear, formatCode, eventCode, selectedRound);
         },
 
         loadRecentScores: function() {
-            // Stop infinite scroll and clean up any existing observers/state
-            this.stopInfiniteScroll();
-            
-            // Show loading message
-            $('#leaderboardContent').html('<div><p>Loading recent scores...</p></div>');
-            
-            // Only make the call if we have a valid tournament ID
-            if (!AppState.currentSelectedTournamentId || AppState.currentSelectedTournamentId.length < 6) {
-                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No tournament selected</p></div>');
-                return;
-            }
-            
-            // Call GetLeaderboardSP.aspx with a new parameter to get recent scores
-            $.getJSON('GetLeaderboardSP.aspx', {
-                SID: AppState.currentSelectedTournamentId,
-                SY: "0",
-                TN: AppState.currentTournamentName,
-                FC: this.currentTournamentInfo.formatCode,
-                FT: '0',
-                UN: '0',
-                UT: '0',
-                GET_RECENT_SCORES: '1',  // New parameter to trigger recent scores
-                OFFSET: 0                // Start from the beginning (first 20 records)
-            })
-            .done((response) => {
-                if (response.success && response.recentScores && response.recentScores.length > 0) {
-                    this.displayRecentScores(response.recentScores);
-                } else {
-                    this.checkForEmptyContent();
-                }
-            })
-            .fail((error) => {
-                $('#leaderboardContent').html('<div><p>Error loading recent scores</p></div>');
-            });
+            return TournamentDataLoader.loadRecentScores();
         },
 
         stopInfiniteScroll: function() {
@@ -923,55 +783,7 @@
         },
 
         loadMoreRecentScores: function() {
-            if (this.isLoadingRecentScores) return;
-            
-            this.isLoadingRecentScores = true;
-            
-            // Load next batch of 20 records by incrementing offset
-            this.recentScoresOffset = this.allRecentScores.length;
-            
-            // Only make the call if we have a valid tournament ID
-            if (!AppState.currentSelectedTournamentId || AppState.currentSelectedTournamentId.length < 6) {
-                this.isLoadingRecentScores = false;
-                return;
-            }
-            
-            // Call GetLeaderboardSP.aspx for next batch of scores
-            $.getJSON('GetLeaderboardSP.aspx', {
-                SID: AppState.currentSelectedTournamentId,
-                SY: "0",
-                TN: AppState.currentTournamentName,
-                FC: this.currentTournamentInfo.formatCode,
-                FT: '0',
-                UN: '0',
-                UT: '0',
-                GET_RECENT_SCORES: '1',
-                OFFSET: this.recentScoresOffset
-            })
-            .done((response) => {
-                this.isLoadingRecentScores = false;
-                
-                if (response.success && response.recentScores && response.recentScores.length > 0) {
-                    // Add new scores to the existing array (no need to filter since OFFSET ensures no duplicates)
-                    this.allRecentScores.push(...response.recentScores);
-                    
-                    // Re-render the table with all scores
-                    this.renderRecentScoresTable();
-                    
-                    // Re-setup the observer for the new last row
-                    this.observeLastRecentScoreRow();
-                } else {
-                    // No more scores available, disable further loading
-                    if (this.recentScoresObserver) {
-                        this.recentScoresObserver.disconnect();
-                        this.recentScoresObserver = null;
-                    }
-                }
-            })
-            .fail((error) => {
-                this.isLoadingRecentScores = false;
-                console.error('Error loading more recent scores:', error);
-            });
+            return TournamentDataLoader.loadMoreRecentScores();
         },
 
         getEventName: function(eventCode) {
@@ -1416,50 +1228,7 @@
         },
 
         loadByDivisionContent: function(selectedEvent, selectedDivision, selectedRound) {
-            // Show loading state
-            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading by-division view...</p></div>');
-            
-            // Use the exact same parameter structure as existing API calls
-            const requestData = {
-                SID: AppState.currentSelectedTournamentId,
-                SY: "0",
-                TN: AppState.currentTournamentName,
-                FC: this.currentTournamentInfo.formatCode,
-                FT: '0',
-                UN: '0', 
-                UT: '0',
-                EV: selectedEvent || '0',
-                DV: selectedDivision || 'ALL',
-                RND: selectedRound || '0',
-                GET_BY_DIVISION: '1'
-            };
-            
-            // Add placement format override if selected (same as other calls)
-            const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
-            if (selectedPlacement) {
-                requestData.FORCE_PLACEMENT = selectedPlacement;
-            }
-            
-            // Make API call using exact same pattern as loadEventDivisionCombination
-            const request = Utils.createCancellableRequest('GetLeaderboardSP.aspx', requestData);
-            
-            request.promise.done(function(response) {
-                if (!request.isCurrent()) {
-                    return;
-                }
-                
-                if (response.success && response.htmlContent) {
-                    $('#leaderboardContent').html(response.htmlContent);
-                } else {
-                    $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading by-division view</p></div>');
-                }
-            })
-            .fail(function(error) {
-                if (!request.isCurrent()) {
-                    return;
-                }
-                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error: Could not load by-division view</p></div>');
-            });
+            return TournamentDataLoader.loadByDivisionContent(selectedEvent, selectedDivision, selectedRound);
         },
 
         loadEventDivisionCombination: function(eventCode, divisionCode, roundCode) {
@@ -1580,107 +1349,11 @@
         },
 
         loadAlphabeticalAllEvents: function(selectedRound) {
-            // Get available events in S,T,J order
-            const availableEvents = [];
-            $('#eventFilters .filter-btn').each(function() {
-                const eventCode = $(this).data('value');
-                if (eventCode !== 'NONE') {
-                    availableEvents.push(eventCode);
-                }
-            });
-            
-            if (availableEvents.length === 0) {
-                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No events available</p></div>');
-                return;
-            }
-            
-            // Call LoadDvData for each event and combine results
-            const divisionPromises = availableEvents.map(eventCode => {
-                return $.getJSON('GetLeaderboardSP.aspx', {
-                    SID: AppState.currentSelectedTournamentId,
-                    SY: "0",
-                    TN: AppState.currentTournamentName,
-                    FC: this.currentTournamentInfo.formatCode,
-                    FT: '0',
-                    UN: '0',
-                    UT: '0',
-                    LOAD_ALL_DIVISIONS: '1',
-                    EV: eventCode
-                }).then(response => {
-                    if (response.success && response.availableDivisions) {
-                        return response.availableDivisions
-                            .filter(div => div.code && div.code !== 'ALL' && div.code !== '0')
-                            .map(div => ({
-                                event: eventCode,
-                                division: div.code,
-                                eventName: this.getEventName(eventCode)
-                            }));
-                    }
-                    return [];
-                }).catch(() => []);
-            });
-            
-            // Wait for all LoadDvData calls to complete
-            Promise.all(divisionPromises).then(results => {
-                // Combine all actual event-division combinations
-                const actualCombinations = [];
-                results.forEach(eventCombinations => {
-                    actualCombinations.push(...eventCombinations);
-                });
-                
-                if (actualCombinations.length === 0) {
-                    this.checkForEmptyContent();
-                    return;
-                }
-                
-                // Sort alphabetically by division, then by event order (S, T, J)
-                const eventOrder = ['S', 'T', 'J'];
-                actualCombinations.sort((a, b) => {
-                    if (a.division !== b.division) {
-                        return a.division.localeCompare(b.division);
-                    }
-                    return eventOrder.indexOf(a.event) - eventOrder.indexOf(b.event);
-                });
-                
-                this.loadEventDivisionBatch(actualCombinations, 'Loading all existing divisions alphabetically...', selectedRound);
-            });
+            return TournamentDataLoader.loadAlphabeticalAllEvents(selectedRound);
         },
 
         loadOverallAllDivisions: function(selectedRound) {
-            // Show loading message
-            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading overall scores...</p></div>');
-            
-            // Test: Direct call to GetLeaderboardSP with Overall event
-            $.getJSON('GetLeaderboardSP.aspx', {
-                SID: AppState.currentSelectedTournamentId,
-                SY: "0",
-                TN: AppState.currentTournamentName,
-                FC: this.currentTournamentInfo.formatCode,
-                EV: 'O',           // Overall event
-                DV: 'All',         // All divisions  
-                RND: selectedRound || '0',
-                FT: '0',
-                UN: '0',
-                UT: '0'
-            })
-            .done((response) => {
-                console.log('[OVERALL-JS] GetLeaderboardSP response:', response);
-                if (response.success && response.htmlContent) {
-                    // Add skier links to Overall results before displaying
-                    const htmlWithLinks = this.addOverallSkierLinks(response.htmlContent);
-                    $('#leaderboardContent').html(htmlWithLinks);
-                    
-                    // Split Overall tables by round in JavaScript
-                    const selectedRound = $('#roundFilters .filter-btn.active[data-filter="round"]').data('value');
-                    this.splitOverallTablesByRound(selectedRound);
-                } else {
-                    this.checkForEmptyContent();
-                }
-            })
-            .fail((error) => {
-                console.error('[OVERALL-JS] Error loading overall:', error);
-                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading overall scores</p></div>');
-            });
+            return TournamentDataLoader.loadOverallAllDivisions(selectedRound);
             
             /* COMMENTED OUT - Original approach that loads individual divisions
             // Get all available divisions from the current tournament
@@ -1728,37 +1401,8 @@
         },
 
         loadOverallBestOf: function() {
-            // Show loading message
-            $('#leaderboardContent').html('<div class="text-center p-4"><p>Calculating best overall scores...</p></div>');
-            
             console.log('[BESTOF-DEBUG] Loading Overall data same as individual rounds to get real MID links');
-            
-            // Load EXACTLY like loadOverallAllDivisions (all rounds)
-            $.getJSON('GetLeaderboardSP.aspx', {
-                SID: AppState.currentSelectedTournamentId,
-                SY: "0",
-                TN: AppState.currentTournamentName,
-                FC: this.currentTournamentInfo.formatCode,
-                EV: 'O',           // Overall event
-                DV: 'All',         // All divisions  
-                RND: '0',          // All rounds (same as loadOverallAllDivisions)
-                FT: '0',
-                UN: '0',
-                UT: '0'
-            })
-            .done((response) => {
-                console.log('[OVERALL-JS] GetLeaderboardSP response:', response);
-                if (response.success && response.htmlContent) {
-                    // Work directly with server HTML (don't add dummy links)
-                    this.calculateBestOfScores(response.htmlContent);
-                } else {
-                    this.checkForEmptyContent();
-                }
-            })
-            .fail((error) => {
-                console.error('[BESTOF-DEBUG] Error loading overall data:', error);
-                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading overall data</p></div>');
-            });
+            return TournamentDataLoader.loadOverallBestOf();
         },
 
         calculateBestOfScores: function(htmlContent) {
@@ -2557,77 +2201,7 @@
         },
 
         updateLeaderboard: function() {
-            const selectedEvent = $('#eventFilters .filter-btn.active').data('value');
-            const selectedDivision = $('#divisionFilters .filter-btn.active').data('value');
-            const selectedRound = $('#roundFilters .filter-btn.active[data-filter="round"]').data('value');
-            const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
-            
-            if (!selectedEvent || selectedEvent === '0') {
-                $('#leaderboardContent').html('<p class="text-center text-muted">Please select an event to display the leaderboard</p>');
-                return;
-            }
-            
-            // Show loading state
-            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading leaderboard data...</p></div>');
-            
-            // Prepare request data
-            const requestData = {
-                SID: this.currentTournamentInfo.sanctionId,
-                SY: this.currentTournamentInfo.skiYear,
-                TN: this.currentTournamentInfo.name,
-                UN: '0',  // Use NOPS - false
-                FC: this.currentTournamentInfo.formatCode,
-                FT: '0',  // From TRecap - needs EV and DV parameters
-                UT: '0',  // Use Teams - false
-                EV: selectedEvent,
-                DV: selectedDivision,
-                RND: selectedRound
-            };
-            
-            // Add placement format override if selected
-            if (selectedPlacement) {
-                requestData.FORCE_PLACEMENT = selectedPlacement;
-            }
-            
-            // Add running order parameter if in running order mode
-            if (AppState.currentDisplayMode === 'running-order') {
-                requestData.GET_RUNNING_ORDER = '1';
-            }
-            
-            // Add by division parameter if in by division mode
-            if (AppState.currentDisplayMode === 'by-division') {
-                requestData.GET_BY_DIVISION = '1';
-            }
-            
-            // Make API call for leaderboard content
-            $.getJSON('GetLeaderboardSP.aspx', requestData)
-            .done(function(response) {
-                if (response.success && response.htmlContent) {
-                    // Apply or remove round-format class based on placement format
-                    if (response.placementFormat?.toUpperCase() === 'ROUND') {
-                        $('#leaderboardContent').addClass('round-format');
-                    } else {
-                        $('#leaderboardContent').removeClass('round-format');
-                    }
-                    
-                    $('#leaderboardContent').html(response.htmlContent);
-                    
-                    // Split Overall tables by round if this is an Overall event
-                    if (selectedEvent === 'O') {
-                        TournamentInfo.splitOverallTablesByRound(selectedRound);
-                    }
-                    
-                    // Clean up empty columns and rows in the loaded content
-                    $('#leaderboardContent table').each(function() {
-                        TournamentInfo.removeEmptyColumnsAndRows(this);
-                    });
-                } else {
-                    // Individual division load failed - don't show message, just skip
-                }
-            })
-            .fail(function(xhr, status, error) {
-                $('#leaderboardContent').html('<p class="text-center text-danger">Error: ' + error + '</p>');
-            });
+            return TournamentDataLoader.updateLeaderboard();
         },
         
         updateLeaderboardUrl: function(selectedEvent, selectedDivision, selectedRound, selectedPlacement, selectedBestOf) {

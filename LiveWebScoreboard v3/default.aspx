@@ -25,6 +25,9 @@
     <!-- Main application (must load before components that depend on TournamentInfo) -->
     <script src="Scripts/default.js"></script>
     
+    <!-- Tournament modules (load after default.js) -->
+    <script src="Scripts/tournament/data-loader.js"></script>
+    
     <!-- Components (load after default.js since they reference TournamentInfo) -->
     <script src="Scripts/components/dropdown-menu.js"></script>
     <script src="Scripts/components/tournament-list.js"></script>
