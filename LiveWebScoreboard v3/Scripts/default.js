@@ -863,105 +863,121 @@
         },
 
         setupLeaderboardFilters: function(data) {
-            // Store tournament data for later use
             this.tournamentData = data;
             
-            // Set appropriate title based on display mode
+            this.setupLeaderboardTitle(data);
+            this.setupEventFilters(data);
+            this.setupDivisionFilters();
+            this.loadDynamicDivisions();
+            this.setupRoundFilters(data, null);
+            this.setupOnWaterDisplay(data);
+            this.bindFilterEvents();
+        },
+
+        setupLeaderboardTitle: function(data) {
             const displayMode = AppState.currentDisplayMode || 'leaderboard';
             const titleText = displayMode === 'running-order' ? 'Running Order' : 'Leaderboard';
             $('#leaderboardTitle').text(data.tournamentName + ' - ' + data.sanctionId + ' ' + titleText);
-            
-            // Setup event filter bubbles
+        },
+
+        setupEventFilters: function(data) {
             const eventFilters = $('#eventFilters');
             eventFilters.empty();
             
-            if (displayMode === 'running-order') {
-                // Running order mode: only show individual events (S, T, J), no Mixed or Overall
-                eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
-                
-                if (data.availableEvents && data.availableEvents.length > 0) {
-                    data.availableEvents.forEach(event => {
-                        // Only show individual events (S, T, J), exclude Overall (O)
-                        if (event.code !== 'O') {
-                            eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
-                        }
-                    });
-                }
-            } else if (displayMode === 'by-division') {
-                // By-division mode: show all events including Overall, but no Mixed or None
-                if (data.availableEvents && data.availableEvents.length > 0) {
-                    data.availableEvents.forEach(event => {
-                        eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
-                    });
-                }
-            } else {
-                // Leaderboard mode: show all options including Mixed and Overall
-                eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
-                eventFilters.append('<button class="filter-btn" data-filter="event" data-value="MIXED">Mixed</button>');
-                
-                if (data.availableEvents && data.availableEvents.length > 0) {
-                    data.availableEvents.forEach(event => {
-                        eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
-                    });
-                }
-            }
+            const displayMode = AppState.currentDisplayMode || 'leaderboard';
             
-            // Setup division filters based on display mode
+            if (displayMode === 'running-order') {
+                this.setupRunningOrderEventFilters(eventFilters, data);
+            } else if (displayMode === 'by-division') {
+                this.setupByDivisionEventFilters(eventFilters, data);
+            } else {
+                this.setupLeaderboardEventFilters(eventFilters, data);
+            }
+        },
+
+        setupRunningOrderEventFilters: function(eventFilters, data) {
+            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
+            
+            if (data.availableEvents && data.availableEvents.length > 0) {
+                data.availableEvents.forEach(event => {
+                    // Only show individual events (S, T, J), exclude Overall (O)
+                    if (event.code !== 'O') {
+                        eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
+                    }
+                });
+            }
+        },
+
+        setupByDivisionEventFilters: function(eventFilters, data) {
+            if (data.availableEvents && data.availableEvents.length > 0) {
+                data.availableEvents.forEach(event => {
+                    eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
+                });
+            }
+        },
+
+        setupLeaderboardEventFilters: function(eventFilters, data) {
+            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
+            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="MIXED">Mixed</button>');
+            
+            if (data.availableEvents && data.availableEvents.length > 0) {
+                data.availableEvents.forEach(event => {
+                    eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
+                });
+            }
+        },
+
+        setupDivisionFilters: function() {
             const divisionFilters = $('#divisionFilters');
             divisionFilters.empty();
             
+            const displayMode = AppState.currentDisplayMode || 'leaderboard';
+            
             if (displayMode === 'running-order' || displayMode === 'by-division') {
-                // Running order or by-division mode: only show "All" option as default
                 divisionFilters.append('<button class="filter-btn active" data-filter="division" data-value="ALL">All</button>');
             } else {
-                // Leaderboard mode: show Most Recent and Alphabetical
                 divisionFilters.append('<button class="filter-btn active" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
                 divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">Alphabetical</button>');
             }
-            // More division options will be populated dynamically
-            
-            // Load divisions from all events and add to filter
-            // Only make the call if we have a valid tournament ID
-            if (AppState.currentSelectedTournamentId && AppState.currentSelectedTournamentId.length >= 6) {
-                $.getJSON('GetLeaderboardSP.aspx', {
-                    SID: AppState.currentSelectedTournamentId,
-                    SY: "0",
-                    TN: AppState.currentTournamentName,
-                    FC: 'LBSP',
-                    FT: '0',
-                    UN: '0',
-                    UT: '0',
-                    LOAD_ALL_DIVISIONS: '1'
-                })
+        },
+
+        loadDynamicDivisions: function() {
+            if (!AppState.currentSelectedTournamentId || AppState.currentSelectedTournamentId.length < 6) {
+                return;
+            }
+
+            $.getJSON('GetLeaderboardSP.aspx', {
+                SID: AppState.currentSelectedTournamentId,
+                SY: "0",
+                TN: AppState.currentTournamentName,
+                FC: 'LBSP',
+                FT: '0',
+                UN: '0',
+                UT: '0',
+                LOAD_ALL_DIVISIONS: '1'
+            })
             .done((response) => {
                 if (response.success && response.availableDivisions) {
-                    // Create a Set to track unique divisions
                     const uniqueDivisions = new Map();
                     
-                    // Process all divisions and keep track of unique ones
                     response.availableDivisions.forEach(division => {
                         if (division.code && division.code !== 'ALL' && division.code !== '0') {
                             uniqueDivisions.set(division.code, division.name);
                         }
                     });
                     
-                    // Add unique divisions to filter buttons
+                    const divisionFilters = $('#divisionFilters');
                     uniqueDivisions.forEach((name, code) => {
                         divisionFilters.append(`<button class="filter-btn" data-filter="division" data-value="${code}">${name}</button>`);
                     });
-                    
                 }
             })
             .fail((error) => {
                 // Silently fail - division filters will just show default
             });
-            }
-           
-            
-            // Setup round filter bubbles dynamically
-            this.setupRoundFilters(data, null);
-            
-            // Setup on-water display
+        },
+
+        setupOnWaterDisplay: function(data) {
             if (data.onWaterData && data.onWaterData.activeEvent && data.onWaterData.activeEvent.trim() !== '') {
                 $('#currentEventText').text('Current Event: ' + data.onWaterData.activeEvent);
                 
@@ -975,9 +991,6 @@
             } else {
                 $('#onWaterDisplay').hide();
             }
-            
-            // Bind filter events
-            this.bindFilterEvents();
         },
 
 
