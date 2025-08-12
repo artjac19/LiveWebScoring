@@ -468,7 +468,12 @@
 
         handleSpecificDivision: function(filterState) {
             if (filterState.hasEvent) {
-                this.loadEventDivisionCombination(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound);
+                // Special handling for Overall + Best Of + Specific Division
+                if (filterState.isOverall && filterState.selectedBestOf === 'BESTOF') {
+                    this.loadOverallBestOf(filterState.selectedDivision);
+                } else {
+                    this.loadEventDivisionCombination(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound);
+                }
             } else if (AppState.currentDisplayMode === 'running-order') {
                 $('#leaderboardContent').html('<div class="text-center p-4"><p>Select an event to view running order...</p></div>');
             } else {
@@ -612,13 +617,19 @@
             */
         },
 
-        loadOverallBestOf: function() {
+        loadOverallBestOf: function(selectedDivision = null) {
             console.log('[BESTOF-DEBUG] Loading Overall data same as individual rounds to get real MID links');
-            return TournamentDataLoader.loadOverallBestOf();
+            if (selectedDivision) {
+                console.log('[BESTOF-DEBUG] Filtering for specific division:', selectedDivision);
+            }
+            return TournamentDataLoader.loadOverallBestOf(selectedDivision);
         },
 
-        calculateBestOfScores: function(htmlContent) {
+        calculateBestOfScores: function(htmlContent, selectedDivision = null) {
             console.log('[BESTOF-DEBUG] Starting Best of calculation');
+            if (selectedDivision) {
+                console.log('[BESTOF-DEBUG] Filtering for specific division:', selectedDivision);
+            }
             
             // Create a temporary container to parse the HTML
             const $tempContainer = $('<div>').html(htmlContent);
@@ -704,16 +715,25 @@
             });
             
             // Calculate best scores for each skier in each division
-            this.generateBestOfTables(divisionData);
+            this.generateBestOfTables(divisionData, selectedDivision);
         },
 
-        generateBestOfTables: function(divisionData) {
+        generateBestOfTables: function(divisionData, selectedDivision = null) {
             console.log('[BESTOF-DEBUG] Generating Best of tables for divisions:', Object.keys(divisionData));
             
             let tablesHtml = '';
             
+            // If specific division was requested, server should have already filtered
+            // Otherwise process all divisions returned from server
+            const divisionsToProcess = Object.keys(divisionData).sort();
+            
+            console.log('[BESTOF-DEBUG] Processing divisions:', divisionsToProcess);
+            if (selectedDivision) {
+                console.log('[BESTOF-DEBUG] Expected specific division:', selectedDivision);
+            }
+            
             // Process each division
-            Object.keys(divisionData).sort().forEach(division => {
+            divisionsToProcess.forEach(division => {
                 const skiers = divisionData[division];
                 const bestScores = [];
                 

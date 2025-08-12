@@ -2093,47 +2093,13 @@ Module ModDataAccess3
         cmdRead.CommandText = sSql
 
         If selEvent = "O" Then
-            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Calling simplified overall query bypassing strict requirements...")
+            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Calling overall scores calculation...")
             System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] SanctionID=" & sSanctionID & ", Division=" & sSelDV)
 
-            ' SIMPLIFIED OVERALL: Direct query without strict requirements
-            cmdRead.CommandType = CommandType.Text
+            ' Use extracted overall score calculation function
+            cmdRead = GetOverallScoresData(sSanctionID, sSelDV)
 
-            ' Use same round-specific query for both All and specific divisions
-            cmdRead.CommandText = "
-SELECT R.SanctionId, R.MemberId, R.SkierName, R.AgeGroup, AllRounds.Round as [Round],
-       '' as TourClass, 'Y' as ReadyForPlcmt,
-       COALESCE(S.NopsScore, 0) as NopsScoreSlalom,
-       COALESCE(T.NopsScore, 0) as NopsScoreTrick, 
-       COALESCE(J.NopsScore, 0) as NopsScoreJump,
-       (COALESCE(S.NopsScore, 0) + COALESCE(T.NopsScore, 0) + COALESCE(J.NopsScore, 0)) as NopsScoreOverall,
-       3 as EventsReqd, 1 as OverallQualified,
-       'BEST' as PlcmtFormat, 'TBD' as Status, 0 as NopsScore,
-       R.SkiYearAge, R.AgeGroup as Div, R.Gender, R.City, R.State, R.Federation
-FROM TourReg R
-INNER JOIN (
-    SELECT DISTINCT SanctionId, MemberId, AgeGroup, Round 
-    FROM (
-        SELECT SanctionId, MemberId, AgeGroup, Round FROM SlalomScore WHERE Round < 25 AND NopsScore IS NOT NULL
-        UNION
-        SELECT SanctionId, MemberId, AgeGroup, Round FROM TrickScore WHERE Round < 25 AND NopsScore IS NOT NULL  
-        UNION
-        SELECT SanctionId, MemberId, AgeGroup, Round FROM JumpScore WHERE Round < 25 AND NopsScore IS NOT NULL
-    ) AS AllEventRounds
-) AllRounds ON R.SanctionId = AllRounds.SanctionId AND R.MemberId = AllRounds.MemberId AND R.AgeGroup = AllRounds.AgeGroup
-LEFT JOIN SlalomScore S ON R.SanctionId = S.SanctionId AND R.MemberId = S.MemberId AND R.AgeGroup = S.AgeGroup AND S.Round = AllRounds.Round
-LEFT JOIN TrickScore T ON R.SanctionId = T.SanctionId AND R.MemberId = T.MemberId AND R.AgeGroup = T.AgeGroup AND T.Round = AllRounds.Round
-LEFT JOIN JumpScore J ON R.SanctionId = J.SanctionId AND R.MemberId = J.MemberId AND R.AgeGroup = J.AgeGroup AND J.Round = AllRounds.Round
-WHERE R.SanctionId = ?" & If(sSelDV = "" Or sSelDV = "All", "", " AND R.AgeGroup = ?") & "
-ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DESC, R.MemberId, AllRounds.Round", "NopsScoreOverall DESC, R.MemberId, AllRounds.Round")
-
-            ' Add parameters based on whether it's All or specific division
-            cmdRead.Parameters.Add("@SanctionId", OleDb.OleDbType.VarChar, 6).Value = sSanctionID
-            If sSelDV <> "" And sSelDV <> "All" Then
-                cmdRead.Parameters.Add("@AgeGroup", OleDb.OleDbType.VarChar, 3).Value = sSelDV
-            End If
-
-            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Using simplified query: " & cmdRead.CommandText)
+            System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Using overall scores function")
             System.Diagnostics.Debug.WriteLine("[OVERALL-DEBUG] Parameters: SanctionId=" & sSanctionID & ", AgeGroup=" & sSelDV)
         Else
             'Regular event stored procedures (PrLeaderBoard)
@@ -2543,6 +2509,48 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
             System.Diagnostics.Debug.WriteLine("LeaderBoardBestRndLeftSP returning " & result.Length & " chars for " & selEvent & "-" & selDv)
             Return result
         End If
+    End Function
+
+    Public Function GetOverallScoresData(ByVal sanctionId As String, ByVal selectedDivision As String) As OleDb.OleDbCommand
+        'Extracted overall score calculation SQL for better maintainability
+        'Returns configured command ready for execution
+        Dim cmdRead As New OleDb.OleDbCommand
+        cmdRead.CommandType = CommandType.Text
+
+        cmdRead.CommandText = "
+SELECT R.SanctionId, R.MemberId, R.SkierName, R.AgeGroup, AllRounds.Round as [Round],
+       '' as TourClass, 'Y' as ReadyForPlcmt,
+       COALESCE(S.NopsScore, 0) as NopsScoreSlalom,
+       COALESCE(T.NopsScore, 0) as NopsScoreTrick, 
+       COALESCE(J.NopsScore, 0) as NopsScoreJump,
+       (COALESCE(S.NopsScore, 0) + COALESCE(T.NopsScore, 0) + COALESCE(J.NopsScore, 0)) as NopsScoreOverall,
+       3 as EventsReqd, 1 as OverallQualified,
+       'BEST' as PlcmtFormat, 'TBD' as Status, 0 as NopsScore,
+       R.SkiYearAge, R.AgeGroup as Div, R.Gender, R.City, R.State, R.Federation
+FROM TourReg R
+INNER JOIN (
+    SELECT DISTINCT SanctionId, MemberId, AgeGroup, Round 
+    FROM (
+        SELECT SanctionId, MemberId, AgeGroup, Round FROM SlalomScore WHERE Round < 25 AND NopsScore IS NOT NULL
+        UNION
+        SELECT SanctionId, MemberId, AgeGroup, Round FROM TrickScore WHERE Round < 25 AND NopsScore IS NOT NULL  
+        UNION
+        SELECT SanctionId, MemberId, AgeGroup, Round FROM JumpScore WHERE Round < 25 AND NopsScore IS NOT NULL
+    ) AS AllEventRounds
+) AllRounds ON R.SanctionId = AllRounds.SanctionId AND R.MemberId = AllRounds.MemberId AND R.AgeGroup = AllRounds.AgeGroup
+LEFT JOIN SlalomScore S ON R.SanctionId = S.SanctionId AND R.MemberId = S.MemberId AND R.AgeGroup = S.AgeGroup AND S.Round = AllRounds.Round
+LEFT JOIN TrickScore T ON R.SanctionId = T.SanctionId AND R.MemberId = T.MemberId AND R.AgeGroup = T.AgeGroup AND T.Round = AllRounds.Round
+LEFT JOIN JumpScore J ON R.SanctionId = J.SanctionId AND R.MemberId = J.MemberId AND R.AgeGroup = J.AgeGroup AND J.Round = AllRounds.Round
+WHERE R.SanctionId = ?" & If(selectedDivision = "" Or selectedDivision = "All", "", " AND R.AgeGroup = ?") & "
+ORDER BY " & If(selectedDivision = "" Or selectedDivision = "All", "R.AgeGroup, NopsScoreOverall DESC, R.MemberId, AllRounds.Round", "NopsScoreOverall DESC, R.MemberId, AllRounds.Round")
+
+        ' Add parameters based on division filter
+        cmdRead.Parameters.Add("@SanctionId", OleDb.OleDbType.VarChar, 6).Value = sanctionId
+        If selectedDivision <> "" And selectedDivision <> "All" Then
+            cmdRead.Parameters.Add("@AgeGroup", OleDb.OleDbType.VarChar, 3).Value = selectedDivision
+        End If
+
+        Return cmdRead
     End Function
 
     Public Function LeaderBoardROUND(ByVal SanctionID As String, ByVal SkiYr As String, ByVal TName As String, ByVal selEvent As String, ByVal selDv As String, ByVal selRnd As String, ByVal RndsSlalomOffered As String, ByVal RndsTrickOffered As String, ByVal RndsJumpOffered As String, ByVal UseNOPS As Int16, ByVal UseTeams As Int16, ByVal selFormat As String, ByVal DisplayMetric As Int16) As String
@@ -5288,7 +5296,8 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
         Dim sMsg As String = ""
         Dim sErrDetails As String = ""
         Dim SQL As String = ""
-        Dim sKeyword As String = "%" & keyword.Replace("'", "''") & "%"
+        ' No need to escape quotes since we're using parameterized queries
+        Dim sKeyword As String = "%" & keyword & "%"
         SQL = "SELECT SanctionID, Name, Class, Format(cast(EventDates As Date), 'yyyyMMdd') AS FormattedDate, EventDates, EventLocation, Rules FROM Tournament " &
               "WHERE (Name LIKE ? OR EventLocation LIKE ?) AND ISDATE(EventDates) = 1 " &
               "ORDER BY FormattedDate DESC"
@@ -5316,8 +5325,9 @@ ORDER BY " & If(sSelDV = "" Or sSelDV = "All", "R.AgeGroup, NopsScoreOverall DES
                 Using cmdRead
                     cmdRead.Connection = Cnnt
                     cmdRead.CommandText = SQL
-                    cmdRead.Parameters.AddWithValue("@Name", sKeyword)
-                    cmdRead.Parameters.AddWithValue("@EventLocation", sKeyword)
+                    ' OleDB uses positional parameters (?) not named parameters
+                    cmdRead.Parameters.AddWithValue("?", sKeyword)      ' First ? for Name LIKE
+                    cmdRead.Parameters.AddWithValue("?", sKeyword)      ' Second ? for EventLocation LIKE
                     cmdRead.Connection.Open()
                     MyDataReader = cmdRead.ExecuteReader
                     If MyDataReader.HasRows Then
