@@ -16,7 +16,18 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Core modules (must load before default.js) -->
+    <script src="Scripts/core/config.js"></script>
+    <script src="Scripts/core/app-state.js"></script>
+    <script src="Scripts/core/utils.js"></script>
+    
+    <!-- Main application (must load before components that depend on TournamentInfo) -->
     <script src="Scripts/default.js"></script>
+    
+    <!-- Components (load after default.js since they reference TournamentInfo) -->
+    <script src="Scripts/components/dropdown-menu.js"></script>
+    <script src="Scripts/components/tournament-list.js"></script>
     <link rel="stylesheet" href="Content/styles.css" />
 </head>
 
@@ -187,7 +198,7 @@
             <div class="row" style="margin: 200px 0 100px 0; align-self: center;">
                 <div style="text-align: center;">
                     Live Web Scoreboard is a free volunteer created resource intended to advance the sport of
-                    waterskiing.
+                    waterskiing. All scores listed are UNOFFICIAL.
                     <br />&copy; 2024 All rights reserved
                     <br />
                         No Yada Yada<br />
