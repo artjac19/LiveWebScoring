@@ -15,7 +15,8 @@
         lastKnownMobile: false,
         currentActiveView: '',
         pendingRequests: new Set(),
-        currentRequestId: 0
+        currentRequestId: 0,
+        currentDisplayMode: 'leaderboard'  // 'leaderboard' or 'running-order'
     };
 
     const Utils = {
@@ -548,11 +549,23 @@
                         // Update URL
                         TournamentInfo.updateUrlParameters(params);
                         
+                        // Set leaderboard mode and load scores
+                        AppState.currentDisplayMode = 'leaderboard';
                         TournamentInfo.loadScores(sanctionId);
                         break;
                     case 'running-order':
-                        // TODO: Implement later
-                        console.log('Running Order clicked for:', sanctionId);
+                        // Update URL to reflect running order view
+                        const runningOrderParams = {
+                            view: 'running-order',
+                            sid: sanctionId
+                        };
+                        TournamentInfo.updateUrlParameters(runningOrderParams);
+                        
+                        // Set running order mode 
+                        AppState.currentDisplayMode = 'running-order';
+                        
+                        // Do the same DOM setup as loadScores
+                        TournamentInfo.loadScores(sanctionId);
                         break;
                     case 'entry-list':
                         // TODO: Implement later
@@ -645,8 +658,14 @@
                     // Restore filter state from URL parameters if they exist
                     this.restoreFilterStateFromUrl();
                     
-                    // Then load most recent 10 divisions immediately  
-                    this.loadMostRecentDivisions(sanctionId, skiYear, formatCode, 'NONE', '0');
+                    // Load appropriate initial data based on display mode
+                    if (AppState.currentDisplayMode === 'running-order') {
+                        // For running order, show message to select event
+                        $('#leaderboardContent').html('<div class="text-center p-4"><p>Select an event to view running order...</p></div>');
+                    } else {
+                        // Then load most recent 10 divisions immediately for leaderboard  
+                        this.loadMostRecentDivisions(sanctionId, skiYear, formatCode, 'NONE', '0');
+                    }
                 } else {
                     $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error: ' + response.error + '</p></div>');
                 }
@@ -768,7 +787,7 @@
                 }
             })
             .fail((error) => {
-                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading divisions</p></div>');
+                // Error handling removed - let content stay as-is
             });
         },
 
@@ -1101,11 +1120,11 @@
             // Always add "All Rounds" option
             roundFilters.append('<button class="filter-btn" data-filter="round" data-value="0">All Rounds</button>');
             
-            // Add placement format override buttons (but not for Overall event)
-            if (selectedEvent !== 'O') {
+            // Add placement format override buttons (but not for Overall event or running order mode)
+            if (selectedEvent !== 'O' && AppState.currentDisplayMode !== 'running-order') {
                 roundFilters.append('<button class="filter-btn" data-filter="placement" data-value="ROUND">Rounds View</button>');
                 roundFilters.append('<button class="filter-btn" data-filter="placement" data-value="BEST">Divisions View</button>');
-            } else {
+            } else if (selectedEvent === 'O') {
                 // For Overall events, add "Best of" filter
                 roundFilters.append('<button class="filter-btn" data-filter="bestof" data-value="BESTOF">Best of</button>');
             }
@@ -1131,8 +1150,8 @@
                 }
             }
             
-            // Add round buttons
-            for (let i = 1; i <= maxRounds; i++) {
+            // Add round buttons (only regular rounds 1-6, exclude runoffs like Round 25)
+            for (let i = 1; i <= maxRounds && i <= 6; i++) {
                 roundFilters.append(`<button class="filter-btn" data-filter="round" data-value="${i}">Round ${i}</button>`);
             }
             
@@ -1158,26 +1177,51 @@
             // Store tournament data for later use
             this.tournamentData = data;
             
-            // Set tournament title
-            $('#leaderboardTitle').text(data.tournamentName + ' - ' + data.sanctionId + ' Leaderboard');
+            // Set appropriate title based on display mode
+            const displayMode = AppState.currentDisplayMode || 'leaderboard';
+            const titleText = displayMode === 'running-order' ? 'Running Order' : 'Leaderboard';
+            $('#leaderboardTitle').text(data.tournamentName + ' - ' + data.sanctionId + ' ' + titleText);
             
             // Setup event filter bubbles
             const eventFilters = $('#eventFilters');
             eventFilters.empty();
-            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
-            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="MIXED">Mixed</button>');
             
-            if (data.availableEvents && data.availableEvents.length > 0) {
-                data.availableEvents.forEach(event => {
-                    eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
-                });
+            if (displayMode === 'running-order') {
+                // Running order mode: only show individual events (S, T, J), no Mixed or Overall
+                eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
+                
+                if (data.availableEvents && data.availableEvents.length > 0) {
+                    data.availableEvents.forEach(event => {
+                        // Only show individual events (S, T, J), exclude Overall (O)
+                        if (event.code !== 'O') {
+                            eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
+                        }
+                    });
+                }
+            } else {
+                // Leaderboard mode: show all options including Mixed and Overall
+                eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
+                eventFilters.append('<button class="filter-btn" data-filter="event" data-value="MIXED">Mixed</button>');
+                
+                if (data.availableEvents && data.availableEvents.length > 0) {
+                    data.availableEvents.forEach(event => {
+                        eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
+                    });
+                }
             }
             
-            // Load division filters with all available divisions from all events
+            // Setup division filters based on display mode
             const divisionFilters = $('#divisionFilters');
             divisionFilters.empty();
-            divisionFilters.append('<button class="filter-btn active" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
-            divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">Alphabetical</button>');
+            
+            if (displayMode === 'running-order') {
+                // Running order mode: only show "All" option as default
+                divisionFilters.append('<button class="filter-btn active" data-filter="division" data-value="ALL">All</button>');
+            } else {
+                // Leaderboard mode: show Most Recent and Alphabetical
+                divisionFilters.append('<button class="filter-btn active" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
+                divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">Alphabetical</button>');
+            }
             // More division options will be populated dynamically
             
             // Load divisions from all events and add to filter
@@ -1316,6 +1360,7 @@
             const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
             const selectedBestOf = $('#roundFilters .filter-btn.active[data-filter="bestof"]').data('value');
             
+            
             // Update URL with current filter parameters
             this.updateLeaderboardUrl(selectedEvent, selectedDivision, selectedRound, selectedPlacement, selectedBestOf);
             
@@ -1374,14 +1419,51 @@
                 return;
             }
             
-            // Case 2: Alphabetical view
+            // Case 2: Alphabetical view (or "All" for running order)
             if (isAlphabetical) {
-                if (hasEvent) {
-                    // Alphabetical for specific event
-                    this.loadAlphabeticalDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, selectedEvent, selectedRound);
+                if (AppState.currentDisplayMode === 'running-order') {
+                    // Running order mode: simple call with DV=ALL
+                    if (hasEvent) {
+                        // Direct API call to GetLeaderboardSP with running order parameters
+                        const requestData = {
+                            SID: AppState.currentSelectedTournamentId,
+                            SY: "0",
+                            TN: AppState.currentTournamentName,
+                            FC: this.currentTournamentInfo.formatCode,
+                            FT: '0',
+                            UN: '0', 
+                            UT: '0',
+                            EV: selectedEvent,
+                            DV: 'ALL',  // Always "ALL" for running order
+                            RND: selectedRound || '0',  // Always include RND parameter
+                            GET_RUNNING_ORDER: '1'
+                        };
+                        
+                        $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading running order...</p></div>');
+                        
+                        $.getJSON('GetLeaderboardSP.aspx', requestData)
+                        .done((response) => {
+                            if (response.success && response.htmlContent) {
+                                $('#leaderboardContent').html(response.htmlContent);
+                            } else {
+                                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No running order data available</p></div>');
+                            }
+                        })
+                        .fail(() => {
+                            // Error handling removed - let content stay as-is
+                        });
+                    } else {
+                        $('#leaderboardContent').html('<div class="text-center p-4"><p>Select an event to view running order...</p></div>');
+                    }
                 } else {
-                    // Alphabetical across all events - use existing division list, events in S,T,J order
-                    this.loadAlphabeticalAllEvents(selectedRound);
+                    // Leaderboard mode: normal alphabetical behavior
+                    if (hasEvent) {
+                        // Alphabetical for specific event
+                        this.loadAlphabeticalDivisions(AppState.currentSelectedTournamentId, "0", this.currentTournamentInfo.formatCode, selectedEvent, selectedRound);
+                    } else {
+                        // Alphabetical across all events - use existing division list, events in S,T,J order
+                        this.loadAlphabeticalAllEvents(selectedRound);
+                    }
                 }
                 return;
             }
@@ -1391,6 +1473,9 @@
                 if (hasEvent) {
                     // Check if division exists in selected event, then show event+division or error
                     this.loadEventDivisionCombination(selectedEvent, selectedDivision, selectedRound);
+                } else if (AppState.currentDisplayMode === 'running-order') {
+                    // Running order mode: require event selection
+                    $('#leaderboardContent').html('<div class="text-center p-4"><p>Select an event to view running order...</p></div>');
                 } else {
                     // Show division across all events that have it
                     this.loadDivisionAcrossEvents(selectedDivision, selectedRound);
@@ -1787,6 +1872,7 @@
                     
                     if (!skierName || isNaN(round)) return;
                     
+                    
                     if (!divisionData[division][skierName]) {
                         divisionData[division][skierName] = [];
                     }
@@ -2012,6 +2098,7 @@
                     
                     console.log('[SPLIT-DEBUG] Row', rowIndex, 'round:', round);
                     
+                    
                     if (round && round.match(/^[0-9]+$/)) {
                         if (!roundGroups[round]) {
                             roundGroups[round] = [];
@@ -2107,11 +2194,17 @@
                     const divisionFilters = $('#divisionFilters');
                     divisionFilters.empty();
                     
-                    // Add Most Recent and Alphabetical options (but not Most Recent for Overall)
-                    if (eventCode !== 'O') {
-                        divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
+                    // Add division filter options based on display mode
+                    if (AppState.currentDisplayMode === 'running-order') {
+                        // Running order mode: only show "All" option
+                        divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">All</button>');
+                    } else {
+                        // Leaderboard mode: Add Most Recent and Alphabetical options (but not Most Recent for Overall)
+                        if (eventCode !== 'O') {
+                            divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
+                        }
+                        divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">Alphabetical</button>');
                     }
-                    divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">Alphabetical</button>');
                     
                     // Add event-specific divisions (excluding the "ALL" option from server)
                     response.availableDivisions.forEach(division => {
@@ -2123,11 +2216,16 @@
                     // Try to preserve the previous division selection, otherwise default appropriately
                     let targetButton = divisionFilters.find(`[data-value="${currentDivisionValue}"]`);
                     if (targetButton.length === 0) {
-                        // For Overall, default to Alphabetical; for others, default to Most Recent
-                        if (eventCode === 'O') {
+                        if (AppState.currentDisplayMode === 'running-order') {
+                            // Running order mode: always default to "All"
                             targetButton = divisionFilters.find('[data-value="ALL"]');
                         } else {
-                            targetButton = divisionFilters.find('[data-value="MOST_RECENT"]');
+                            // Leaderboard mode: For Overall, default to Alphabetical; for others, default to Most Recent
+                            if (eventCode === 'O') {
+                                targetButton = divisionFilters.find('[data-value="ALL"]');
+                            } else {
+                                targetButton = divisionFilters.find('[data-value="MOST_RECENT"]');
+                            }
                         }
                     }
                     targetButton.addClass('active');
@@ -2242,7 +2340,7 @@
                     console.log('Ignoring error from cancelled request');
                     return;
                 }
-                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading divisions</p></div>');
+                // Error handling removed - let content stay as-is
             });
         },
 
@@ -2488,6 +2586,11 @@
             // Add placement format override if selected
             if (selectedPlacement) {
                 requestData.FORCE_PLACEMENT = selectedPlacement;
+            }
+            
+            // Add running order parameter if in running order mode
+            if (AppState.currentDisplayMode === 'running-order') {
+                requestData.GET_RUNNING_ORDER = '1';
             }
             
             // Make API call for leaderboard content

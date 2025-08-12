@@ -30,6 +30,7 @@ Public Class GetLeaderboardSP
             Dim sBatchDivisions As String = Request("BATCH_DIVISIONS")
             Dim sForcePlacement As String = Request("FORCE_PLACEMENT")
             Dim sGetRecentScores As String = Request("GET_RECENT_SCORES")
+            Dim sGetRunningOrder As String = Request("GET_RUNNING_ORDER")
 
             ' Validate required parameters
             If String.IsNullOrEmpty(sSanctionID) OrElse String.IsNullOrEmpty(sYrPkd) OrElse
@@ -188,6 +189,9 @@ Public Class GetLeaderboardSP
                 ' If no event specified, return tournament info and available options
             ElseIf String.IsNullOrEmpty(sEventCodePkd) OrElse sEventCodePkd = "0" Then
                 jsonResponse = BuildTournamentInfoJson(sSanctionID, sTournName, sSlalomRounds, sTrickRounds, sJumpRounds, sFormatCode)
+            ElseIf sGetRunningOrder = "1" Then
+                ' Return running order data
+                jsonResponse = BuildRunningOrderJson(sSanctionID, sYrPkd, sTournName, sEventCodePkd, sDivisionCodePkd, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, CShort(CInt(sUseNOPS)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
             ElseIf String.IsNullOrEmpty(sDivisionCodePkd) Then
                 ' Event specified but no division - return just division data quickly
                 jsonResponse = BuildDivisionInfoJson(sSanctionID, sEventCodePkd)
@@ -348,6 +352,67 @@ Public Class GetLeaderboardSP
             .availableDivisions = ModDataAccess3.LoadDvData(sSanctionID, sEventCodePkd)
         }
 
+        Dim serializer As New JavaScriptSerializer()
+        Return serializer.Serialize(result)
+    End Function
+
+    Private Function BuildRunningOrderJson(sSanctionID As String, sYrPkd As String, sTournName As String, sEventCodePkd As String, sDivisionCodePkd As String, sRndsPkd As String, sSlalomRounds As Int16, sTrickRounds As Int16, sJumpRounds As Int16, sUseNops As Int16, sUseTeams As Int16, sFormatCode As String, sDisplayMetric As Int16) As String
+        Dim sHtmlContent As String = ""
+        
+        ' Ensure round parameter is properly formatted (empty string should be "0")
+        If String.IsNullOrEmpty(sRndsPkd) Then sRndsPkd = "0"
+        
+        ' Get running order count to determine if multi or single running order is needed
+        Dim sRunOrdCountArray(0 To 4)
+        sRunOrdCountArray = ModDataAccess3.GetRunOrdercount(sSanctionID, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds))
+        
+        If Left(sRunOrdCountArray(0), 5) = "Error" Then
+            sHtmlContent = sRunOrdCountArray(0)
+        Else
+            Dim sMultiS As String = sRunOrdCountArray(1)
+            Dim sMultiT As String = sRunOrdCountArray(2) 
+            Dim sMultiJ As String = sRunOrdCountArray(3)
+            
+            ' Generate running order HTML based on event and multi/single running order
+            Select Case sEventCodePkd
+                Case "S"
+                    If sMultiS = "1" Then
+                        sHtmlContent = ModDataAccess3.ScoresXMultiRunOrdHoriz(sSanctionID, sYrPkd, sTournName, "S", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                    Else
+                        sHtmlContent = ModDataAccess3.ScoresXRunOrdHoriz(sSanctionID, sYrPkd, sTournName, "S", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                    End If
+                Case "T"
+                    If sMultiT = "1" Then
+                        sHtmlContent = ModDataAccess3.ScoresXMultiRunOrdHoriz(sSanctionID, sYrPkd, sTournName, "T", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                    Else
+                        sHtmlContent = ModDataAccess3.ScoresXRunOrdHoriz(sSanctionID, sYrPkd, sTournName, "T", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                    End If
+                Case "J"
+                    If sMultiJ = "1" Then
+                        sHtmlContent = ModDataAccess3.ScoresXMultiRunOrdHoriz(sSanctionID, sYrPkd, sTournName, "J", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                    Else
+                        sHtmlContent = ModDataAccess3.ScoresXRunOrdHoriz(sSanctionID, sYrPkd, sTournName, "J", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                    End If
+                Case "O"
+                    ' Overall always uses single running order
+                    sHtmlContent = ModDataAccess3.ScoresXRunOrdHoriz(sSanctionID, sYrPkd, sTournName, "O", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+            End Select
+        End If
+        
+        ' Get on-water data
+        Dim onWaterData = GetOnWaterData(sSanctionID, sSlalomRounds, sTrickRounds, sJumpRounds)
+        
+        Dim result As New With {
+            .success = True,
+            .htmlContent = sHtmlContent,
+            .onWaterData = onWaterData,
+            .eventCode = sEventCodePkd,
+            .divisionCode = sDivisionCodePkd,
+            .roundCode = sRndsPkd,
+            .displayType = "RUNNING_ORDER",
+            .availableDivisions = ModDataAccess3.LoadDvData(sSanctionID, sEventCodePkd)
+        }
+        
         Dim serializer As New JavaScriptSerializer()
         Return serializer.Serialize(result)
     End Function

@@ -39,12 +39,12 @@
         <asp:HiddenField ID="HF_TournName" runat="server" />
         <!-- Display title bar and error label -->
        <div class="fixed-top">
-        <div id="TName" class="text-bg-dark text-center" runat="Server">
+        <div id="TName" runat="Server">
            <asp:Label ID="lbl_Errors" runat="server"  ForeColor="White" Font-Bold="true"/>
         
        </div>
         <!-- Display droplist and button controls -->
-        <div class="text-center">
+        <div>
             <asp:Button ID="Btn_2Tournament" runat="server" Text="Tourn Home" />
                 
             <asp:Button ID="Btn_2TList" runat="server" Text="Tournament List" />

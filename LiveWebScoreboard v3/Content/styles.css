@@ -380,6 +380,22 @@ a:hover {
     color: #0e5a8a;
 }
 
+/* Multi running order layout - tables side by side, wrap at 500px */
+.multi-running-order-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.multi-running-order-container table {
+    flex: 1 1 300px;
+    min-width: 300px;
+    max-width: 500px;
+    margin: 0;
+}
+
 /* CSS-only class badges to replace grainy PNG images */
 span.class-logo {
     display: inline-block;
@@ -883,8 +899,32 @@ td.date-col {
     }
 
 
+    /* Compact styling for 3+ round events - accounting for thead/tbody structure */
+    table.compact {
+        font-size: 0.7rem !important;
+        margin: 0.3rem auto !important;
+    }
+    
+    table.compact th,
+    table.compact td,
+    table.compact thead th,
+    table.compact tbody td,
+    table.compact tbody th {
+        padding: 0.2em 0.4em !important;
+        font-size: 0.7rem !important;
+    }
+    
+    table.compact th,
+    table.compact thead th {
+        font-size: 0.65rem !important;
+    }
+    
+    table.compact a {
+        font-size: 0.7rem !important;
+    }
+
     /* Mobile scoring table styles */
-    table {
+    table:not(.compact) {
         font-size: 0.9rem;
         margin: 0.5rem auto;
     }
@@ -913,10 +953,25 @@ td.date-col {
         font-size: 0.75rem;
         padding: 0.3em 0.6em;
     }
+
+    /* Recap responsive layout - stack trick scores under other scores */
+    .recap-container {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
     
 }
 
 @media (max-width: 500px) {
+    .multi-running-order-container {
+        flex-direction: column;
+    }
+    
+    .multi-running-order-container table {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+
     .custom-navbar {
         padding: 0.25rem 0.5rem;
     }

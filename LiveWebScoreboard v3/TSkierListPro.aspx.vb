@@ -24,7 +24,7 @@
 
             Dim sTournName As String = Trim(Request("TN"))
             'Not used in sql statement so just display what is there
-            TName.InnerHtml = "<h3>" & sTournName & " - " & sSanctionID & "</h3>! UNOFFICIAL !"
+            TName.InnerHtml = "<h3>" & sTournName & " - " & sSanctionID & "</h3>"
 
             HF_SanctionID.Value = sSanctionID
                 HF_YearPkd.Value = sYrPkd  ' = ddl_YrPkd.selectedvalue

@@ -38,6 +38,7 @@
         .trick-pass-table {
             width: 100%;
             table-layout: fixed !important;
+            min-width: 300px;
         }
 
         .trick-pass-table th:nth-child(1),
@@ -63,6 +64,30 @@
             width: 20% !important;
             text-align: center;
         }
+
+        /* Trick section never shrinks */
+        .recap-container > div:last-child {
+            flex-shrink: 0;
+        }
+
+        /* Other events can shrink aggressively */
+        .recap-container > div:first-child {
+            flex: 1 1 0;
+            min-width: 250px;
+            overflow-x: auto;
+        }
+
+        /* Trick section gets fixed space */
+        .recap-container > div:last-child {
+            flex: 0 0 auto;
+        }
+
+        /* Make sure tables in the shrinking section can compress */
+        .recap-container > div:first-child table {
+            min-width: 200px;
+            width: 100%;
+        }
+
     </style>
 </head>
 <body>
@@ -105,12 +130,12 @@
         
         <!-- Display recap in two-column layout: left column has overall/slalom/jump, right column has trick -->
         <div class="recap-container" style="display: flex; flex-direction: row; gap: 2rem; margin: 1rem; overflow: hidden; width: calc(100vw - 3rem); box-sizing: border-box;">
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 1.5rem; overflow: hidden;">
+            <div style="flex: 1 1 0; min-width: 250px; display: flex; flex-direction: column; gap: 1.5rem; overflow-x: auto;">
                 <div id="OverallRecap" runat="server"></div>
                 <div id="SlalomRecap" runat="server"></div> 
                 <div id="JumpRecap" runat="server"></div>
             </div>
-            <div style="flex: 1; overflow: hidden;">
+            <div style="flex: 0 0 auto; overflow: hidden;">
                 <div id="TrickRecap" runat="server" style="overflow: hidden;"></div>
             </div>
        </div>
