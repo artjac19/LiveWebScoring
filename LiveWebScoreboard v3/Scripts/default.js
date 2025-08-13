@@ -779,69 +779,52 @@
 
         loadEventDetails: function(eventCode) {
             // Load divisions for the selected event (just to populate division filter options)
-            const sanctionId = AppState.currentSelectedTournamentId;
-            const skiYear = "0";
-            const tournamentName = AppState.currentTournamentName;
             
-            // Only make the call if we have a valid tournament ID
-            if (!sanctionId || sanctionId.length < 6) {
-                return;
+            const cachedDivisions = TournamentInfo.currentTournamentInfo?.availableDivisions?.[eventCode];
+            
+            if (cachedDivisions) {
+                this.updateDivisionFiltersFromCache(eventCode, cachedDivisions);
+            }
+        },
+        
+        updateDivisionFiltersFromCache: function(eventCode, availableDivisions) {
+            // Update division filters with event-specific divisions, preserving current selection if possible
+            const currentDivisionValue = $('#divisionFilters .filter-btn.active').data('value');
+            const divisionFilters = $('#divisionFilters');
+            divisionFilters.empty();
+            
+            // Add division filter options based on display mode
+            if (AppState.currentDisplayMode === 'running-order' || AppState.currentDisplayMode === 'by-division') {
+                divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">All</button>');
+            } else {
+                if (eventCode !== 'O') {
+                    divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
+                }
+                divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">Alphabetical</button>');
             }
             
-            $.getJSON('GetLeaderboardSP.aspx', {
-                SID: sanctionId,
-                SY: skiYear,
-                TN: tournamentName,
-                FC: 'LBSP',
-                UN: 0,
-                UT: 0,
-                EV: eventCode
-            })
-            .done((response) => {
-                if (response.success && response.availableDivisions) {
-                    // Update division filters with event-specific divisions, preserving current selection if possible
-                    const currentDivisionValue = $('#divisionFilters .filter-btn.active').data('value');
-                    const divisionFilters = $('#divisionFilters');
-                    divisionFilters.empty();
-                    
-                    // Add division filter options based on display mode
-                    if (AppState.currentDisplayMode === 'running-order' || AppState.currentDisplayMode === 'by-division') {
-                        divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">All</button>');
-                    } else {
-                        if (eventCode !== 'O') {
-                            divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
-                        }
-                        divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">Alphabetical</button>');
-                    }
-                    
-                    response.availableDivisions.forEach(division => {
-                        if (division.code !== 'ALL') {
-                            divisionFilters.append(`<button class="filter-btn" data-filter="division" data-value="${division.code}">${division.name}</button>`);
-                        }
-                    });
-                    
-                    // Try to preserve the previous division selection, otherwise default appropriately
-                    let targetButton = divisionFilters.find(`[data-value="${currentDivisionValue}"]`);
-                    if (targetButton.length === 0) {
-                        if (AppState.currentDisplayMode === 'running-order' || AppState.currentDisplayMode === 'by-division') {
-                            // Running order or by-division mode: always default to "All"
-                            targetButton = divisionFilters.find('[data-value="ALL"]');
-                        } else {
-                            // Leaderboard mode: For Overall, default to Alphabetical; for others, default to Most Recent
-                            if (eventCode === 'O') {
-                                targetButton = divisionFilters.find('[data-value="ALL"]');
-                            } else {
-                                targetButton = divisionFilters.find('[data-value="MOST_RECENT"]');
-                            }
-                        }
-                    }
-                    targetButton.addClass('active');
+            availableDivisions.forEach(division => {
+                if (division.code !== 'ALL') {
+                    divisionFilters.append(`<button class="filter-btn" data-filter="division" data-value="${division.code}">${division.name}</button>`);
                 }
-            })
-            .fail(() => {
-                // On error, don't change anything
-                console.log('Error loading event details for ' + eventCode);
             });
+            
+            // Try to preserve the previous division selection, otherwise default appropriately
+            let targetButton = divisionFilters.find(`[data-value="${currentDivisionValue}"]`);
+            if (targetButton.length === 0) {
+                if (AppState.currentDisplayMode === 'running-order' || AppState.currentDisplayMode === 'by-division') {
+                    // Running order or by-division mode: always default to "All"
+                    targetButton = divisionFilters.find('[data-value="ALL"]');
+                } else {
+                    // Leaderboard mode: For Overall, default to Alphabetical; for others, default to Most Recent
+                    if (eventCode === 'O') {
+                        targetButton = divisionFilters.find('[data-value="ALL"]');
+                    } else {
+                        targetButton = divisionFilters.find('[data-value="MOST_RECENT"]');
+                    }
+                }
+            }
+            targetButton.addClass('active');
         },
 
         loadDivisionsBatch: function(divisions, sanctionId, skiYear, formatCode, selectedRound) {

@@ -1,7 +1,6 @@
 /**
  * Tournament HTML Builder - Handles all HTML generation for tournament details
  * Manages tournament details panels, officials sections, team sections, and skier links
- * Extracted from TournamentInfo for better organization
  */
 
 (function(window) {

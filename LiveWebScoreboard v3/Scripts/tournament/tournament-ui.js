@@ -1,7 +1,6 @@
 /**
  * Tournament UI - Handles all UI interactions, panel positioning, and event binding
  * Manages tournament panel rendering, collapse events, and viewport-specific styling
- * Extracted from TournamentInfo for better organization
  */
 
 (function(window) {
@@ -153,7 +152,6 @@
                 // Make everything smaller for mobile scores view
                 $(tournamentInfoPanel).addClass('compact-mobile-scores');
             } else {
-                // Other views: Initialize chevrons to match their section visibility
                 if ($('#tournamentDetailsCollapse').is(':visible')) {
                     $('#tournamentDetailsChevron').addClass('rotated');
                 }

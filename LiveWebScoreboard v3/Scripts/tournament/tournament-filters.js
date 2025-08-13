@@ -120,9 +120,6 @@
                     });
                 }
             })
-            .fail((error) => {
-                // Silently fail - division filters will just show default
-            });
         },
 
         setupRoundFilters: function(data, selectedEvent) {
@@ -157,7 +154,7 @@
             let maxRounds = 0;
             
             if (selectedEvent && selectedEvent !== 'NONE') {
-                // Event selected - find rounds for that specific event
+                // find rounds for event
                 if (data.availableEvents) {
                     const event = data.availableEvents.find(e => e.code === selectedEvent);
                     if (event) {
@@ -175,7 +172,7 @@
                 }
             }
             
-            // Add round buttons (only regular rounds 1-6, exclude runoffs like Round 25)
+            // Add round buttons (exclude runoffs like Round 25)
             for (let i = 1; i <= maxRounds && i <= 6; i++) {
                 roundFilters.append(`<button class="filter-btn" data-filter="round" data-value="${i}">Round ${i}</button>`);
             }
@@ -257,20 +254,16 @@
         },
 
         handleNoneEventSelection: function() {
-            // Reset division to MOST_RECENT to always show Most Recent button
             $('#divisionFilters .filter-btn').removeClass('active');
             $('#divisionFilters .filter-btn[data-value="MOST_RECENT"]').addClass('active');
             
-            // Reset round filters to defaults
             $('#roundFilters .filter-btn').removeClass('active');
             $('#roundFilters .filter-btn[data-filter="round"][data-value="0"]').addClass('active');
         },
 
         handleSpecificEventSelection: function(eventCode) {
-            // Update round filters based on selected event
             this.setupRoundFilters(this.tournamentData, eventCode);
             
-            // Load event details if specific event is selected (for division options)
             TournamentInfo.loadEventDetails(eventCode);
         },
 
@@ -287,7 +280,6 @@
                 
                 // Mark that user manually selected placement format
                 if (filterType === 'placement') {
-                    console.log('[PLACEMENT-DEBUG] User manually selected placement:', filterValue);
                     window.userSelectedPlacement = true;
                 }
                 

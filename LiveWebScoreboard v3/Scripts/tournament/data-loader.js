@@ -341,62 +341,53 @@
                 return;
             }
             
-            // Call LoadDvData for each event and combine results for no event selected view
-            const divisionPromises = availableEvents.map(eventCode => {
-                const params = this.buildBaseRequest(null, {
-                    LOAD_ALL_DIVISIONS: '1',
-                    EV: eventCode
-                });
-                
-                return $.getJSON('GetLeaderboardSP.aspx', params).then(response => {
-                    if (response.success && response.availableDivisions) {
-                        return response.availableDivisions
-                            .filter(div => div.code && div.code !== 'ALL' && div.code !== '0')
-                            .map(div => ({
-                                event: eventCode,
-                                division: div.code,
-                                eventName: TournamentInfo.getEventName(eventCode)
-                            }));
-                    }
-                    return [];
-                }).catch(() => []);
+            // Use cached division data to get all combinations
+            const allCombinations = [];
+            
+            availableEvents.forEach(eventCode => {
+                const cachedDivisions = TournamentInfo.currentTournamentInfo?.availableDivisions?.[eventCode];
+                if (cachedDivisions) {
+                    const eventCombinations = cachedDivisions
+                        .filter(div => div.code && div.code !== 'ALL' && div.code !== '0')
+                        .map(div => ({
+                            event: eventCode,
+                            division: div.code,
+                            eventName: TournamentInfo.getEventName(eventCode)
+                        }));
+                    allCombinations.push(...eventCombinations);
+                }
             });
             
-            // Wait for all LoadDvData calls to complete
-            return Promise.all(divisionPromises).then(results => {
-                // Combine all event-division combinations
-                const allCombinations = [];
-                results.forEach(eventCombinations => {
-                    allCombinations.push(...eventCombinations);
-                });
-                
-                if (allCombinations.length === 0) {
-                    TournamentInfo.checkForEmptyContent();
-                    return;
+            this.proceedWithAlphabeticalCombinations(allCombinations, selectedRound);
+        },
+        
+        proceedWithAlphabeticalCombinations: function(allCombinations, selectedRound) {
+            if (allCombinations.length === 0) {
+                TournamentInfo.checkForEmptyContent();
+                return;
+            }
+            
+            const uniqueCombinations = [];
+            const seen = new Set();
+            
+            allCombinations.forEach(combo => {
+                const key = `${combo.event}-${combo.division}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueCombinations.push(combo);
                 }
-                
-                const uniqueCombinations = [];
-                const seen = new Set();
-                
-                allCombinations.forEach(combo => {
-                    const key = `${combo.event}-${combo.division}`;
-                    if (!seen.has(key)) {
-                        seen.add(key);
-                        uniqueCombinations.push(combo);
-                    }
-                });
-                
-                // Sort combinations alphabetically by division, then by event (S,T,J order)
-                const eventOrder = ['S', 'T', 'J'];
-                uniqueCombinations.sort((a, b) => {
-                    if (a.division !== b.division) {
-                        return a.division.localeCompare(b.division);
-                    }
-                    return eventOrder.indexOf(a.event) - eventOrder.indexOf(b.event);
-                });
-                
-                TournamentInfo.loadEventDivisionBatch(uniqueCombinations, 'Loading all existing divisions alphabetically...', selectedRound);
             });
+            
+            // Sort combinations alphabetically by division, then by event (S,T,J order)
+            const eventOrder = ['S', 'T', 'J'];
+            uniqueCombinations.sort((a, b) => {
+                if (a.division !== b.division) {
+                    return a.division.localeCompare(b.division);
+                }
+                return eventOrder.indexOf(a.event) - eventOrder.indexOf(b.event);
+            });
+            
+            TournamentInfo.loadEventDivisionBatch(uniqueCombinations, 'Loading all existing divisions alphabetically...', selectedRound);
         },
         
         loadByDivisionContent: function(selectedEvent, selectedDivision, selectedRound) {
@@ -540,37 +531,36 @@
                 return;
             }
             
-            // Check each event to see which ones have this division
-            const divisionPromises = availableEvents.map(eventCode => {
-                const params = this.buildBaseRequest(null, {
-                    EV: eventCode
-                });
-                
-                return $.getJSON('GetLeaderboardSP.aspx', params).then(response => {
-                    if (response.success && response.availableDivisions) {
-                        const divisionExists = response.availableDivisions.some(div => div.code === divisionCode);
-                        return divisionExists ? eventCode : null;
+            
+            // Use cached division data to find events that have this division
+            const eventsWithDivision = [];
+            
+            availableEvents.forEach(eventCode => {
+                const cachedDivisions = TournamentInfo.currentTournamentInfo?.availableDivisions?.[eventCode];
+                if (cachedDivisions) {
+                    const divisionExists = cachedDivisions.some(div => div.code === divisionCode);
+                    if (divisionExists) {
+                        eventsWithDivision.push(eventCode);
                     }
-                    return null;
-                }).catch(() => null);
+                }
             });
             
-            return Promise.all(divisionPromises).then(results => {
-                const eventsWithDivision = results.filter(event => event !== null);
-                
-                if (eventsWithDivision.length === 0) {
-                    $('#leaderboardContent').html('<div class="text-center p-4 text-warning"><p>Division "' + divisionCode + '" not found in any event</p></div>');
-                    return;
-                }
-                
-                const divisionBatch = eventsWithDivision.map(eventCode => ({
-                    event: eventCode,
-                    division: divisionCode,
-                    eventName: TournamentInfo.getEventName(eventCode)
-                }));
-                
-                TournamentInfo.loadEventDivisionBatch(divisionBatch, 'Loading division "' + divisionCode + '" across all events...', roundCode);
-            });
+            this.proceedWithDivisionAcrossEvents(eventsWithDivision, divisionCode, roundCode);
+        },
+        
+        proceedWithDivisionAcrossEvents: function(eventsWithDivision, divisionCode, roundCode) {
+            if (eventsWithDivision.length === 0) {
+                $('#leaderboardContent').html('<div class="text-center p-4 text-warning"><p>Division "' + divisionCode + '" not found in any event</p></div>');
+                return;
+            }
+            
+            const divisionBatch = eventsWithDivision.map(eventCode => ({
+                event: eventCode,
+                division: divisionCode,
+                eventName: TournamentInfo.getEventName(eventCode)
+            }));
+            
+            TournamentInfo.loadEventDivisionBatch(divisionBatch, 'Loading division "' + divisionCode + '" across all events...', roundCode);
         }
     };
 

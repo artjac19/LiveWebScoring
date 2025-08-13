@@ -1,7 +1,6 @@
 /**
  * Tournament Navigation - Handles all navigation, URL management, and view switching
  * Manages tournament view navigation, URL parameters, and filter state restoration
- * Extracted from TournamentInfo for better organization
  */
 
 (function(window) {
@@ -211,7 +210,6 @@
         },
 
         preloadDivisionData: function(sanctionId, skiYear, tournamentName, formatCode) {
-            console.log('[DIVISION-CACHE] Preloading division data for all events...');
             
             const events = ['S', 'T', 'J']; // Slalom, Trick, Jump
             const divisionPromises = events.map(eventCode => {
@@ -226,7 +224,6 @@
                     EV: eventCode
                 }).then(response => {
                     if (response.success && response.availableDivisions) {
-                        console.log('[DIVISION-CACHE] Cached divisions for event', eventCode, ':', response.availableDivisions.length);
                         return {
                             eventCode: eventCode,
                             divisions: response.availableDivisions
@@ -234,18 +231,15 @@
                     }
                     return { eventCode: eventCode, divisions: [] };
                 }).catch(error => {
-                    console.warn('[DIVISION-CACHE] Failed to load divisions for event', eventCode, ':', error);
                     return { eventCode: eventCode, divisions: [] };
                 });
             });
 
-            // Wait for all division data to load
             Promise.all(divisionPromises).then(results => {
                 // Store in tournament info cache
                 results.forEach(result => {
                     TournamentInfo.currentTournamentInfo.availableDivisions[result.eventCode] = result.divisions;
                 });
-                console.log('[DIVISION-CACHE] All division data cached:', TournamentInfo.currentTournamentInfo.availableDivisions);
             });
         },
 
@@ -253,7 +247,6 @@
             // Update URL with current filter parameters without triggering page reload
             const url = new URL(window.location);
             
-            // Add/update parameters
             Object.keys(params).forEach(key => {
                 if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
                     url.searchParams.set(key, params[key]);
@@ -270,7 +263,6 @@
             // Get current tournament search filter states from active buttons
             const params = {};
             
-            // Year filter
             const activeYearBtn = $('#tFilters .filter-btn.active[data-command-argument]');
             if (activeYearBtn.length > 0) {
                 const yearValue = activeYearBtn.data('command-argument');
@@ -279,7 +271,6 @@
                 }
             }
             
-            // Region filter  
             const activeRegionBtn = $('#tFilters .filter-btn.active').not('[data-command-argument]').first();
             if (activeRegionBtn.length > 0) {
                 const regionValue = activeRegionBtn.data('command-argument');
@@ -288,7 +279,6 @@
                 }
             }
             
-            // Search text
             const searchText = $('#TB_SanctionID').val();
             if (searchText && searchText.trim() !== '') {
                 params.search = searchText.trim();
@@ -319,7 +309,7 @@
                 params.view = currentUrl.searchParams.get('view');
             }
             
-            // Add filter parameters if they have meaningful values
+            // Add filter parameters if they have values
             if (selectedEvent && selectedEvent !== 'NONE') {
                 params.event = selectedEvent;
             }
@@ -336,14 +326,13 @@
                 params.bestof = selectedBestOf;
             }
             
-            // Update URL
             this.updateUrlParameters(params);
         },
         
         restoreFilterStateFromUrl: function() {
             const urlParams = new URLSearchParams(window.location.search);
             
-            // First: Restore event filter only using applyFilterCombination
+            // Restore event filter only using applyFilterCombination
             const eventParam = urlParams.get('event');
             if (eventParam) {
                 const eventButton = $('#eventFilters .filter-btn[data-value="' + eventParam + '"]');
