@@ -1,6 +1,5 @@
 /**
  * Configuration constants for LiveWebScoreboard
- * Extracted from default.js for better modularity
  */
 
 (function(window) {

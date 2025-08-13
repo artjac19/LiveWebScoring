@@ -1,7 +1,6 @@
 /**
  * Tournament Data Loader - Handles all tournament data loading operations
  * Consolidates repetitive AJAX requests and provides a clean API
- * Extracted from TournamentInfo for better organization
  */
 
 (function(window) {
@@ -9,9 +8,6 @@
     
     const TournamentDataLoader = {
         
-        /**
-         * Builds standard request parameters for GetLeaderboardSP.aspx
-         */
         buildBaseRequest: function(sanctionId, extraParams = {}) {
             const skiYear = this.getSkiYear();
             const formatCode = this.getFormatCode();
@@ -28,9 +24,6 @@
             };
         },
         
-        /**
-         * Makes standardized request to GetLeaderboardSP.aspx
-         */
         makeRequest: function(params, loadingMessage = 'Loading...') {
             if (loadingMessage) {
                 $('#leaderboardContent').html(`<div class="text-center p-4"><p>${loadingMessage}</p></div>`);
@@ -39,21 +32,13 @@
             return $.getJSON('GetLeaderboardSP.aspx', params);
         },
         
-        /**
-         * Gets current ski year from tournament info
-         */
         getSkiYear: function() {
             return TournamentInfo.currentTournamentInfo?.skiYear || "0";
         },
         
-        /**
-         * Gets current format code from tournament info  
-         */
         getFormatCode: function() {
             return TournamentInfo.currentTournamentInfo?.formatCode || 'LBSP';
         },
-        
-        // Data loading methods consolidated
         
         loadMostRecentDivisions: function(sanctionId, skiYear, formatCode, eventCode, selectedRound) {
             const params = this.buildBaseRequest(sanctionId, {
@@ -133,17 +118,14 @@
                             eventName: TournamentInfo.getEventName(selectedEvent)
                         }));
                         
-                        // Store all divisions for infinite scroll
                         TournamentInfo.allPrioritizedDivisions = divisions;
                         TournamentInfo.currentBatchIndex = 0;
                         TournamentInfo.isLoading = false;
                         
-                        // Load first batch of 5 divisions
                         const firstBatch = divisions.slice(0, 5);
                         TournamentInfo.currentBatchIndex = 5;
                         TournamentInfo.loadDivisionsBatch(firstBatch, sanctionId, skiYear, formatCode, selectedRound);
                         
-                        // Set up infinite scroll
                         TournamentInfo.setupInfiniteScroll(sanctionId, skiYear, formatCode, selectedRound);
                     } else {
                         $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No divisions available for this event</p></div>');
@@ -207,9 +189,7 @@
                 });
         },
         
-        // Core API method - single source of truth for recent scores calls
         loadRecentScoresData: function(offset = 0, isInitialLoad = true) {
-            // Validation (single place)
             if (!AppState.currentSelectedTournamentId || AppState.currentSelectedTournamentId.length < 6) {
                 if (isInitialLoad) {
                     $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No tournament selected</p></div>');
@@ -217,9 +197,8 @@
                 return Promise.reject('Invalid tournament ID');
             }
             
-            // Prevent concurrent loading for pagination calls
             if (!isInitialLoad && TournamentInfo.isLoadingRecentScores) {
-                return Promise.resolve(); // Return resolved promise to avoid errors
+                return Promise.resolve();
             }
             
             if (!isInitialLoad) {
@@ -244,10 +223,8 @@
                     
                     if (response.success && response.recentScores && response.recentScores.length > 0) {
                         if (isInitialLoad) {
-                            // Initial load - setup and display
                             TournamentInfo.displayRecentScores(response.recentScores);
                         } else {
-                            // Pagination load - append to existing
                             TournamentInfo.allRecentScores.push(...response.recentScores);
                             TournamentInfo.renderRecentScoresTable();
                             TournamentInfo.observeLastRecentScoreRow();
@@ -256,7 +233,6 @@
                         if (isInitialLoad) {
                             TournamentInfo.checkForEmptyContent();
                         } else {
-                            // No more scores available, disable further loading
                             if (TournamentInfo.recentScoresObserver) {
                                 TournamentInfo.recentScoresObserver.disconnect();
                                 TournamentInfo.recentScoresObserver = null;
@@ -281,15 +257,8 @@
                 });
         },
         
-        // Setup method - one-time initialization concerns
-        setupRecentScores: function() {
-            // Stop infinite scroll and clean up any existing observers/state
-            TournamentInfo.stopInfiniteScroll();
-        },
-        
-        // Public methods - clean and focused
         loadRecentScores: function() {
-            this.setupRecentScores();
+            TournamentInfo.stopInfiniteScroll();
             return this.loadRecentScoresData(0, true);
         },
         
@@ -315,17 +284,14 @@
                 RND: selectedRound
             });
             
-            // Add placement format override if selected
             if (selectedPlacement) {
                 params.FORCE_PLACEMENT = selectedPlacement;
             }
             
-            // Add running order parameter if in running order mode
             if (AppState.currentDisplayMode === 'running-order') {
                 params.GET_RUNNING_ORDER = '1';
             }
             
-            // Add by division parameter if in by division mode
             if (AppState.currentDisplayMode === 'by-division') {
                 params.GET_BY_DIVISION = '1';
             }
@@ -333,26 +299,22 @@
             return this.makeRequest(params, 'Loading leaderboard data...')
                 .done(function(response) {
                     if (response.success && response.htmlContent) {
-                        // Apply or remove round-format class based on placement format
                         if (response.placementFormat?.toUpperCase() === 'ROUND') {
                             $('#leaderboardContent').addClass('round-format');
                         } else {
                             $('#leaderboardContent').removeClass('round-format');
                         }
                         
-                        // Handle placement format auto-selection
                         if (response.placementFormat) {
                             TournamentDataLoader.handlePlacementFormatResponse(response.placementFormat);
                         }
                         
                         $('#leaderboardContent').html(response.htmlContent);
                         
-                        // Split Overall tables by round if this is an Overall event
                         if (selectedEvent === 'O') {
                             TournamentInfo.splitOverallTablesByRound(selectedRound);
                         }
                         
-                        // Clean up empty columns and rows in the loaded content
                         $('#leaderboardContent table').each(function() {
                             TournamentInfo.removeEmptyColumnsAndRows(this);
                         });
@@ -366,7 +328,6 @@
         },
         
         loadAlphabeticalAllEvents: function(selectedRound) {
-            // Get available events in S,T,J order - exclude Overall and NONE  
             const availableEvents = [];
             $('#eventFilters .filter-btn').each(function() {
                 const eventCode = $(this).data('value');
@@ -380,7 +341,7 @@
                 return;
             }
             
-            // Call LoadDvData for each event and combine results
+            // Call LoadDvData for each event and combine results for no event selected view
             const divisionPromises = availableEvents.map(eventCode => {
                 const params = this.buildBaseRequest(null, {
                     LOAD_ALL_DIVISIONS: '1',
@@ -403,7 +364,7 @@
             
             // Wait for all LoadDvData calls to complete
             return Promise.all(divisionPromises).then(results => {
-                // Combine all actual event-division combinations
+                // Combine all event-division combinations
                 const allCombinations = [];
                 results.forEach(eventCombinations => {
                     allCombinations.push(...eventCombinations);
@@ -414,7 +375,6 @@
                     return;
                 }
                 
-                // Remove duplicates by creating unique event-division combinations
                 const uniqueCombinations = [];
                 const seen = new Set();
                 
@@ -447,13 +407,11 @@
                 GET_BY_DIVISION: '1'
             });
             
-            // Add placement format override if selected
             const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
             if (selectedPlacement) {
                 params.FORCE_PLACEMENT = selectedPlacement;
             }
             
-            // Use cancellable request like original
             const request = Utils.createCancellableRequest('GetLeaderboardSP.aspx', params);
             
             $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading by-division view...</p></div>');
@@ -478,23 +436,19 @@
         },
 
         loadDivisionsAfterPlacementFormat: function(prioritizedDivisions, sanctionId, skiYear, formatCode, selectedRound) {
-            // Store all prioritized divisions for infinite scroll
             TournamentInfo.allPrioritizedDivisions = prioritizedDivisions;
             TournamentInfo.currentBatchIndex = 0;
             TournamentInfo.isLoading = false;
             
-            // Load first batch of 5 divisions
             const firstBatch = prioritizedDivisions.slice(0, 5);
             TournamentInfo.currentBatchIndex = 5;
             TournamentInfo.loadDivisionsBatch(firstBatch, sanctionId, skiYear, formatCode, selectedRound);
             
-            // Set up infinite scroll
             TournamentInfo.setupInfiniteScroll(sanctionId, skiYear, formatCode, selectedRound);
         },
 
         getPlacementFormatForEvent: function(eventCode, divisionCode, callback) {
-            console.log('[PLACEMENT-DEBUG] Getting placement format for event:', eventCode, 'division:', divisionCode);
-            // Make a quick API call to get placement format for this specific event+division
+            // Make a quick API call to get placement format for this specific event+division. this could be better
             const params = this.buildBaseRequest(null, {
                 EV: eventCode,
                 DV: divisionCode,  // Use specific division if provided
@@ -503,58 +457,45 @@
 
             $.getJSON('GetLeaderboardSP.aspx', params)
                 .done((response) => {
-                    console.log('[PLACEMENT-DEBUG] Placement format response:', response.placementFormat);
                     if (response.success && response.placementFormat) {
-                        console.log('[PLACEMENT-DEBUG] Calling handlePlacementFormatResponse with:', response.placementFormat);
                         this.handlePlacementFormatResponse(response.placementFormat, callback);
                     } else {
-                        console.log('[PLACEMENT-DEBUG] No placement format returned for event', eventCode);
                         if (callback) callback();
                     }
                 })
                 .fail((error) => {
-                    console.log('[PLACEMENT-DEBUG] Error getting placement format:', error);
                     if (callback) callback();
                 });
         },
 
         handlePlacementFormatResponse: function(placementFormat, callback) {
-            console.log('[PLACEMENT-DEBUG] handlePlacementFormatResponse called with:', placementFormat);
-            console.log('[PLACEMENT-DEBUG] userSelectedPlacement flag:', window.userSelectedPlacement);
             
             // Don't override if user manually selected a placement format
             if (window.userSelectedPlacement) {
-                console.log('[PLACEMENT-DEBUG] User has manually selected placement format, skipping auto-selection');
                 if (callback) callback();
                 return;
             }
             
-            // Handle placement format auto-selection immediately (no delay needed since we're doing this first)
+            // Handle placement format auto-selection immediately
             const format = placementFormat?.toUpperCase();
             
             if (format === 'ROUND') {
-                console.log('[PLACEMENT-DEBUG] Detected ROUND format, selecting Round View');
                 const roundViewBtn = $('#roundFilters .filter-btn[data-filter="placement"][data-value="ROUND"]');
                 if (roundViewBtn.length > 0 && !roundViewBtn.hasClass('active')) {
-                    console.log('[PLACEMENT-DEBUG] Auto-selecting Round View button');
                     $('#roundFilters .filter-btn[data-filter="placement"]').removeClass('active');
                     roundViewBtn.addClass('active');
                 }
             } else if (format === 'BEST' || format === 'FIRST') {
-                console.log('[PLACEMENT-DEBUG] Detected', format, 'format, selecting Divisions View');
                 const divisionsViewBtn = $('#roundFilters .filter-btn[data-filter="placement"][data-value="BEST"]');
                 if (divisionsViewBtn.length > 0 && !divisionsViewBtn.hasClass('active')) {
-                    console.log('[PLACEMENT-DEBUG] Auto-selecting Divisions View button');
                     $('#roundFilters .filter-btn[data-filter="placement"]').removeClass('active');
                     divisionsViewBtn.addClass('active');
                 }
             } else {
-                console.log('[PLACEMENT-DEBUG] Unknown placement format:', placementFormat);
             }
             
             // Call the callback to continue with loading divisions
             if (callback) {
-                console.log('[PLACEMENT-DEBUG] Calling callback to continue loading divisions');
                 callback();
             }
         },
@@ -573,16 +514,13 @@
             
             return this.makeRequest(params, loadingMessage)
                 .done((response) => {
-                    console.log('[OVERALL-JS] GetLeaderboardSP response:', response);
                     if (response.success && response.htmlContent) {
-                        // Work directly with server HTML (don't add dummy links)
                         TournamentInfo.calculateBestOfScores(response.htmlContent, selectedDivision);
                     } else {
                         TournamentInfo.checkForEmptyContent();
                     }
                 })
                 .fail((error) => {
-                    console.error('[BESTOF-DEBUG] Error loading overall data:', error);
                     $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading overall data</p></div>');
                 });
         },
@@ -592,7 +530,7 @@
             const availableEvents = [];
             $('#eventFilters .filter-btn').each(function() {
                 const eventCode = $(this).data('value');
-                if (eventCode !== 'NONE' && eventCode !== 'O') {  // Exclude Overall from division view
+                if (eventCode !== 'NONE' && eventCode !== 'O') {  // Exclude Overall from division view for now.
                     availableEvents.push(eventCode);
                 }
             });
@@ -617,7 +555,6 @@
                 }).catch(() => null);
             });
             
-            // Wait for all event checks to complete
             return Promise.all(divisionPromises).then(results => {
                 const eventsWithDivision = results.filter(event => event !== null);
                 
@@ -626,7 +563,6 @@
                     return;
                 }
                 
-                // Create event-division combinations for batch loading
                 const divisionBatch = eventsWithDivision.map(eventCode => ({
                     event: eventCode,
                     division: divisionCode,

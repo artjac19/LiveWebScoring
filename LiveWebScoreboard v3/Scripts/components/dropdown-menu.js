@@ -1,7 +1,6 @@
 /**
  * Dropdown Menu component for LiveWebScoreboard
  * Handles the resources dropdown menu functionality
- * Extracted from default.js for better modularity
  */
 
 (function(window) {

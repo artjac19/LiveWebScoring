@@ -1037,7 +1037,6 @@
                     return selectedRoundNum <= eventMaxRounds;
                 });
                 
-                // If no valid combinations, just remove the loading indicator
                 if (validCombinations.length === 0) {
                     $('#batchLoading').remove();
                     return;
@@ -1053,7 +1052,6 @@
             // Get placement format override if selected
             const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
             
-            // Make single API call with batch data
             const requestData = {
                 SID: sanctionId,
                 SY: skiYear,
@@ -1100,7 +1098,6 @@
                             // For ROUND format, append content directly (no wrapper div)
                             $('#leaderboardContent').append(result.htmlContent);
                             
-                            // Clean up empty columns and rows in all tables
                             $('#leaderboardContent table').each(function() {
                                 self.removeEmptyColumnsAndRows(this);
                             });
@@ -1120,7 +1117,6 @@
             .fail((error) => {
                 $('#batchLoading').remove();
                 self.isLoading = false;
-                // Don't update batch index on failure - divisions can be retried
             });
         },
 
@@ -1128,7 +1124,7 @@
             const rows = Array.from(tableElement.querySelectorAll('tr'));
             if (rows.length === 0) return;
             
-            // First, remove empty rows (rows with only empty or whitespace cells)
+            // First, remove empty rows
             rows.forEach(row => {
                 let isEmpty = true;
                 const cells = Array.from(row.children);
@@ -1156,11 +1152,9 @@
             
             const maxCols = Math.max(...remainingRows.map(row => row.children.length));
             
-            // Check each column from right to left (so removal doesn't affect indices)
             for (let colIndex = maxCols - 1; colIndex >= 0; colIndex--) {
                 let columnIsEmpty = true;
                 
-                // Check if this column is empty in all remaining rows
                 for (let row of remainingRows) {
                     const cell = row.children[colIndex];
                     if (cell) {
@@ -1170,7 +1164,6 @@
                             break;
                         }
                         
-                        // Check for meaningful content more thoroughly
                         const hasText = cell.textContent.trim() !== '';
                         const hasImages = cell.querySelector('img') !== null;
                         const hasOtherElements = cell.querySelector('*:not(br)') !== null; // Ignore empty <br> tags
@@ -1182,7 +1175,6 @@
                     }
                 }
                 
-                // Remove this column from all rows if it's empty
                 if (columnIsEmpty) {
                     remainingRows.forEach(row => {
                         if (row.children[colIndex]) {
@@ -1219,7 +1211,7 @@
                 params.view = currentUrl.searchParams.get('view');
             }
             
-            // Add filter parameters if they have meaningful values
+            // Add filter parameters if they have values
             if (selectedEvent && selectedEvent !== 'NONE') {
                 params.event = selectedEvent;
             }
@@ -1243,32 +1235,29 @@
         restoreFilterStateFromUrl: function() {
             const urlParams = new URLSearchParams(window.location.search);
             
-            // First: Restore event filter only using applyFilterCombination
+            // Restore event filter first using applyFilterCombination
             const eventParam = urlParams.get('event');
             if (eventParam) {
                 const eventButton = $('#eventFilters .filter-btn[data-value="' + eventParam + '"]');
                 if (eventButton.length > 0) {
                     $('#eventFilters .filter-btn').removeClass('active');
                     eventButton.addClass('active');
-                    // Use applyFilterCombination to handle the event change properly
                     this.applyFilterCombination();
                     
-                    // Second: After delay, restore divisions and rounds
+                    // After delay, we can load the proper divisions and rounds for that event
                     setTimeout(() => {
                         this.restoreRemainingFilters(urlParams);
-                    }, 1000); // Give time for divisions to load
+                    }, 1000); // Could be shorter potentially but not a big deal, people are expecting load time on refresh anyways.
                     return;
                 }
             }
             
-            // If no event parameter, restore remaining filters immediately
             this.restoreRemainingFilters(urlParams);
         },
         
         restoreRemainingFilters: function(urlParams) {
             let hasFiltersToRestore = false;
             
-            // Restore division filter
             const divisionParam = urlParams.get('division');
             if (divisionParam) {
                 const divisionButton = $('#divisionFilters .filter-btn[data-value="' + divisionParam + '"]');
@@ -1279,7 +1268,6 @@
                 }
             }
             
-            // Restore round filter
             const roundParam = urlParams.get('round');
             if (roundParam) {
                 const roundButton = $('#roundFilters .filter-btn[data-filter="round"][data-value="' + roundParam + '"]');
@@ -1290,7 +1278,6 @@
                 }
             }
             
-            // Restore placement filter
             const placementParam = urlParams.get('placement');
             if (placementParam) {
                 const placementButton = $('#roundFilters .filter-btn[data-filter="placement"][data-value="' + placementParam + '"]');
@@ -1301,20 +1288,17 @@
                 }
             }
             
-            // Restore bestof filter
             const bestofParam = urlParams.get('bestof');
             if (bestofParam) {
                 const bestofButton = $('#roundFilters .filter-btn[data-filter="bestof"][data-value="' + bestofParam + '"]');
                 if (bestofButton.length > 0) {
                     $('#roundFilters .filter-btn[data-filter="bestof"]').removeClass('active');
                     bestofButton.addClass('active');
-                    // Clear round selection when bestof is selected
                     $('#roundFilters .filter-btn[data-filter="round"]').removeClass('active');
                     hasFiltersToRestore = true;
                 }
             }
             
-            // Only apply filter combination if we actually restored some filters
             if (hasFiltersToRestore) {
                 this.applyFilterCombination();
             }
@@ -1324,11 +1308,7 @@
     // Export TournamentInfo to global scope for component access
     window.TournamentInfo = TournamentInfo;
 
-    // TournamentList component extracted to Scripts/components/tournament-list.js
-
     document.addEventListener('DOMContentLoaded', function() {
-        // Component initialization moved to respective component files
-        
         // Ensure tournament search elements are visible on page load (only on mobile)
         if (window.innerWidth <= 1000) {
             $('#tMobile').show();

@@ -1,7 +1,6 @@
 /**
  * Tournament List component for LiveWebScoreboard
  * Handles tournament list display and mobile/desktop view management
- * Extracted from default.js for better modularity
  */
 
 (function(window) {
@@ -201,10 +200,9 @@
                 // Reposition first, then wait for scroll to complete before loading panel
                 this.selectTournamentInView(isMobile, AppState.currentSelectedTournamentId);
                 
-                // Wait for scroll animation to complete before rendering details panel
                 setTimeout(() => {
                     TournamentInfo.load(AppState.currentSelectedTournamentId, AppState.currentTrickVideoText);
-                }, CONFIG.SCROLL_DELAY + 200); // Wait for scroll delay + animation time
+                }, CONFIG.SCROLL_DELAY + 200);
             }
 
             AppState.lastKnownMobile = isMobile;
@@ -212,7 +210,6 @@
 
         selectTournamentInView: function(isMobile, sanctionId) {
             if (isMobile) {
-                // Find and select the mobile card, create detail panel
                 let selectedCard = null;
                 document.querySelectorAll('.mobile-tournament-card').forEach(card => {
                     card.classList.remove('selected');
@@ -223,7 +220,6 @@
                 });
 
             } else {
-                // Find and select the desktop table row
                 let selectedRow = null;
                 document.querySelectorAll('#TList table tr').forEach(row => {
                     row.classList.remove('selected');
@@ -234,7 +230,6 @@
                     }
                 });
                 
-                // Scroll to the selected row with offset, similar to mobile
                 if (selectedRow) {
                     setTimeout(() => {
                         const rowRect = selectedRow.getBoundingClientRect();
@@ -281,22 +276,19 @@
             if (found) {
                 // Now load the tournament info - renderInfo will find the selected card/row
                 TournamentInfo.load(sanctionId, trickVideoText);
-                
-                // If view parameter is specified, trigger that view after a short delay
                 if (view) {
                     setTimeout(() => {
                         const viewButton = document.querySelector(`.tnav-btn[data-view="${view}"]`);
                         if (viewButton) {
                             viewButton.click();
                         }
-                    }, 1000); // Wait for tournament info to load
+                    }, 500);
                 }
             } else {
-                console.log('Tournament with sanctionId ' + sanctionId + ' not found in current view');
                 // Try again after a longer delay in case the list is still loading
                 setTimeout(() => {
                     this.selectTournamentFromUrl(sanctionId, view);
-                }, 1000);
+                }, 500);
             }
         }
     };
