@@ -1,12 +1,5 @@
 (function() {
     'use strict';
-    // Core modules are now loaded via separate script files:
-    // - CONFIG: core/config.js
-    // - AppState: core/app-state.js  
-    // - Utils: core/utils.js
-
-    // DropdownMenu component extracted to Scripts/components/dropdown-menu.js
-
 
     const TournamentInfo = {
         load: function(sanctionId, trickVideoText) {
@@ -23,12 +16,10 @@
             AppState.currentSelectedTournamentId = sanctionId;
             AppState.currentTrickVideoText = trickVideoText || '';
             
-            // Set default active view to 'home' if no view is currently active
             if (!AppState.currentActiveView) {
                 AppState.currentActiveView = 'home';
             }
             
-            // Add sanctionId to URL parameters while preserving existing ones
             const currentUrl = new URL(window.location);
             const params = {};
             
@@ -43,13 +34,10 @@
                 params.RG = currentUrl.searchParams.get('RG');
             }
             
-            // Add sanctionId parameter
             params.sanctionId = sanctionId;
             
-            // Update URL
             TournamentNav.updateUrlParameters(params);
 
-            // Create panel and show loading state - renderInfo will handle this
             TournamentUI.renderInfo();
                 
             $.getJSON(CONFIG.AJAX_ENDPOINT, { sid: sanctionId })
@@ -75,36 +63,6 @@
             TournamentNav.bindTNav();
         },
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         loadInitialContent: function(sanctionId, skiYear, formatCode) {
             const displayMode = AppState.currentDisplayMode;
             
@@ -114,7 +72,6 @@
                 $('#leaderboardContent').html('<div class="text-center p-4"><p>Select a division to load information...</p></div>');
                 this.applyFilterCombination();
             } else {
-                // Load most recent divisions for leaderboard mode
                 this.loadMostRecentDivisions(sanctionId, skiYear, formatCode, 'NONE', '0');
             }
         },
@@ -151,10 +108,7 @@
             this.recentScoresOffset = 0; // Track how many records we've loaded
             this.isLoadingRecentScores = false;
             
-            // Display first batch
             this.renderRecentScoresTable();
-            
-            // Set up infinite scroll for recent scores
             this.setupRecentScoresInfiniteScroll();
         },
 
@@ -167,16 +121,12 @@
                 const timeAgo = this.formatTimeAgo(score.insertDate);
                 const eventName = this.getEventName(score.event);
                 
-                // Create merged event column: [Event] [Division], [Round]
                 const mergedEvent = `${eventName} ${score.division}, R${score.round}`;
                 
-                // Create clickable skier name that redirects directly to TRecap matching server format exactly
                 const tournamentNameEncoded = encodeURIComponent(AppState.currentTournamentName);
-                const eventCode = score.event.trim().charAt(0); // Get first letter of event name
+                const eventCode = score.event.trim().charAt(0);
                 const trecapUrl = `Trecap?SID=${score.sanctionId}&SY=0&MID=${score.memberId}&DV=${score.division}&EV=${eventCode}&TN=${tournamentNameEncoded}&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=${score.skierName}`;
                 const skierLink = `<a href="#" onclick="window.location.href='${trecapUrl}'; return false;"><strong>${score.skierName}</strong></a>`;
-                
-                // Add a class to the last row for intersection observer
                 const isLastRow = index === this.allRecentScores.length - 1;
                 const rowClass = isLastRow ? ' class="recent-scores-last-row"' : '';
                 
@@ -203,7 +153,7 @@
                 this.recentScoresObserver = null;
             }
             
-            // Create intersection observer to watch for last row coming into view
+            // watch for last row coming into view
             this.recentScoresObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting && !self.isLoadingRecentScores) {
@@ -211,7 +161,7 @@
                     }
                 });
             }, {
-                rootMargin: '100px' // Trigger when row is 100px from being visible
+                rootMargin: '100px'
             });
             
             // Start observing the last row if it exists
@@ -235,9 +185,7 @@
                 const now = new Date();
                 let scoreDate;
                 
-                // Handle .NET JavaScriptSerializer date format: /Date(timestamp)/
                 if (typeof dateString === 'string' && dateString.startsWith('/Date(') && dateString.endsWith(')/')) {
-                    // Extract the timestamp from /Date(1754687243000)/
                     const timestampMatch = dateString.match(/\/Date\((\d+)\)\//);
                     if (timestampMatch) {
                         const timestamp = parseInt(timestampMatch[1]);
@@ -246,13 +194,9 @@
                         return 'Invalid Date Format';
                     }
                 } else {
-                    // Try normal date parsing
                     scoreDate = new Date(dateString);
                 }
-                
-                // Check if we have a valid date
                 if (isNaN(scoreDate.getTime())) {
-                    console.error('Invalid date after parsing:', dateString);
                     return 'Invalid Date';
                 }
                 
@@ -265,7 +209,6 @@
                 if (diffHours < 24) return `${diffHours}h ${diffMins % 60}m ago`;
                 return scoreDate.toLocaleDateString();
             } catch (e) {
-                console.error('Error formatting date:', dateString, e);
                 return 'Date Error';
             }
         },
@@ -297,36 +240,12 @@
             }
         },
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         applyFilterCombination: function() {
             Utils.cancelAllRequests();
             
             const filterState = this.getFilterState();
             TournamentNav.updateLeaderboardUrl(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound, filterState.selectedPlacement, filterState.selectedBestOf);
             
-            // Handle special cases first
             if (AppState.currentDisplayMode === 'by-division') {
                 this.loadByDivisionContent(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound);
                 return;
@@ -362,14 +281,11 @@
                 return;
             }
             
-            // Fallback case
             $('#leaderboardContent').html('<div class="text-center p-4 text-muted"><p>Select filters to display leaderboard data</p></div>');
         },
 
         getFilterState: function() {
             const selectedEvent = $('#eventFilters .filter-btn.active').data('value');
-            console.log('[FILTER-DEBUG] Active event button:', $('#eventFilters .filter-btn.active')[0]?.outerHTML);
-            console.log('[FILTER-DEBUG] selectedEvent:', selectedEvent);
             const selectedDivision = $('#divisionFilters .filter-btn.active').data('value');
             const selectedRound = $('#roundFilters .filter-btn.active[data-filter="round"]').data('value');
             const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
@@ -398,7 +314,7 @@
             } else if (filterState.selectedRound == '0' && $('#roundFilters .filter-btn[data-filter="round"][data-value="0"]').hasClass('active')) {
                 this.loadOverallAllDivisions('0');
             } else {
-                // Default to Best of and auto-select the button
+                // Default to Best of and auto-select the button --- currently All Rounds seems to override this
                 $('#roundFilters .filter-btn[data-filter="bestof"]').addClass('active');
                 $('#roundFilters .filter-btn[data-filter="round"]').removeClass('active');
                 this.loadOverallBestOf();
@@ -452,9 +368,6 @@
                             $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No running order data available</p></div>');
                         }
                     })
-                    .fail(() => {
-                        // Error handling removed - let content stay as-is
-                    });
             } else {
                 $('#leaderboardContent').html('<div class="text-center p-4"><p>Select an event to view running order...</p></div>');
             }
@@ -499,53 +412,59 @@
         },
 
         loadEventDivisionCombination: function(eventCode, divisionCode, roundCode) {
-            // Show loading state
             $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading ' + eventCode + ' ' + divisionCode + '...</p></div>');
             
-            // Only make the call if we have a valid tournament ID
             if (!AppState.currentSelectedTournamentId || AppState.currentSelectedTournamentId.length < 6) {
                 $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No tournament selected</p></div>');
                 return;
             }
             
-            // Check if division exists in the event by trying to load it
-            $.getJSON('GetLeaderboardSP.aspx', {
-                SID: AppState.currentSelectedTournamentId,
-                SY: "0",
-                TN: AppState.currentTournamentName,
-                FC: this.currentTournamentInfo.formatCode,
-                EV: eventCode
-            })
-            .done((response) => {
-                if (response.success && response.availableDivisions) {
-                    // Check if the division exists in this event
-                    const divisionExists = response.availableDivisions.some(div => div.code === divisionCode);
-                    
-                    if (divisionExists) {
-                        // Division exists - load the specific event+division combination
-                        this.updateLeaderboard();
-                    } else {
-                        // Division doesn't exist in this event
-                        const eventName = this.getEventName(eventCode);
-                        // Skip empty divisions - don't show error for individual missing divisions
-                    }
-                } else {
-                    $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error checking division availability</p></div>');
+            // Check if division exists using cached data
+            const cachedDivisions = this.currentTournamentInfo?.availableDivisions?.[eventCode];
+            if (cachedDivisions) {
+                const divisionExists = cachedDivisions.some(div => div.code === divisionCode);
+                
+                if (divisionExists) {
+                    this.updateLeaderboard();
                 }
-            })
-            .fail(() => {
-                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading event data</p></div>');
-            });
+            } else {
+                // Fallback: Division data not cached yet, load it to see if it exists.
+                $.getJSON('GetLeaderboardSP.aspx', {
+                    SID: AppState.currentSelectedTournamentId,
+                    SY: "0",
+                    TN: AppState.currentTournamentName,
+                    FC: this.currentTournamentInfo.formatCode,
+                    EV: eventCode
+                })
+                .done((response) => {
+                    if (response.success && response.availableDivisions) {
+                        // Cache the divisions for future use
+                        if (!this.currentTournamentInfo.availableDivisions) {
+                            this.currentTournamentInfo.availableDivisions = {};
+                        }
+                        this.currentTournamentInfo.availableDivisions[eventCode] = response.availableDivisions;
+                        
+                        const divisionExists = response.availableDivisions.some(div => div.code === divisionCode);
+                        
+                        if (divisionExists) {
+                            this.updateLeaderboard();
+                        }
+                    } else {
+                        $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error checking division availability</p></div>');
+                    }
+                })
+                .fail(() => {
+                    $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading event data</p></div>');
+                });
+            }
         },
 
-        // Generic batch loader for event-division combinations
         loadEventDivisionBatch: function(combinations, loadingMessage, roundCode) {
             if (combinations.length === 0) {
                 $('#leaderboardContent').html('<div class="text-center p-4 text-warning"><p>No event-division combinations available</p></div>');
                 return;
             }
             
-            // Show loading state
             $('#leaderboardContent').html('<div class="text-center p-4"><p>' + loadingMessage + '</p></div>');
             
             // Store for infinite scroll and load first batch
@@ -575,19 +494,11 @@
             return TournamentDataLoader.loadOverallAllDivisions(selectedRound);
         },
 
-        loadOverallBestOf: function(selectedDivision = null) {
-            console.log('[BESTOF-DEBUG] Loading Overall data same as individual rounds to get real MID links');
-            if (selectedDivision) {
-                console.log('[BESTOF-DEBUG] Filtering for specific division:', selectedDivision);
-            }
+        loadOverallBestOf: function (selectedDivision = null) {
             return TournamentDataLoader.loadOverallBestOf(selectedDivision);
         },
 
         calculateBestOfScores: function(htmlContent, selectedDivision = null) {
-            console.log('[BESTOF-DEBUG] Starting Best of calculation');
-            if (selectedDivision) {
-                console.log('[BESTOF-DEBUG] Filtering for specific division:', selectedDivision);
-            }
             
             // Create a temporary container to parse the HTML
             const $tempContainer = $('<div>').html(htmlContent);
@@ -637,15 +548,12 @@
                         const midMatch = onclickAttr.match(/MID=([^&\s'"]+)/) || hrefAttr.match(/MID=([^&\s'"]+)/);
                         if (midMatch && midMatch[1] && midMatch[1] !== '000000000') {
                             memberID = midMatch[1];
-                            console.log('[BESTOF-DEBUG] Found real MID for', skierName, ':', memberID);
                         }
                     }
                     
                     // If no MID found, log the cell content for debugging
                     if (!memberID) {
-                        console.warn('[BESTOF-DEBUG] No MID found for skier:', skierName);
-                        console.warn('[BESTOF-DEBUG] Cell HTML:', $firstCell.html());
-                        memberID = 'NO_MID'; // Placeholder to identify missing MIDs
+                        memberID = 'NO_MID';
                     }
                     
                     const round = parseInt($(cells[1]).text().trim());
@@ -672,25 +580,15 @@
                 });
             });
             
-            // Calculate best scores for each skier in each division
             this.generateBestOfTables(divisionData, selectedDivision);
         },
 
         generateBestOfTables: function(divisionData, selectedDivision = null) {
-            console.log('[BESTOF-DEBUG] Generating Best of tables for divisions:', Object.keys(divisionData));
-            
             let tablesHtml = '';
             
-            // If specific division was requested, server should have already filtered
-            // Otherwise process all divisions returned from server
+            // process all divisions returned from server
             const divisionsToProcess = Object.keys(divisionData).sort();
             
-            console.log('[BESTOF-DEBUG] Processing divisions:', divisionsToProcess);
-            if (selectedDivision) {
-                console.log('[BESTOF-DEBUG] Expected specific division:', selectedDivision);
-            }
-            
-            // Process each division
             divisionsToProcess.forEach(division => {
                 const skiers = divisionData[division];
                 const bestScores = [];
@@ -699,7 +597,6 @@
                 Object.keys(skiers).forEach(skierName => {
                     const rounds = skiers[skierName];
                     
-                    // Find the best score in each individual event across all rounds
                     let bestSlalom = Math.max(...rounds.map(r => r.slalomNops));
                     let bestTrick = Math.max(...rounds.map(r => r.trickNops));
                     let bestJump = Math.max(...rounds.map(r => r.jumpNops));
@@ -712,7 +609,6 @@
                     let trickRound = rounds.find(r => r.trickNops === bestTrick)?.round || 0;
                     let jumpRound = rounds.find(r => r.jumpNops === bestJump)?.round || 0;
                     
-                    // Get the MID from any round (should be the same across all rounds for this skier)
                     let memberID = rounds.find(r => r.memberID && r.memberID !== '000000000')?.memberID || '000000000';
                     
                     bestScores.push({
@@ -731,7 +627,6 @@
                 // Sort by superscore (highest first)
                 bestScores.sort((a, b) => b.superscore - a.superscore);
                 
-                // Generate HTML table for this division
                 tablesHtml += `
                     <table class="division-section" style="margin-bottom: 1rem;">
                         <tr class="table-header-row">
@@ -740,7 +635,6 @@
                         </tr>`;
                 
                 bestScores.forEach(skier => {
-                    // Create clickable link using the memberID extracted during calculation
                     const tournamentNameEncoded = encodeURIComponent(AppState.currentTournamentName);
                     const sanctionId = AppState.currentSelectedTournamentId;
                     const trecapUrl = `Trecap?SID=${sanctionId}&SY=0&MID=${skier.memberID}&DV=${division}&EV=S&TN=${tournamentNameEncoded}&FC=LBSP&FT=0&RP=1&UN=0&UT=0&SN=${skier.skierName}`;
@@ -759,15 +653,11 @@
                 tablesHtml += '</table>';
             });
             
-            // Display the generated tables
             $('#leaderboardContent').html(tablesHtml);
             
-            // Check if we actually have any tables to display
             if (!tablesHtml.trim()) {
                 this.checkForEmptyContent();
             }
-            
-            console.log('[BESTOF-DEBUG] Best of tables generated successfully');
         },
 
         checkForEmptyContent: function() {
@@ -795,29 +685,23 @@
                 if (headerRow.length === 0) return;
                 
                 const headerText = headerRow.text().toLowerCase();
-                console.log('[SPLIT-DEBUG] Table', tableIndex, 'header:', headerText);
                 
                 // Check if this is an Overall table
                 if (!headerText.includes('overall')) {
-                    console.log('[SPLIT-DEBUG] Not an Overall table, skipping');
                     return;
                 }
                 
                 // Extract division from header pattern: "Overall OM - Round 1 - Sort by: BEST"
                 const divisionMatch = headerText.match(/overall\s+([a-z0-9]+)\s+-/i);
                 if (!divisionMatch) {
-                    console.log('[SPLIT-DEBUG] Could not extract division from header');
                     return;
                 }
                 
                 const division = divisionMatch[1].toUpperCase();
-                console.log('[SPLIT-DEBUG] Extracted division:', division);
                 
-                // Get all data rows (skip header row)
                 const dataRows = $table.find('tr').not('.table-header-row');
                 
                 if (dataRows.length <= 1) {
-                    console.log('[SPLIT-DEBUG] Not enough data rows to split');
                     return;
                 }
                 
@@ -834,9 +718,6 @@
                     const roundCell = $(cells[1]);
                     const round = roundCell.text().trim();
                     
-                    console.log('[SPLIT-DEBUG] Row', rowIndex, 'round:', round);
-                    
-                    
                     if (round && round.match(/^[0-9]+$/)) {
                         if (!roundGroups[round]) {
                             roundGroups[round] = [];
@@ -846,7 +727,6 @@
                 });
                 
                 const rounds = Object.keys(roundGroups);
-                console.log('[SPLIT-DEBUG] Found rounds:', rounds);
                 
                 if (rounds.length > 1) {
                     // Show all rounds as separate tables
@@ -860,7 +740,7 @@
                         // Remove the round column from each row (column index 1)
                         const modifiedRows = rows.map(row => {
                             const $clonedRow = row.clone();
-                            $clonedRow.find('td:eq(1)').remove(); // Remove round column
+                            $clonedRow.find('td:eq(1)').remove();
                             return $clonedRow[0].outerHTML;
                         });
                         
@@ -875,16 +755,12 @@
                         `;
                     });
                     
-                    console.log('[SPLIT-DEBUG] Replacing table with', rounds.length, 'separate tables');
                     $table.replaceWith(newTablesHtml);
-                } else {
-                    console.log('[SPLIT-DEBUG] Only one round found, no splitting needed');
                 }
             });
             
-            // After generating all round tables, filter out unwanted rounds if specific round is selected
+            // remove other rounds if a specific round is selected
             if (selectedRound && selectedRound !== '0') {
-                console.log('[SPLIT-DEBUG] Filtering to show only round', selectedRound);
                 $('#leaderboardContent .division-section').each(function() {
                     const $table = $(this);
                     const headerText = $table.find('.table-header-row').text();
@@ -893,11 +769,7 @@
                     const roundMatch = headerText.match(/Round\s+(\d+)/i);
                     if (roundMatch) {
                         const tableRound = roundMatch[1];
-                        console.log('[SPLIT-DEBUG] Comparing tableRound:', tableRound, 'type:', typeof tableRound, 'vs selectedRound:', selectedRound, 'type:', typeof selectedRound);
-                        if (tableRound == selectedRound) {
-                            console.log('[SPLIT-DEBUG] Keeping table for round', tableRound);
-                        } else {
-                            console.log('[SPLIT-DEBUG] Removing table for round', tableRound);
+                        if (tableRound != selectedRound) {
                             $table.remove();
                         }
                     }
@@ -934,17 +806,14 @@
                     
                     // Add division filter options based on display mode
                     if (AppState.currentDisplayMode === 'running-order' || AppState.currentDisplayMode === 'by-division') {
-                        // Running order or by-division mode: only show "All" option
                         divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">All</button>');
                     } else {
-                        // Leaderboard mode: Add Most Recent and Alphabetical options (but not Most Recent for Overall)
                         if (eventCode !== 'O') {
                             divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
                         }
                         divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">Alphabetical</button>');
                     }
                     
-                    // Add event-specific divisions (excluding the "ALL" option from server)
                     response.availableDivisions.forEach(division => {
                         if (division.code !== 'ALL') {
                             divisionFilters.append(`<button class="filter-btn" data-filter="division" data-value="${division.code}">${division.name}</button>`);
@@ -992,15 +861,13 @@
                     return selectedRoundNum <= eventMaxRounds;
                 });
                 
-                // If all combinations were filtered out, show appropriate message
                 if (validCombinations.length === 0) {
                     $('#leaderboardContent').html(`<div class="text-center p-4 text-muted"><p>No events have Round ${selectedRound}</p></div>`);
                     return;
                 }
             }
             
-            // Show loading message
-            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading ' + validCombinations.length + ' divisions...</p></div>');
+            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading divisions...</p></div>');
             
             // Prepare batch request data with valid combinations
             const batchData = validCombinations.map(combo => ({
@@ -1011,7 +878,6 @@
             // Get placement format override if selected
             const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
             
-            // Make single API call with batch data
             const requestData = {
                 SID: sanctionId,
                 SY: skiYear,
@@ -1024,7 +890,6 @@
                 BATCH_DIVISIONS: JSON.stringify(batchData)
             };
             
-            // Add placement format override if selected
             if (selectedPlacement) {
                 requestData.FORCE_PLACEMENT = selectedPlacement;
             }
@@ -1058,20 +923,11 @@
                     
                     // Add each division's results, filtering out empty/error results
                     response.batchResults.forEach((result, index) => {
-                        // DEBUG: Log what's being filtered
-                        console.log('[DEBUG] Batch result for ' + result.event + ' ' + result.division + ':');
-                        console.log('  success: ' + result.success);
-                        console.log('  htmlContent length: ' + (result.htmlContent ? result.htmlContent.length : 'null'));
-                        console.log('  contains NO: ' + (result.htmlContent ? result.htmlContent.includes('NO') : 'false'));
-                        console.log('  contains SCORES FOUND: ' + (result.htmlContent ? result.htmlContent.includes('SCORES FOUND') : 'false'));
-                        
                         if (result.success && result.htmlContent && 
                             !(result.htmlContent.includes('NO') && 
                             result.htmlContent.includes('SCORES FOUND'))) {
-                            // For ROUND format, append content directly (no wrapper div)
                             $('#leaderboardContent').append(result.htmlContent);
                             
-                            // Clean up empty columns and empty rows in all tables
                             $('#leaderboardContent table').each(function() {
                                 TournamentInfo.removeEmptyColumnsAndRows(this);
                             });
@@ -1100,7 +956,6 @@
                     console.log('Ignoring error from cancelled request');
                     return;
                 }
-                // Error handling removed - let content stay as-is
             });
         },
 
@@ -1126,6 +981,7 @@
             
             // Start observing the last division element if it exists
             this.observeLastElement();
+
         },
 
         observeLastElement: function() {

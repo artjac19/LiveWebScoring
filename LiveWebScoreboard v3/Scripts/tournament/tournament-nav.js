@@ -180,7 +180,8 @@
                 sanctionId: sanctionId,
                 name: AppState.currentTournamentName,
                 skiYear: skiYear,
-                formatCode: formatCode
+                formatCode: formatCode,
+                availableDivisions: {} // Initialize cache for division data
             };
             
             // Load tournament data and setup filters
@@ -196,6 +197,8 @@
             .done((response) => {
                 if (response.success) {
                     TournamentFilters.setupLeaderboardFilters(response);
+                    // Preload division data for all events
+                    this.preloadDivisionData(sanctionId, skiYear, AppState.currentTournamentName, formatCode);
                     this.restoreFilterStateFromUrl();
                     TournamentInfo.loadInitialContent(sanctionId, skiYear, formatCode);
                 } else {
@@ -204,6 +207,45 @@
             })
             .fail((error) => {
                 $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading tournament information: ' + error + '</p></div>');
+            });
+        },
+
+        preloadDivisionData: function(sanctionId, skiYear, tournamentName, formatCode) {
+            console.log('[DIVISION-CACHE] Preloading division data for all events...');
+            
+            const events = ['S', 'T', 'J']; // Slalom, Trick, Jump
+            const divisionPromises = events.map(eventCode => {
+                return $.getJSON('GetLeaderboardSP.aspx', {
+                    SID: sanctionId,
+                    SY: skiYear,
+                    TN: tournamentName,
+                    FC: formatCode,
+                    FT: '0',
+                    UN: '0',
+                    UT: '0',
+                    EV: eventCode
+                }).then(response => {
+                    if (response.success && response.availableDivisions) {
+                        console.log('[DIVISION-CACHE] Cached divisions for event', eventCode, ':', response.availableDivisions.length);
+                        return {
+                            eventCode: eventCode,
+                            divisions: response.availableDivisions
+                        };
+                    }
+                    return { eventCode: eventCode, divisions: [] };
+                }).catch(error => {
+                    console.warn('[DIVISION-CACHE] Failed to load divisions for event', eventCode, ':', error);
+                    return { eventCode: eventCode, divisions: [] };
+                });
+            });
+
+            // Wait for all division data to load
+            Promise.all(divisionPromises).then(results => {
+                // Store in tournament info cache
+                results.forEach(result => {
+                    TournamentInfo.currentTournamentInfo.availableDivisions[result.eventCode] = result.divisions;
+                });
+                console.log('[DIVISION-CACHE] All division data cached:', TournamentInfo.currentTournamentInfo.availableDivisions);
             });
         },
 
