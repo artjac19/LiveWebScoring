@@ -142,11 +142,9 @@ Public Class GetLeaderboardSP
                     Dim divisionCode As String = request("division").ToString()
 
                     Try
-                        System.Diagnostics.Debug.WriteLine("Calling BuildLeaderboardJson for " & eventCode & "-" & divisionCode)
 
                         ' Use BuildLeaderboardJson to get the same logic as single division processing
                         Dim jsonResult As String = BuildLeaderboardJson(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, CShort(CInt(sUseNOPS)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric, sForcePlacement)
-                        System.Diagnostics.Debug.WriteLine("BuildLeaderboardJson returned " & jsonResult.Length & " chars for " & eventCode & "-" & divisionCode)
 
                         ' Extract htmlContent and placementFormat from JSON response
                         Dim htmlContent As String = ""
@@ -343,7 +341,6 @@ Public Class GetLeaderboardSP
 
         ' Log database time  
         Dim dbTime As TimeSpan = DateTime.Now - dbStartTime
-        System.Diagnostics.Debug.WriteLine("[LWS-PERF] Database query time: " & dbTime.TotalMilliseconds & "ms for " & sSanctionID & " " & sEventCodePkd & " " & sDivisionCodePkd)
 
         Dim result As New With {
             .success = True,

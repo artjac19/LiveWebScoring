@@ -35,6 +35,7 @@
     <!-- Components (load after default.js since they reference TournamentInfo) -->
     <script src="Scripts/components/dropdown-menu.js"></script>
     <script src="Scripts/components/tournament-list.js"></script>
+    <script src="Scripts/team-loading-signs.js"></script>
     <link rel="stylesheet" href="Content/styles.css" />
 </head>
 

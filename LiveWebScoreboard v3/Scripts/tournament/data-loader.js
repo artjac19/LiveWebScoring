@@ -311,6 +311,11 @@
                         
                         $('#leaderboardContent').html(response.htmlContent);
                         
+                        // Add loading signs to top team skiers
+                        if (typeof TeamLoadingSigns !== 'undefined') {
+                            TeamLoadingSigns.updateLoadingSigns();
+                        }
+                        
                         if (selectedEvent === 'O') {
                             TournamentInfo.splitOverallTablesByRound(selectedRound);
                         }
@@ -414,6 +419,11 @@
                 
                 if (response.success && response.htmlContent) {
                     $('#leaderboardContent').html(response.htmlContent);
+                    
+                    // Add loading signs to top team skiers
+                    if (typeof TeamLoadingSigns !== 'undefined') {
+                        TeamLoadingSigns.updateLoadingSigns();
+                    }
                 } else {
                     $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading by-division view</p></div>');
                 }

@@ -142,6 +142,11 @@
             html += '</div>';
             
             $('#leaderboardContent').html(html);
+            
+            // Add loading signs to top team skiers
+            if (typeof TeamLoadingSigns !== 'undefined') {
+                TeamLoadingSigns.updateLoadingSigns();
+            }
         },
 
         setupRecentScoresInfiniteScroll: function() {
@@ -364,6 +369,11 @@
                     .done((response) => {
                         if (response.success && response.htmlContent) {
                             $('#leaderboardContent').html(response.htmlContent);
+                            
+                            // Add loading signs to top team skiers
+                            if (typeof TeamLoadingSigns !== 'undefined') {
+                                TeamLoadingSigns.updateLoadingSigns();
+                            }
                         } else {
                             $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No running order data available</p></div>');
                         }
