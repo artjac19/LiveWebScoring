@@ -368,6 +368,8 @@
 
         getFilterState: function() {
             const selectedEvent = $('#eventFilters .filter-btn.active').data('value');
+            console.log('[FILTER-DEBUG] Active event button:', $('#eventFilters .filter-btn.active')[0]?.outerHTML);
+            console.log('[FILTER-DEBUG] selectedEvent:', selectedEvent);
             const selectedDivision = $('#divisionFilters .filter-btn.active').data('value');
             const selectedRound = $('#roundFilters .filter-btn.active[data-filter="round"]').data('value');
             const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
@@ -571,50 +573,6 @@
 
         loadOverallAllDivisions: function(selectedRound) {
             return TournamentDataLoader.loadOverallAllDivisions(selectedRound);
-            
-            /* COMMENTED OUT - Original approach that loads individual divisions
-            // Get all available divisions from the current tournament
-            $.getJSON('GetLeaderboardSP.aspx', {
-                SID: AppState.currentSelectedTournamentId,
-                SY: "0",
-                TN: AppState.currentTournamentName,
-                FC: this.currentTournamentInfo.formatCode,
-                FT: '0',
-                UN: '0',
-                UT: '0',
-                LOAD_ALL_DIVISIONS: '1'
-            })
-            .done((response) => {
-                if (response.success && response.availableDivisions && response.availableDivisions.length > 0) {
-                    // Create Overall combinations for all available divisions
-                    const overallCombinations = response.availableDivisions
-                        .map(div => div.code) // Get division codes
-                        .filter((div, index, array) => array.indexOf(div) === index) // Remove duplicates
-                        .map(divCode => ({
-                            event: 'O',
-                            division: divCode,
-                            eventName: 'Overall'
-                        }));
-                    
-                    if (overallCombinations.length === 0) {
-                        $('#leaderboardContent').html('<div class="text-center p-4 text-warning"><p>No overall divisions found</p></div>');
-                        return;
-                    }
-                    
-                    // Sort divisions alphabetically
-                    overallCombinations.sort((a, b) => a.division.localeCompare(b.division));
-                    
-                    // Load all Overall divisions
-                    this.loadEventDivisionBatch(overallCombinations, 'Loading all overall divisions...', selectedRound);
-                } else {
-                    $('#leaderboardContent').html('<div class="text-center p-4 text-warning"><p>No overall divisions available</p></div>');
-                }
-            })
-            .fail((error) => {
-                console.error('Failed to load overall divisions:', error);
-                $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading overall divisions</p></div>');
-            });
-            */
         },
 
         loadOverallBestOf: function(selectedDivision = null) {
