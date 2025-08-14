@@ -121,10 +121,10 @@
                     const $collapse = $(collapseSelector);
                     const $chevron = $(chevronSelector);
                     if ($collapse.is(':visible')) {
-                        $collapse.hide();
+                        $collapse.css('display', 'none');
                         $chevron.removeClass('rotated');
                     } else {
-                        $collapse.show();
+                        $collapse.attr('style', 'display: block !important');
                         $chevron.addClass('rotated');
                     }
                 });
@@ -166,6 +166,33 @@
                     $('#teamsChevron').addClass('rotated');
                 }
             }
+            
+            // Initialize Details button functionality
+            this.initializeDetailsButton();
+        },
+
+        initializeDetailsButton: function() {
+            // Remove any existing handlers
+            $(document).off('click', '#detailsToggleBtn');
+            
+            // Add click handler for Details button
+            $(document).on('click', '#detailsToggleBtn', function() {
+                const $button = $(this);
+                const $headers = $('.tournament-section-header');
+                const $content = $('.tournament-section-collapsible');
+                
+                if ($headers.is(':visible')) {
+                    // Hide all sections
+                    $headers.css('display', 'none');
+                    $content.css('display', 'none');
+                    $button.text('Details');
+                } else {
+                    // Show all sections - need !important to override CSS
+                    $headers.attr('style', 'display: flex !important');
+                    $content.attr('style', 'display: block !important');
+                    $button.text('Hide Details');
+                }
+            });
         }
     };
 

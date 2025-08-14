@@ -37,6 +37,7 @@ Module ModDataAccess3
         Dim sHasVideo As String = ""
         Dim sTVidAvail As String = ""
         Dim sRankingScore As String = ""
+        Dim sReadyForPlcmt As String = ""
 
         Dim sSql As String = ""
         Select Case selEvent
@@ -215,6 +216,12 @@ Module ModDataAccess3
                                 End If
                             End If
 
+                            sReadyForPlcmt = ""
+                            If Not IsDBNull(MyDataReader.Item("ReadyForPlcmt")) Then
+                                If MyDataReader.Item("ReadyForPlcmt") <> "Y" Then
+                                    sReadyForPlcmt = "&nbsp;<span class=""class-logo class-x"" title=""NOT for placement"">X</span>"
+                                End If
+                            End If
 
                             If selRnd = 0 Then
                                 Select Case sEventClass
@@ -236,7 +243,7 @@ Module ModDataAccess3
                                     stmpMemberID = sMemberID ' first record in first pass
                                     sLine.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & stmpMemberID & "&DV=" & sDv & "&EV=" & sSelEvent & "&TN=" & sTName & "")
                                     Dim rankingDisplay As String = If(sRankingScore <> "", " <small>(RS: " & sRankingScore & ")</small>", "")
-                                    sLine.Append("&FC=RO&FT=0&RP=" & sRnd & "&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a>" & rankingDisplay & sHasVideo & "</td>")
+                                    sLine.Append("&FC=RO&FT=0&RP=" & sRnd & "&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a>" & rankingDisplay & sHasVideo & sReadyForPlcmt & "</td>")
                                     sLine.Append("<td><b> " & sDv & "</b></td>")
                                 End If
                                 If stmpMemberID = sMemberID Then
@@ -326,7 +333,7 @@ Module ModDataAccess3
                                     End Select
                                     sLine.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & stmpMemberID & "&DV=" & sDv & "&EV=" & sSelEvent & "&TN=" & sTName & "")
                                     Dim rankingDisplay2 As String = If(sRankingScore <> "", " <small>(RS: " & sRankingScore & ")</small>", "")
-                                    sLine.Append("&FC=RO&FT=0&RP=" & sRnd & "&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a>" & rankingDisplay2 & sHasVideo & "</td>")
+                                    sLine.Append("&FC=RO&FT=0&RP=" & sRnd & "&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a>" & rankingDisplay2 & sHasVideo & sReadyForPlcmt & "</td>")
                                     sLine.Append("<td><b>" & sDv & "</b></td>")
                                     If sRnd > i And sRnd < 25 Then  'If first score is in round 2 or greater - fill in earlier rounds as blanks (but not for runoffs)
                                         Do Until sRnd = i
@@ -353,7 +360,7 @@ Module ModDataAccess3
                                 End Select
                                 sLine.Append("<tr><td width=""13%""><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & stmpMemberID & "&DV=" & sDv & "&EV=" & sSelEvent & "&TN=" & sTName & "")
                                 Dim rankingDisplay3 As String = If(sRankingScore <> "", " <small>(RS: " & sRankingScore & ")</small>", "")
-                                sLine.Append("&FC=RO&FT=0&RP=" & sRnd & "&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a>" & rankingDisplay3 & sHasVideo & "</td>")
+                                sLine.Append("&FC=RO&FT=0&RP=" & sRnd & "&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a>" & rankingDisplay3 & sHasVideo & sReadyForPlcmt & "</td>")
                                 If sEventScoreDesc <> "" Then
                                     sLine.Append("<td>" & sEventGroup & " / <b>" & sDv & "</b> </td><td>" & sEventClassIcon & " " & sEventScoreDesc & "</td></tr>")
                                 Else
@@ -4899,8 +4906,7 @@ Module ModDataAccess3
         Dim sRndCount As Int16 = 0
         Dim sPassCount As Int16 = 1
         Dim sRankingScore As String = ""
-
-
+        Dim sReadyForPlcmt As String = ""
         Dim sSql As String = ""
 
         Select Case selEvent
@@ -5095,10 +5101,17 @@ Module ModDataAccess3
                                     sRankingScore = ""
                                 End If
 
+                                sReadyForPlcmt = ""
+                                If Not IsDBNull(MyDataReader.Item("ReadyForPlcmt")) Then
+                                    If MyDataReader.Item("ReadyForPlcmt") <> "Y" Then
+                                        sReadyForPlcmt = "&nbsp;<span class=""class-logo class-x"" title=""NOT for placement"">X</span>"
+                                    End If
+                                End If
+
                                 ' Have data line
                                 Dim rankingDisplayMulti As String = If(sRankingScore <> "", " <small>(RS: " & sRankingScore & ")</small>", "")
                                 sSkierLink = "<a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sYrPkd & "&MID=" & sMemberID & "&DV=" & sDv & "&EV=" & selEvent & ""
-                                sSkierLink += "&FC=RO&FT=1&RP=0&UN=0&UT=0&TN=" & sTName & "&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a>" & rankingDisplayMulti
+                                sSkierLink += "&FC=RO&FT=1&RP=0&UN=0&UT=0&TN=" & sTName & "&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a>" & rankingDisplayMulti & sReadyForPlcmt
 
                                 If sTmpEventGroup = "" Then 'set up first event group
                                     sTmpEventGroup = sEventGroup

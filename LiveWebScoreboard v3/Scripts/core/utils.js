@@ -79,6 +79,14 @@
                 requestId: requestId,
                 isCurrent: () => requestId === AppState.currentRequestId
             };
+        },
+
+        // Initialize global UI elements
+        initializeGlobalUI: function() {
+            // Initialize unofficial badge click handler
+            $(document).on('click', '.unofficial-badge', function() {
+                alert('All results displayed here are unofficial. Contact your tournament scorers for official results.');
+            });
         }
     };
 

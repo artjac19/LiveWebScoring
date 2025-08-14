@@ -1267,6 +1267,9 @@
                 }
             }, 500);
         });
+        
+        // Initialize global UI elements
+        Utils.initializeGlobalUI();
     });
 
 })();

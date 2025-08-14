@@ -47,6 +47,9 @@
                 title="Go to Home" style="text-decoration: none;">
                 <img src="images/skigirl.svg" alt="LiveWeb Ski Girl Logo" class="logo" />
             </a>
+            <div class="unofficial-badge">
+                <span class="bullet-point">&bull;</span> UNOFFICIAL
+            </div>
             <asp:TextBox ID="TB_SanctionID" runat="server" CssClass="search-input"
                 placeholder="Sanction #, Name, or Location"/>
             <asp:Button ID="Btn_SanctionID" runat="server"
@@ -116,7 +119,7 @@
                             OnClick="ApplyFilter_Click" CommandArgument="C" />
                         <asp:Button ID="Btn_RegionWest" runat="server" Text="West" CssClass="filter-btn"
                             OnClick="ApplyFilter_Click" CommandArgument="W" />
-                        <asp:Button ID="Btn_RegionNone" runat="server" Text="None" CssClass="filter-btn"
+                        <asp:Button ID="Btn_RegionNone" runat="server" Text="All" CssClass="filter-btn"
                             OnClick="ApplyFilter_Click" CommandArgument="" />
                     </div>
                 </div>

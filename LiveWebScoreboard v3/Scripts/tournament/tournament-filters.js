@@ -44,7 +44,7 @@
         },
 
         setupRunningOrderEventFilters: function(eventFilters, data) {
-            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
+            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">All</button>');
             
             if (data.availableEvents && data.availableEvents.length > 0) {
                 data.availableEvents.forEach(event => {
@@ -65,8 +65,8 @@
         },
 
         setupLeaderboardEventFilters: function(eventFilters, data) {
-            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">None</button>');
-            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="MIXED">Mixed</button>');
+            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="NONE">All</button>');
+            eventFilters.append('<button class="filter-btn" data-filter="event" data-value="MIXED">On the water</button>');
             
             if (data.availableEvents && data.availableEvents.length > 0) {
                 data.availableEvents.forEach(event => {

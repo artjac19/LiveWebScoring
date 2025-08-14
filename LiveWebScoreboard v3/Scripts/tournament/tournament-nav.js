@@ -20,6 +20,12 @@
                 e.preventDefault();
                 
                 const $btn = $(e.target);
+                
+                // Skip navigation for Details button
+                if ($btn.hasClass('details-btn')) {
+                    return;
+                }
+                
                 const view = $btn.data('view');
                 const sanctionId = AppState.currentSelectedTournamentId;
                 
