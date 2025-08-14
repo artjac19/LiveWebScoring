@@ -547,22 +547,6 @@ td.date-col {
     border: 1px solid #dee2e6;
 }
 
-/* Grid layout for ROUND placement format divisions */
-#leaderboardContent.round-format {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 430px));
-    gap: 1rem;
-    align-items: start;
-}
-
-#leaderboardContent.round-format .division-section {
-    min-width: 300px;
-    max-width: 430px;
-    width: auto;
-    vertical-align: top;
-    margin-bottom: auto;
-    margin-top: 0;
-}
 
 .active-event-banner {
     background: #15274D;
@@ -831,10 +815,6 @@ td.date-col {
         width: auto !important;
     }
 
-    #leaderboardContent.round-format {
-        grid-template-columns: 1fr;
-        align-items: start;
-    }
 
     .resources-text {
         display: none;

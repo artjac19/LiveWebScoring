@@ -249,7 +249,7 @@
             Utils.cancelAllRequests();
             
             const filterState = this.getFilterState();
-            TournamentNav.updateLeaderboardUrl(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound, filterState.selectedPlacement, filterState.selectedBestOf);
+            TournamentNav.updateLeaderboardUrl(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound, filterState.selectedBestOf);
             
             if (AppState.currentDisplayMode === 'by-division') {
                 this.loadByDivisionContent(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound);
@@ -293,14 +293,12 @@
             const selectedEvent = $('#eventFilters .filter-btn.active').data('value');
             const selectedDivision = $('#divisionFilters .filter-btn.active').data('value');
             const selectedRound = $('#roundFilters .filter-btn.active[data-filter="round"]').data('value');
-            const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
             const selectedBestOf = $('#roundFilters .filter-btn.active[data-filter="bestof"]').data('value');
             
             return {
                 selectedEvent,
                 selectedDivision,
                 selectedRound,
-                selectedPlacement,
                 selectedBestOf,
                 hasEvent: selectedEvent && selectedEvent !== 'NONE',
                 hasDivision: selectedDivision && selectedDivision !== 'MOST_RECENT' && selectedDivision !== 'ALL',
@@ -868,9 +866,6 @@
                 division: combo.division
             }));
             
-            // Get placement format override if selected
-            const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
-            
             const requestData = {
                 SID: sanctionId,
                 SY: skiYear,
@@ -882,10 +877,6 @@
                 RND: selectedRound,
                 BATCH_DIVISIONS: JSON.stringify(batchData)
             };
-            
-            if (selectedPlacement) {
-                requestData.FORCE_PLACEMENT = selectedPlacement;
-            }
             
             const request = Utils.createCancellableRequest('GetLeaderboardSP.aspx', requestData);
             
@@ -1042,9 +1033,6 @@
                 division: combo.division
             }));
             
-            // Get placement format override if selected
-            const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
-            
             const requestData = {
                 SID: sanctionId,
                 SY: skiYear,
@@ -1056,11 +1044,6 @@
                 RND: selectedRound,
                 BATCH_DIVISIONS: JSON.stringify(batchData)
             };
-            
-            // Add placement format override if selected
-            if (selectedPlacement) {
-                requestData.FORCE_PLACEMENT = selectedPlacement;
-            }
             
             $.getJSON('GetLeaderboardSP.aspx', requestData)
             .done((response) => {
@@ -1182,7 +1165,7 @@
             return TournamentDataLoader.updateLeaderboard();
         },
         
-        updateLeaderboardUrl: function(selectedEvent, selectedDivision, selectedRound, selectedPlacement, selectedBestOf) {
+        updateLeaderboardUrl: function(selectedEvent, selectedDivision, selectedRound, selectedBestOf) {
             // Get existing URL parameters
             const currentUrl = new URL(window.location);
             const params = {};
@@ -1213,9 +1196,6 @@
             }
             if (selectedRound && selectedRound !== '0') {
                 params.round = selectedRound;
-            }
-            if (selectedPlacement) {
-                params.placement = selectedPlacement;
             }
             if (selectedBestOf) {
                 params.bestof = selectedBestOf;

@@ -60,19 +60,7 @@
                             lastActivity: div.lastActivity
                         }));
                         
-                        // For specific events, get placement format using first division before loading data
-                        if (eventCode && eventCode !== 'NONE' && eventCode !== 'O' && prioritizedDivisions.length > 0) {
-                            const firstDivision = prioritizedDivisions[0].division;
-                            console.log('[PLACEMENT-DEBUG] Getting placement format using first division:', firstDivision);
-                            
-                            this.getPlacementFormatForEvent(eventCode, firstDivision, () => {
-                                // Callback: Load divisions AFTER placement format is set
-                                this.loadDivisionsAfterPlacementFormat(prioritizedDivisions, sanctionId, skiYear, formatCode, selectedRound);
-                            });
-                        } else {
-                            // No specific event, load directly
-                            this.loadDivisionsAfterPlacementFormat(prioritizedDivisions, sanctionId, skiYear, formatCode, selectedRound);
-                        }
+                        this.loadDivisionsAfterPlacementFormat(prioritizedDivisions, sanctionId, skiYear, formatCode, selectedRound);
                     } else {
                         $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>No recent divisions available</p></div>');
                     }
@@ -94,17 +82,6 @@
                 EV: selectedEvent
             });
             
-            // Get placement format FIRST for individual events, then load divisions
-            if (selectedEvent && selectedEvent !== 'NONE' && selectedEvent !== 'O') {
-                console.log('[PLACEMENT-DEBUG] Getting placement format first for alphabetical event:', selectedEvent);
-                this.getPlacementFormatForEvent(selectedEvent, () => {
-                    // Callback: Load divisions after placement format is set
-                    this.loadAlphabeticalDivisionsData(params, sanctionId, skiYear, formatCode, selectedRound, selectedEvent);
-                });
-                return;
-            }
-            
-            // For non-specific events, load directly
             return this.loadAlphabeticalDivisionsData(params, sanctionId, skiYear, formatCode, selectedRound, selectedEvent);
         },
         
@@ -271,8 +248,6 @@
             const selectedEvent = $('#eventFilters .filter-btn.active').data('value');
             const selectedDivision = $('#divisionFilters .filter-btn.active').data('value');
             const selectedRound = $('#roundFilters .filter-btn.active[data-filter="round"]').data('value');
-            const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
-            
             if (!selectedEvent || selectedEvent === '0') {
                 $('#leaderboardContent').html('<p class="text-center text-muted">Please select an event to display the leaderboard</p>');
                 return;
@@ -283,10 +258,6 @@
                 DV: selectedDivision,
                 RND: selectedRound
             });
-            
-            if (selectedPlacement) {
-                params.FORCE_PLACEMENT = selectedPlacement;
-            }
             
             if (AppState.currentDisplayMode === 'running-order') {
                 params.GET_RUNNING_ORDER = '1';
@@ -299,15 +270,6 @@
             return this.makeRequest(params, 'Loading leaderboard data...')
                 .done(function(response) {
                     if (response.success && response.htmlContent) {
-                        if (response.placementFormat?.toUpperCase() === 'ROUND') {
-                            $('#leaderboardContent').addClass('round-format');
-                        } else {
-                            $('#leaderboardContent').removeClass('round-format');
-                        }
-                        
-                        if (response.placementFormat) {
-                            TournamentDataLoader.handlePlacementFormatResponse(response.placementFormat);
-                        }
                         
                         $('#leaderboardContent').html(response.htmlContent);
                         
@@ -403,11 +365,6 @@
                 GET_BY_DIVISION: '1'
             });
             
-            const selectedPlacement = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
-            if (selectedPlacement) {
-                params.FORCE_PLACEMENT = selectedPlacement;
-            }
-            
             const request = Utils.createCancellableRequest('GetLeaderboardSP.aspx', params);
             
             $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading by-division view...</p></div>');
@@ -448,58 +405,6 @@
             TournamentInfo.setupInfiniteScroll(sanctionId, skiYear, formatCode, selectedRound);
         },
 
-        getPlacementFormatForEvent: function(eventCode, divisionCode, callback) {
-            // Make a quick API call to get placement format for this specific event+division. this could be better
-            const params = this.buildBaseRequest(null, {
-                EV: eventCode,
-                DV: divisionCode,  // Use specific division if provided
-                RND: '0'    // Use round 0 to get general info
-            });
-
-            $.getJSON('GetLeaderboardSP.aspx', params)
-                .done((response) => {
-                    if (response.success && response.placementFormat) {
-                        this.handlePlacementFormatResponse(response.placementFormat, callback);
-                    } else {
-                        if (callback) callback();
-                    }
-                })
-                .fail((error) => {
-                    if (callback) callback();
-                });
-        },
-
-        handlePlacementFormatResponse: function(placementFormat, callback) {
-            
-            // Don't override if user manually selected a placement format
-            if (window.userSelectedPlacement) {
-                if (callback) callback();
-                return;
-            }
-            
-            // Handle placement format auto-selection immediately
-            const format = placementFormat?.toUpperCase();
-            
-            if (format === 'ROUND') {
-                const roundViewBtn = $('#roundFilters .filter-btn[data-filter="placement"][data-value="ROUND"]');
-                if (roundViewBtn.length > 0 && !roundViewBtn.hasClass('active')) {
-                    $('#roundFilters .filter-btn[data-filter="placement"]').removeClass('active');
-                    roundViewBtn.addClass('active');
-                }
-            } else if (format === 'BEST' || format === 'FIRST') {
-                const divisionsViewBtn = $('#roundFilters .filter-btn[data-filter="placement"][data-value="BEST"]');
-                if (divisionsViewBtn.length > 0 && !divisionsViewBtn.hasClass('active')) {
-                    $('#roundFilters .filter-btn[data-filter="placement"]').removeClass('active');
-                    divisionsViewBtn.addClass('active');
-                }
-            } else {
-            }
-            
-            // Call the callback to continue with loading divisions
-            if (callback) {
-                callback();
-            }
-        },
         
         loadOverallBestOf: function(selectedDivision = null) {
             const divisionParam = selectedDivision || 'All';

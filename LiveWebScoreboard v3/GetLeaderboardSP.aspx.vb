@@ -28,7 +28,6 @@ Public Class GetLeaderboardSP
             Dim sGetMostRecent As String = Request("GET_MOST_RECENT")
             Dim sLoadAllDivisions As String = Request("LOAD_ALL_DIVISIONS")
             Dim sBatchDivisions As String = Request("BATCH_DIVISIONS")
-            Dim sForcePlacement As String = Request("FORCE_PLACEMENT")
             Dim sGetRecentScores As String = Request("GET_RECENT_SCORES")
             Dim sGetRunningOrder As String = Request("GET_RUNNING_ORDER")
             Dim sGetByDivision As String = Request("GET_BY_DIVISION")
@@ -144,7 +143,7 @@ Public Class GetLeaderboardSP
                     Try
 
                         ' Use BuildLeaderboardJson to get the same logic as single division processing
-                        Dim jsonResult As String = BuildLeaderboardJson(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, CShort(CInt(sUseNOPS)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric, sForcePlacement)
+                        Dim jsonResult As String = BuildLeaderboardJson(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, CShort(CInt(sUseNOPS)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
 
                         ' Extract htmlContent and placementFormat from JSON response
                         Dim htmlContent As String = ""
@@ -199,7 +198,7 @@ Public Class GetLeaderboardSP
                 jsonResponse = BuildDivisionInfoJson(sSanctionID, sEventCodePkd)
             Else
                 ' Return leaderboard data
-                jsonResponse = BuildLeaderboardJson(sSanctionID, sYrPkd, sTournName, sEventCodePkd, sDivisionCodePkd, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, CShort(CInt(sUseNOPS)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric, sForcePlacement)
+                jsonResponse = BuildLeaderboardJson(sSanctionID, sYrPkd, sTournName, sEventCodePkd, sDivisionCodePkd, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, CShort(CInt(sUseNOPS)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
             End If
 
         Catch ex As Exception
@@ -257,7 +256,7 @@ Public Class GetLeaderboardSP
         Return serializer.Serialize(info)
     End Function
 
-    Private Function BuildLeaderboardJson(sSanctionID As String, sYrPkd As String, sTournName As String, sEventCodePkd As String, sDivisionCodePkd As String, sRndsPkd As String, sSlalomRounds As Int16, sTrickRounds As Int16, sJumpRounds As Int16, sUseNops As Int16, sUseTeams As Int16, sFormatCode As String, sDisplayMetric As Int16, Optional sForcePlacement As String = "") As String
+    Private Function BuildLeaderboardJson(sSanctionID As String, sYrPkd As String, sTournName As String, sEventCodePkd As String, sDivisionCodePkd As String, sRndsPkd As String, sSlalomRounds As Int16, sTrickRounds As Int16, sJumpRounds As Int16, sUseNops As Int16, sUseTeams As Int16, sFormatCode As String, sDisplayMetric As Int16) As String
         Dim sHtmlContent As String = ""
         Dim sPlcmntFormat As String = ""
 
@@ -272,10 +271,6 @@ Public Class GetLeaderboardSP
         Select Case sEventCodePkd
             Case "S"
                 sPlcmntFormat = ModDataAccessPro.GetPlcmtFormat(sSanctionID, "Slalom")
-                ' Override placement format if forced
-                If Not String.IsNullOrEmpty(sForcePlacement) Then
-                    sPlcmntFormat = sForcePlacement
-                End If
                 ' Use LeaderBoardROUND only if placement format is ROUND (match TLeaderBoardSP logic exactly)
                 If UCase(sPlcmntFormat) = "ROUND" Then
                     If isCollegiate Then
@@ -292,10 +287,6 @@ Public Class GetLeaderboardSP
                 End If
             Case "T"
                 sPlcmntFormat = ModDataAccessPro.GetPlcmtFormat(sSanctionID, "Trick")
-                ' Override placement format if forced
-                If Not String.IsNullOrEmpty(sForcePlacement) Then
-                    sPlcmntFormat = sForcePlacement
-                End If
                 ' Use LeaderBoardROUND only if placement format is ROUND (match TLeaderBoardSP logic exactly)
                 If UCase(sPlcmntFormat) = "ROUND" Then
                     If isCollegiate Then
@@ -312,10 +303,6 @@ Public Class GetLeaderboardSP
                 End If
             Case "J"
                 sPlcmntFormat = ModDataAccessPro.GetPlcmtFormat(sSanctionID, "Jump")
-                ' Override placement format if forced
-                If Not String.IsNullOrEmpty(sForcePlacement) Then
-                    sPlcmntFormat = sForcePlacement
-                End If
                 ' Use LeaderBoardROUND only if placement format is ROUND (match TLeaderBoardSP logic exactly)
                 If UCase(sPlcmntFormat) = "ROUND" Then
                     If isCollegiate Then

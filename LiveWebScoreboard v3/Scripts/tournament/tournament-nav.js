@@ -293,7 +293,7 @@
             this.updateUrlParameters(params);
         },
 
-        updateLeaderboardUrl: function(selectedEvent, selectedDivision, selectedRound, selectedPlacement, selectedBestOf) {
+        updateLeaderboardUrl: function(selectedEvent, selectedDivision, selectedRound, selectedBestOf) {
             // Get existing URL parameters
             const currentUrl = new URL(window.location);
             const params = {};
@@ -324,9 +324,6 @@
             }
             if (selectedRound && selectedRound !== '0') {
                 params.round = selectedRound;
-            }
-            if (selectedPlacement) {
-                params.placement = selectedPlacement;
             }
             if (selectedBestOf) {
                 params.bestof = selectedBestOf;
@@ -385,16 +382,6 @@
                 }
             }
             
-            // Restore placement filter
-            const placementParam = urlParams.get('placement');
-            if (placementParam) {
-                const placementButton = $('#roundFilters .filter-btn[data-filter="placement"][data-value="' + placementParam + '"]');
-                if (placementButton.length > 0) {
-                    $('#roundFilters .filter-btn[data-filter="placement"]').removeClass('active');
-                    placementButton.addClass('active');
-                    hasFiltersToRestore = true;
-                }
-            }
             
             // Restore bestof filter
             const bestofParam = urlParams.get('bestof');

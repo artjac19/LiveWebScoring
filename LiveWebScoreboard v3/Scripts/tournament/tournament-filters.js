@@ -125,28 +125,19 @@
         setupRoundFilters: function(data, selectedEvent) {
             const roundFilters = $('#roundFilters');
             
-            // Hide round filters for collegiate tournaments (NCWL format code)
-            if (TournamentInfo.currentTournamentInfo && TournamentInfo.currentTournamentInfo.formatCode === 'NCWL') {
-                roundFilters.hide();
-                return;
-            } else {
-                roundFilters.show();
-            }
+            // Hide round filters entirely
+            roundFilters.hide();
+            return;
             
-            // Preserve current round and placement format selections
+            // Preserve current round selection
             const currentRoundValue = $('#roundFilters .filter-btn.active[data-filter="round"]').data('value') || '0';
-            const currentPlacementValue = $('#roundFilters .filter-btn.active[data-filter="placement"]').data('value');
             
             roundFilters.empty();
             
             // Always add "All Rounds" option
             roundFilters.append('<button class="filter-btn" data-filter="round" data-value="0">All Rounds</button>');
             
-            // Add placement format override buttons (but not for Overall event, running order mode, or by-division mode)
-            if (selectedEvent !== 'O' && AppState.currentDisplayMode !== 'running-order' && AppState.currentDisplayMode !== 'by-division') {
-                roundFilters.append('<button class="filter-btn" data-filter="placement" data-value="ROUND">Rounds View</button>');
-                roundFilters.append('<button class="filter-btn" data-filter="placement" data-value="BEST">Divisions View</button>');
-            } else if (selectedEvent === 'O') {
+            if (selectedEvent === 'O') {
                 // For Overall events, add "Best of" filter
                 roundFilters.append('<button class="filter-btn" data-filter="bestof" data-value="BESTOF">Best of</button>');
             }
@@ -186,13 +177,6 @@
                 roundFilters.find('[data-filter="round"][data-value="0"]').addClass('active');
             }
             
-            // Restore previous placement selection if it existed
-            if (currentPlacementValue) {
-                const targetPlacementButton = roundFilters.find(`[data-filter="placement"][data-value="${currentPlacementValue}"]`);
-                if (targetPlacementButton.length > 0) {
-                    targetPlacementButton.addClass('active');
-                }
-            }
         },
 
         setupOnWaterDisplay: function(data) {
@@ -231,8 +215,6 @@
                 const $btn = $(this);
                 const eventCode = $btn.data('value');
                 
-                // Reset user placement selection flag when new event is selected
-                window.userSelectedPlacement = false;
                 
                 self.updateEventFilterState($btn, eventCode);
                 self.handleEventFilterSelection(eventCode);
@@ -278,10 +260,6 @@
                 const filterType = $btn.data('filter');
                 const filterValue = $btn.data('value');
                 
-                // Mark that user manually selected placement format
-                if (filterType === 'placement') {
-                    window.userSelectedPlacement = true;
-                }
                 
                 self.updateDivisionRoundFilterState($btn, filterType);
                 TournamentInfo.applyFilterCombination();
@@ -289,18 +267,11 @@
         },
 
         updateDivisionRoundFilterState: function($btn, filterType) {
-            if (filterType === 'placement') {
-                this.handlePlacementFilterUpdate($btn);
-            } else if (filterType === 'bestof') {
+            if (filterType === 'bestof') {
                 this.handleBestOfFilterUpdate($btn);
             } else {
                 this.handleStandardFilterUpdate($btn, filterType);
             }
-        },
-
-        handlePlacementFilterUpdate: function($btn) {
-            $('#roundFilters .filter-btn[data-filter="placement"]').removeClass('active');
-            $btn.addClass('active');
         },
 
         handleBestOfFilterUpdate: function($btn) {
