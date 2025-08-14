@@ -146,6 +146,7 @@
     <Content Include="Content\Site.css" />
     <Content Include="Content\styles.css" />
     <Content Include="default.aspx" />
+    <Content Include="dropdown-menu.js" />
     <Content Include="ErrorPages\Oops.aspx" />
     <Content Include="favicon.ico" />
     <Content Include="GetLeaderboardSP.aspx" />

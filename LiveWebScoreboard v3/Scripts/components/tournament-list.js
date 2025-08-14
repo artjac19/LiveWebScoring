@@ -73,10 +73,10 @@
             const bolds = cell.querySelectorAll('b');
             let nameHtml = '', name = '', date = '', sanction = '', loc = '';
 
-            // Tournament name is in first <a> tag
+            // Tournament name is in first <a> tag - extract text but display as bold without link
             const a = cell.querySelector('a');
             if (a) {
-                nameHtml = a.outerHTML;
+                nameHtml = `<b>${a.textContent.trim()}</b>`;
                 name = a.textContent.trim();
             }
 
