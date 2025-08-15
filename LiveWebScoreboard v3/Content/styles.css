@@ -1010,7 +1010,11 @@ td.date-col {
 
 }
 
-@media (max-width: 500px) {
+@media (max-width: 570px) {
+    .blue-bar {
+        gap: 3px;
+    }
+
     .multi-running-order-container {
         flex-direction: column;
     }
@@ -1019,6 +1023,25 @@ td.date-col {
         flex: 1 1 100%;
         max-width: 100%;
     }
+
+    /* Stack trick passes vertically on small screens */
+    .trick-passes-container {
+        flex-direction: column !important;
+    }
+
+    /* Make slalom, jump, and overall tables horizontally scrollable */
+    .recap-container {
+        overflow-x: auto !important;
+    }
+    
+    table.slalom-table,
+    table.jump-table,
+    table.recap-left-table {
+        width: max-content !important;
+        min-width: 100% !important;
+    }
+
+
 
     .custom-navbar {
         padding: 0.25rem 0.5rem;
