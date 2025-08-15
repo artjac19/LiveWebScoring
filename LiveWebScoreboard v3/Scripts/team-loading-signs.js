@@ -59,13 +59,10 @@
                     
                     // Check if loading sign already exists
                     if ($teamCell.find('.team-loading-sign').length === 0) {
-                        // Create the loading sign video element
-                        const $loadingSign = $('<video>', {
+                        // Create the loading sign image element
+                        const $loadingSign = $('<img>', {
                             class: 'team-loading-sign',
-                            src: 'images/loadingSign.mp4',
-                            autoplay: true,
-                            loop: true,
-                            muted: true,
+                            src: 'images/loadingSign.gif',
                             style: 'width: 20px; height: auto; margin-left: 5px; vertical-align: middle; display: inline-block;'
                         });
                         

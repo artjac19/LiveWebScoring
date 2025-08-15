@@ -2,7 +2,7 @@ Imports System.Data.Common
 Imports System.Data.OleDb
 Imports System.Security.Cryptography.X509Certificates
 
-Module ModDataAccess3
+Public Module ModDataAccess3
     Public Function ScoresXRunOrdHoriz(ByVal SanctionID As String, ByVal YearPkd As String, ByVal TName As String, ByVal selEvent As String, ByVal selDv As String, ByVal selRnd As String, ByVal RndsSlalomOffered As String, ByVal RndsTrickOffered As String, ByVal RndsJumpOffered As String, ByVal UseNOPS As Int16, ByVal UseTeams As Int16, ByVal FormatCode As String, ByVal DisplayMetric As Int16) As String
         Dim sReturn As String = ""
         Dim sMsg As String = ""
@@ -564,7 +564,7 @@ Module ModDataAccess3
         Return sText
     End Function
 
-    Friend Function LoadOnWaterSlalom(ByVal SanctionID As String) As String
+    Public Function LoadOnWaterSlalom(ByVal SanctionID As String) As String
         'AJAX partial page refresh - Automatic refresh based on timer set to 1.75 minutes (est slalom pass at 2 min.)
         'Allow user to set refresh timer from 1.75 to 3 minutes.
         Dim sText As String = ""
@@ -745,7 +745,7 @@ Module ModDataAccess3
         'sText += "</div>"  'End of container - if Finally is hit on successful record don't need this
         Return sText
     End Function
-    Friend Function LoadOnWaterTrick(ByVal SanctionID As String) As String
+    Public Function LoadOnWaterTrick(ByVal SanctionID As String) As String
         Dim sReturn As String = ""
         Dim sSanctionID As String = SanctionID
         Dim SQL As String = ""
@@ -853,7 +853,7 @@ Module ModDataAccess3
         Return sText
 
     End Function
-    Friend Function LoadOnWaterJump(ByVal SanctionID As String) As String
+    Public Function LoadOnWaterJump(ByVal SanctionID As String) As String
         Dim myStringBuilder As New StringBuilder("")
         Dim sText As String = ""
         Dim SQLsb As New StringBuilder("")
@@ -1509,7 +1509,7 @@ Module ModDataAccess3
         Return "Success"
     End Function
 
-    Friend Function GetTournamentList2(ByVal SkiYr As String, Optional ByVal region As String = "") As String
+    Public Function GetTournamentList2(ByVal SkiYr As String, Optional ByVal region As String = "") As String
         Dim sMsg As String = ""
         Dim sErrDetails As String = ""
         Dim sSkiYr As String = Trim(SkiYr)
@@ -1632,7 +1632,7 @@ Module ModDataAccess3
         End If
         Return sHTML.ToString
     End Function
-    Friend Function GetCurrentEvent(ByVal SanctionID As String, ByVal minutes As Int16) As String
+    Public Function GetCurrentEvent(ByVal SanctionID As String, ByVal minutes As Int16) As String
         'Use PRGetMostRecentScores with minutes set to - (negative) number of minutes since performance.  
         'For Tournament.aspx want distinct event in last 30 minutes. Display Event, Div, Round of first record.
         '   if record 2 is different event and within 5 minutes of record 1, display both.  continue until all 3 events or more than 5 minutes
@@ -5181,7 +5181,7 @@ Module ModDataAccess3
 
 
     ' Searches tournaments by keyword in Name or EventLocation
-    Friend Function SearchTournamentsByKeyword(ByVal keyword As String) As String
+    Public Function SearchTournamentsByKeyword(ByVal keyword As String) As String
         Dim sMsg As String = ""
         Dim sErrDetails As String = ""
         Dim SQL As String = ""

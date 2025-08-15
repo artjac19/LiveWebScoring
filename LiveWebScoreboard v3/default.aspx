@@ -1,4 +1,4 @@
-<%@ Page Language="vb" AutoEventWireup="false" CodeBehind="default.aspx.vb" Inherits="LiveWebScoreBoard._default" %>
+<%@ Page Language="vb" AutoEventWireup="false" CodeBehind="Default.aspx.vb" Inherits="LiveWebScoreBoard.Default" %>
 
 <!DOCTYPE html>
 
@@ -60,25 +60,25 @@
                     <span class="resources-text">WSTIMS Resources</span><span class="hamburger-icon">&#9776;</span>
                 </button>
                 <ul class="resources-menu" aria-labelledby="dropdownResources">
-                    <li><a class="resources-item" href="/AppRepo/WaterskiScoringSystem/publish.htm" target="_blank">
+                    <li><a class="resources-item" href="//waterskiresults.com/AppRepo/WaterskiScoringSystem/publish.htm" target="_blank">
                         <i class="resources-icon bi bi-download"></i>WSTIMS For Windows Download
                     </a></li>
-                    <li><a class="resources-item" href="/AppRepo/WscMessageHandler/publish.htm" target="_blank">
+                    <li><a class="resources-item" href="//waterskiresults.com/AppRepo/WscMessageHandler/publish.htm" target="_blank">
                         <i class="resources-icon bi bi-chat-dots"></i>WaterSkiConnect Message Handler
                     </a></li>
-                    <li><a class="resources-item" href="/AppRepo/waterski.sdf" download="waterski.sdf">
+                    <li><a class="resources-item" href="//waterskiresults.com/AppRepo/waterski.sdf" download="waterski.sdf">
                         <i class="resources-icon bi bi-hdd-rack"></i>WSTIMS Database Download
                     </a></li>
                     <li><a class="resources-item" href="https://teamusa-org-migration.s3.amazonaws.com/USA%20Water%20Ski%20&amp;%20Wake%20Sports/Migration/Documents/AWSAScoringTutorial.pdf" target="_blank">
                         <i class="resources-icon bi bi-file-earmark-text"></i>Scoring Tutorial
                     </a></li>
-                    <li><a class="resources-item" href="/Newsletters/" target="_blank">
+                    <li><a class="resources-item" href="//waterskiresults.com/Newsletters/" target="_blank">
                         <i class="resources-icon bi bi-archive"></i>Newsletter Archive
                     </a></li>
-                    <li><a class="resources-item" href="/Newsletters/Volume23/How To Do It 2-24-23.pdf" target="_blank">
+                    <li><a class="resources-item" href="//waterskiresults.com/Newsletters/Volume23/How To Do It 2-24-23.pdf" target="_blank">
                         <i class="resources-icon bi bi-journal-text"></i>How to Index
                     </a></li>
-                    <li><a class="resources-item" href="/ReleaseDocuments/" target="_blank">
+                    <li><a class="resources-item" href="//waterskiresults.com/ReleaseDocuments/" target="_blank">
                         <i class="resources-icon bi bi-folder2-open"></i>Release Documents
                     </a></li>
                     <li><a class="resources-item" href="https://waterskiresults.vids.io/" target="_blank">

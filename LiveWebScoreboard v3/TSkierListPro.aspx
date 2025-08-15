@@ -13,7 +13,7 @@
     <style>
         /* TRecap-style navbar overrides */
         .blue-bar {
-            background: #15274D;
+            background-color: #15274D;
             padding: 10px 20px;
             display: flex;
             align-items: center;
@@ -39,12 +39,24 @@
         /* Center the entry list table */
         #InsertHere {
             text-align: center;
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+
+        .navbar-title {
+            font-size: 0.7rem !important;
+        }
+
+        .navbar-title span {
+            font-size: 0.7rem !important;
         }
 
         /* Mobile responsive styling */
-        @media (max-width: 1000px) {
-            .navbar-title {
-                font-size: 0.9rem !important;
+        @media (max-width: 768px) {
+            body form div.blue-bar div.navbar-title,
+            body form div.blue-bar div.navbar-title span,
+            body form div.blue-bar div.navbar-title span h3 {
+                font-size: 0.7rem !important;
             }
         }
     </style>
@@ -63,9 +75,9 @@
             <a href="javascript:void(0)" onclick="window.location.href='default.aspx'" title="Go to Home" style="text-decoration: none;">
                 <img src="images/skigirl.svg" alt="Skier Logo" class="logo" />
             </a>
-            <div class="navbar-title" style="flex: 1; color: white; font-size: 1.2rem; font-weight: bold; display: flex; gap: 1rem; align-items: center; justify-content: center;">
+            <div class="navbar-title" style="flex: 1; color: white; font-weight: bold; display: flex; gap: 1rem; align-items: center; justify-content: center;">
                 <span>Entry List</span>
-                <span style="font-size: 1rem; font-weight: normal;" id="TName" runat="Server"></span>
+                <span style="font-size: .7rem; font-weight: normal;" id="TName" runat="Server"></span>
             </div>
             <asp:Button ID="Btn_Back" runat="server" Text="Back To Scores" OnClientClick="history.back(); return false;"
                 style="background: transparent; color: white; border: 2px solid white; padding: 8px 16px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: all 0.2s;"

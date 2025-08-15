@@ -11,7 +11,7 @@ Option Strict On
 Option Explicit On
 
 
-Partial Public Class _default
+Partial Public Class [Default]
 
     '''<summary>
     '''form1 control.
@@ -30,6 +30,15 @@ Partial Public Class _default
     '''To modify move field declaration from designer file to code-behind file.
     '''</remarks>
     Protected WithEvents TB_SanctionID As Global.System.Web.UI.WebControls.TextBox
+
+    '''<summary>
+    '''Btn_SanctionID control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_SanctionID As Global.System.Web.UI.WebControls.Button
 
     '''<summary>
     '''Btn_Recent20 control.

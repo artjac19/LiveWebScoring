@@ -457,6 +457,9 @@ td.date-col {
 .name-col {
     width: 40%;
 }
+    .name-col.td {
+        color: #444 !important;
+    }
 
 .loc-col {
     width: 40%;
@@ -477,7 +480,7 @@ td.date-col {
 
 .tournament-name {
     font-weight: bold;
-    color: #000;
+    color: #444;
     margin: 0.9em 1.3em 1em 1.3em;
     text-align: center;
 }
@@ -572,7 +575,7 @@ td.date-col {
     gap: 10px;
     display: flex;
     align-items: center;
-    color: #333;
+    color: #444;
     line-height: 1.4;
     font-size: 1.1rem;
     margin: 0 0 0 20px;
@@ -754,7 +757,7 @@ td.date-col {
     }
 
     .mobile-tournament-title {
-        color: #000;
+        color: #444;
         font-weight: 600;
         font-size: 1.1rem;
         flex: 1;
@@ -852,12 +855,10 @@ td.date-col {
 
     /* Reduce margins for mobile */
     .search-input {
-        margin-left: 0.5rem;
+        margin-left: 0.2rem;
     }
     
     .unofficial-badge {
-        margin-left: 0.3rem;
-        margin-right: 0.3rem;
         font-size: 0.8rem;
         padding: 0 0.5rem;
         height: 36px;

@@ -2,7 +2,7 @@
 Imports System.Data.Common
 Imports System.Data.OleDb
 Imports System.Security.Policy
-Module ModDataAccessTeams
+Public Module ModDataAccessTeams
 
     Public Function SQLstatements()
 

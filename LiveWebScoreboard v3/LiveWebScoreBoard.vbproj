@@ -145,8 +145,7 @@
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\Site.css" />
     <Content Include="Content\styles.css" />
-    <Content Include="default.aspx" />
-    <Content Include="dropdown-menu.js" />
+    <Content Include="Default.aspx" />
     <Content Include="ErrorPages\Oops.aspx" />
     <Content Include="favicon.ico" />
     <Content Include="GetLeaderboardSP.aspx" />
@@ -163,6 +162,7 @@
     <Content Include="images\lbolt.jpg" />
     <Content Include="images\loadingSign.mp4" />
     <Content Include="images\R.png" />
+    <Content Include="images\skigirl.svg" />
     <Content Include="images\status0a.jpg" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
@@ -193,11 +193,23 @@
     <Content Include="Content\bootstrap-grid.min.css.map" />
     <Content Include="Content\bootstrap-grid.css.map" />
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
+    <Content Include="Scripts\components\dropdown-menu.js" />
+    <Content Include="Scripts\components\tournament-list.js" />
+    <Content Include="Scripts\core\app-state.js" />
+    <Content Include="Scripts\core\config.js" />
+    <Content Include="Scripts\core\utils.js" />
+    <Content Include="Scripts\default.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />
     <Content Include="Scripts\jquery-3.4.1.min.js" />
     <Content Include="Scripts\jquery-3.4.1.slim.js" />
     <Content Include="Scripts\jquery-3.4.1.slim.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\team-loading-signs.js" />
+    <Content Include="Scripts\tournament\data-loader.js" />
+    <Content Include="Scripts\tournament\tournament-filters.js" />
+    <Content Include="Scripts\tournament\tournament-html.js" />
+    <Content Include="Scripts\tournament\tournament-nav.js" />
+    <Content Include="Scripts\tournament\tournament-ui.js" />
     <Content Include="Scripts\WebForms\DetailsView.js" />
     <Content Include="Scripts\WebForms\Focus.js" />
     <Content Include="Scripts\WebForms\GridView.js" />
@@ -246,11 +258,11 @@
       <DependentUpon>Contact.aspx</DependentUpon>
       <SubType>ASPXCodebehind</SubType>
     </Compile>
-    <Compile Include="default.aspx.designer.vb">
-      <DependentUpon>default.aspx</DependentUpon>
+    <Compile Include="Default.aspx.designer.vb">
+      <DependentUpon>Default.aspx</DependentUpon>
     </Compile>
-    <Compile Include="default.aspx.vb">
-      <DependentUpon>default.aspx</DependentUpon>
+    <Compile Include="Default.aspx.vb">
+      <DependentUpon>Default.aspx</DependentUpon>
       <SubType>ASPXCodebehind</SubType>
     </Compile>
     <Compile Include="ErrorPages\Oops.aspx.designer.vb">
@@ -427,6 +439,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

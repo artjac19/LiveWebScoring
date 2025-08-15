@@ -1,7 +1,7 @@
 ﻿Imports System.Data.Common
 Imports System.Data.OleDb
 
-Module ModDataAccess
+Public Module ModDataAccess
     Friend Function LoadOnWaterSlalom(ByVal SanctionID As String) As String
         'AJAX partial page refresh - Automatic refresh based on timer set to 1.75 minutes (est slalom pass at 2 min.)
         'Allow user to set refresh timer from 1.75 to 3 minutes.
@@ -1135,7 +1135,7 @@ Module ModDataAccess
         Return arrOfficials
     End Function
 
-    Friend Function GetTournamentSpecs(ByVal SanctionID As String) As Array
+    Public Function GetTournamentSpecs(ByVal SanctionID As String) As Array
         Dim sMsg As String = ""
         Dim sErrDetails As String = ""
         Dim SQL As String = ""

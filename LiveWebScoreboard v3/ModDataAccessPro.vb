@@ -1,6 +1,6 @@
 ﻿Imports System.Security.Policy
 
-Module ModDataAccessPro
+Public Module ModDataAccessPro
     Friend Function LoadProEventList(ByVal sanctionID As String, ByRef DDL_Event_Div As DropDownList) As String
         Dim sMsg As String = ""
         Dim sErrDetails As String = ""
@@ -676,7 +676,7 @@ Module ModDataAccessPro
         sReturnArray(3) = sMultiJ
         Return sReturnArray
     End Function
-    Friend Function GetPlcmtFormat(ByVal SanctionID As String, EventPkd As String) As String
+    Public Function GetPlcmtFormat(ByVal SanctionID As String, EventPkd As String) As String
         Dim sMsg As String = ""
         Dim sErrDetails As String = ""
         Dim sReturn As String = ""

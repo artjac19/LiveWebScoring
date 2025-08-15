@@ -1,1 +1,1 @@
-<%@ Page Language="vb" AutoEventWireup="false" CodeBehind="GetLeaderboardSP.aspx.vb" Inherits="LiveWebScoreBoard.GetLeaderboardSP" ContentType="application/json" %>
+<%@ Page Language="vb" AutoEventWireup="false" CodeBehind="GetLeaderboardSP.aspx.vb" Inherits="LiveWebScoreBoard.GetLeaderboardSP" %>

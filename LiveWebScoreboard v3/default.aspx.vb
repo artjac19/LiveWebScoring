@@ -2,10 +2,8 @@ Imports System.Web.UI.HtmlControls
 Imports System.Web.UI.WebControls
 Imports System.Text.RegularExpressions
 
-Public Class _default
+Public Class [Default]
     Inherits System.Web.UI.Page
-
-    Protected WithEvents Btn_SanctionID As Global.System.Web.UI.WebControls.Button
 
     Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         If Not IsPostBack Then
@@ -74,7 +72,7 @@ Public Class _default
             SetActiveRegionButton(region)
         End If
 
-        Dim sMsg As String = ModDataAccess3.GetTournamentList2(sSkiYr, region)
+        Dim sMsg As String = LiveWebScoreBoard.ModDataAccess3.GetTournamentList2(sSkiYr, region)
 
         If sMsg.Contains("Error") Then
             lbl_Errors.Text = sMsg
@@ -145,7 +143,7 @@ Public Class _default
         Dim sInput As String = TB_SanctionID.Text.Trim()
         If Regex.IsMatch(sInput, "^[0-9][0-9][CEMSWUX][0-9][0-9][0-9]$") Then
             ' Test our new function when a valid sanction ID is entered
-            Dim recentDivs = ModDataAccess3.GetDvMostRecent(sInput, "S")
+            Dim recentDivs = LiveWebScoreBoard.ModDataAccess3.GetDvMostRecent(sInput, "S")
 
             ' Sanction number - redirect as before
             Response.Redirect("Tournament.aspx?SN=" & sInput & "&FM=1&SY=0")
@@ -153,7 +151,7 @@ Public Class _default
         End If
 
         ' Otherwise treat as keyword search
-        Dim sResultsHtml As String = ModDataAccess3.SearchTournamentsByKeyword(sInput)
+        Dim sResultsHtml As String = LiveWebScoreBoard.ModDataAccess3.SearchTournamentsByKeyword(sInput)
         If sResultsHtml.Contains("No tournaments found") Then
             Lbl_TournamentErrors.Text = "No tournaments found matching your search."
             TList.InnerHtml = ""
