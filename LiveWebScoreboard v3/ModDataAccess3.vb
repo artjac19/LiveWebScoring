@@ -635,7 +635,6 @@ Public Module ModDataAccess3
 
                             sSanctionID = CStr(MyDataReader.Item("SanctionID"))
                             sSkierName = CStr(MyDataReader.Item("SkierName"))
-                            sSkierName = Replace(sSkierName, ",", ",,")
                             sSkierName = Replace(sSkierName, "'", "''")
                             sMemberID = CStr(MyDataReader.Item("MemberID"))
                             sDV = CStr(MyDataReader.Item("AgeGroup"))
@@ -673,32 +672,29 @@ Public Module ModDataAccess3
 
                             'Have data - create display
                             If sTmpMemberID = "" Then 'do this once on first record
-                                sText = "    <div Class=""container"">"
-                                sText += "<div Class=""row"">"
-                                sText += "    <div Class=""col-12 bg-primary text-white text-center"">"
-                                sText += "Most Recent <span class=""bg-danger text-white"">UNOFFICIAL</span> SLALOM performance on " & sInsertDate
-                                sText += "   </div>"
-                                sText += " </div>"
+                                ' Set header text for onWaterHeaderText in JavaScript
+                                sText = "<script>document.getElementById('onWaterHeaderText').textContent = 'Most recent slalom performance on " & sInsertDate & "';</script>"
+                                sText += "    <div Class=""container"">"
 
                                 sTmpMemberID = sMemberID
                                 sTmpRound = sRound
                                 sText += "<div Class=""row"">"
-                                sText += "    <div Class=""col-12 bg-info text-black "">"
+                                sText += "    <div Class=""col-12 text-black "">"
                                 sText += " <b>" & sSkierName & "</b> &nbsp; " & sDV & " &nbsp; Round: " & sRound
                                 sText += "   </div>"
                                 sText += " </div>"
                             End If
 
                             If sTmpMemberID = sMemberID And sTmpRound = sRound Then
-                                sText += "<div Class=""row"">"
-                                sText += "<div Class=""col-1 " & sBackColor & """>"
-                                sText += "Pass:&nbsp;" & sPass & "&nbsp;"
+                                sText += "<div Class=""row mb-1"">"
+                                sText += "<div Class=""col-2 " & sBackColor & """>"
+                                sText += "Pass: " & sPass & " "
                                 sText += "</div>"
                                 sText += "<div Class=""col-2"">"
-                                sText += "&nbsp;&nbsp;" & sScore & "&nbsp;"
+                                sText += sScore
                                 sText += "</div>"
-                                sText += "<div Class=""col-9"">"
-                                sText += sNote & "  " & sInsertTime
+                                sText += "<div Class=""col-8"">"
+                                sText += sNote & " " & sInsertTime
                                 sText += "</div>"
                                 sText += "        </div>"
                             Else
@@ -824,11 +820,21 @@ Public Module ModDataAccess3
                             If sTmpMemberID = "" Then
                                 sTmpMemberID = sMemberID
                                 sTmpRound = sRound
-                                sTSB.Append("<Table class=""table"">")
-                                sTSB.Append("<thead><tr class=""bg-primary text-white""><td colspan=""5"">MOST RECENT <span class=""bg-danger text-white"">UNOFFICIAL</span> Trick Performance on " & sInsertDate & "</td></tr>")
+                                ' Set header text for onWaterHeaderText in JavaScript  
+                                sTSB.Append("<script>document.getElementById('onWaterHeaderText').textContent = 'Most recent trick performance on " & sInsertDate & "';</script>")
+                                sTSB.Append("    <div Class=""container"">")
+                                sTSB.Append("<div Class=""row"">")
+                                sTSB.Append("    <div Class=""col-12 text-black "">")
+                                sTSB.Append(" <b>" & sSkierName & "</b> &nbsp; " & sAgeGroup & " &nbsp; Round: " & sRound)
+                                sTSB.Append("   </div>")
+                                sTSB.Append(" </div>")
                             End If
                             If sTmpMemberID = sMemberID And sTmpRound = sRound Then
-                                sTSB.Append("<tr class=""bg-light text-primary""><th widtn=""25%""><b>" & sSkierName & "</b></th><th widtn=""15%"">DV: " & sAgeGroup & "</th><th widtn=""15%"">Rnd: " & sRound & "</th><th>" & sEventScoreDesc & " @ " & sInsertTime & "</th></tr></thead>")
+                                sTSB.Append("<div Class=""row mb-1"">")
+                                sTSB.Append("<div Class=""col-8"">")
+                                sTSB.Append(sEventScoreDesc & " " & sInsertTime)
+                                sTSB.Append("</div>")
+                                sTSB.Append("        </div>")
                                 '                           sTSB.Append("<tr><td><td>&nbsp;</td>" & sEventScore & "&nbsp;</td></tr>")
                             Else
                                 Exit Do
@@ -849,7 +855,7 @@ Public Module ModDataAccess3
             Return sMsg
             Exit Function
         End If
-        sText = sTSB.ToString() & "</table>"
+        sText = sTSB.ToString() & "</div>"
         Return sText
 
     End Function
@@ -976,33 +982,30 @@ Public Module ModDataAccess3
                             End If
                             'Have data
                             If sTmpMemberID = "" Then  'first record - build header, display name
-                                myStringBuilder.Append(" <div Class=""container"">")
-                                myStringBuilder.Append(" <div Class=""row"">")
-                                myStringBuilder.Append(" <div Class=""col-12 bg-primary text-white text-center"">")
-                                myStringBuilder.Append("Most Recent <span class=""bg-danger text-white"">UNOFFICIAL</span> JUMP performance " & sInsertDate)
-                                myStringBuilder.Append("   </div>")
-                                myStringBuilder.Append(" </div>")
+                                ' Set header text for onWaterHeaderText in JavaScript
+                                myStringBuilder.Append("<script>document.getElementById('onWaterHeaderText').textContent = 'Most recent jump performance on " & sInsertDate & "';</script>")
+                                myStringBuilder.Append("    <div Class=""container"">")
                                 sTmpRound = sRound
                                 sTmpMemberID = sMemberID
                                 myStringBuilder.Append("<div Class=""row"">")
-                                myStringBuilder.Append("<div Class=""col-12 bg-info text-black ""><b>")
-                                myStringBuilder.Append(sSkierName & "</b> &nbsp; " & sDV & " &nbsp; Round: " & sRound)
+                                myStringBuilder.Append("    <div Class=""col-12 text-black "">")
+                                myStringBuilder.Append(" <b>" & sSkierName & "</b> &nbsp; " & sDV & " &nbsp; Round: " & sRound)
                                 myStringBuilder.Append("   </div>")
                                 myStringBuilder.Append(" </div>")
                             End If
                             If sTmpMemberID = sMemberID And sTmpRound = sRound Then
-                                myStringBuilder.Append("<div Class=""row"">")
-                                myStringBuilder.Append("<div Class=""col-1 " & sBackColor & """>")
-                                myStringBuilder.Append("Pass:&nbsp;" & sPass & "&nbsp;")
+                                myStringBuilder.Append("<div Class=""row mb-1"">")
+                                myStringBuilder.Append("<div Class=""col-2 " & sBackColor & """>")
+                                myStringBuilder.Append("Pass: " & sPass & " ")
                                 myStringBuilder.Append("</div>")
                                 myStringBuilder.Append("<div Class=""col-2"">")
-                                myStringBuilder.Append("&nbsp;" & sResults & "&nbsp;")
+                                myStringBuilder.Append(sResults)
                                 myStringBuilder.Append("</div>")
                                 myStringBuilder.Append("<div Class=""col-2"">")
-                                myStringBuilder.Append("&nbsp;" & sScoreFeet & "F&nbsp;" & sScoreMeters & "M")
+                                myStringBuilder.Append(sScoreFeet & "F " & sScoreMeters & "M")
                                 myStringBuilder.Append("</div>")
-                                myStringBuilder.Append("<div Class=""col-7"">")
-                                myStringBuilder.Append(sNote & "  " & sInsertTime)
+                                myStringBuilder.Append("<div Class=""col-6"">")
+                                myStringBuilder.Append(sNote & " " & sInsertTime)
                                 myStringBuilder.Append("</div>")
                                 myStringBuilder.Append(" </div>")
                             Else  'New skier don't display
@@ -2033,7 +2036,6 @@ Public Module ModDataAccess3
 
     Public Function LeaderBoardBestRndLeftSP(ByVal SanctionID As String, ByVal SkiYr As String, ByVal TName As String, ByVal selEvent As String, ByVal selDv As String, ByVal selRnd As String, ByVal RndsSlalomOffered As String, ByVal RndsTrickOffered As String, ByVal RndsJumpOffered As String, ByVal UseNOPS As Int16, ByVal UseTeams As Int16, ByVal selFormat As String, ByVal DisplayMetric As Int16) As String
         'This function is run for each event selected based on code in TLeaderBoard_Load and Btn_Update
-        System.Diagnostics.Debug.WriteLine("LeaderBoardBestRndLeftSP started for " & selEvent & "-" & selDv)
         Dim sReturn As String = ""
         Dim sMsg As String = ""
         Dim sErrDetails As String = ""
@@ -5365,13 +5367,10 @@ Public Module ModDataAccess3
     End Function
 
     Public Function GetRecentScores(ByVal sanctionId As String, Optional ByVal maxScores As Integer = 20, Optional ByVal offsetRows As Integer = 0) As List(Of Object)
-        ' Get recent scores using custom SQL query with OFFSET/FETCH pagination
-        ' Returns up to maxScores recent scores starting from offsetRows
+        ' Call stored procedure PrGetMostRecentScores
         Dim recentScores As New List(Of Object)
-        Dim sMsg As String = ""
-        Dim sErrDetails As String = ""
-
         Dim sConn As String = ""
+
         Try
             If ConfigurationManager.ConnectionStrings("S_UseLocal_Scoreboard").ConnectionString = 0 Then
                 sConn = ConfigurationManager.ConnectionStrings("LWS_Prod").ConnectionString
@@ -5382,95 +5381,32 @@ Public Module ModDataAccess3
             Return recentScores
         End Try
 
-        Dim sqlQuery As String = "
-            SELECT TR.SkierName, TR.SanctionId, TR.MemberId, TR.SkiYearAge, TR.AgeGroup, TR.AgeGroup as Div, TR.Gender, TR.City, TR.State, TR.Federation
-                , ER.Event, COALESCE(SS.EventClass, ER.EventClass) as EventClass, ER.EventGroup, ER.TeamCode, COALESCE(ER.ReadyForPlcmt, 'N') as ReadyForPlcmt
-                , ER.RankingRating, ER.RankingScore
-                , SS.Round, COALESCE(SS.Status, 'TBD') AS Status, SS.NopsScore
-                , TRIM(CAST(SS.FinalPassScore AS CHAR)) + ' @ ' + TRIM(CAST(SS.FinalSpeedMph AS CHAR)) + 'mph ' + TRIM(SS.FinalLenOff) 
-                    + ' (' + TRIM(CAST(SS.FinalSpeedKph AS CHAR)) + 'kph ' + TRIM(SS.FinalLen) + 'm) ' 
-                    + CAST(SS.Score AS CHAR)+ ' Buoys' AS EventScoreDesc
-                , SS.InsertDate
-            FROM TourReg AS TR 
-            INNER JOIN EventReg AS ER ON ER.MemberId = TR.MemberId AND ER.SanctionId = TR.SanctionId AND ER.AgeGroup = TR.AgeGroup AND ER.Event = 'Slalom' 
-            INNER JOIN SlalomScore AS SS ON SS.MemberId = TR.MemberId AND SS.SanctionId = TR.SanctionId AND SS.AgeGroup = TR.AgeGroup
-            WHERE TR.SanctionId = ?
-            
-            UNION
-            
-            SELECT TR.SkierName, TR.SanctionId, TR.MemberId, TR.SkiYearAge, TR.AgeGroup, TR.AgeGroup as Div, TR.Gender, TR.City, TR.State, TR.Federation
-                , ER.Event, COALESCE(SS.EventClass, ER.EventClass) as EventClass, ER.EventGroup, ER.TeamCode, COALESCE(ER.ReadyForPlcmt, 'N') as ReadyForPlcmt
-                , ER.RankingRating, ER.RankingScore
-                , SS.Round, COALESCE(SS.Status, 'TBD') AS Status, SS.NopsScore
-                , TRIM(CAST(SS.Score AS CHAR)) + ' POINTS (P1:' + TRIM(CAST(SS.ScorePass1 AS CHAR)) + ' P2:' + TRIM(CAST(SS.ScorePass2 AS CHAR)) + ')' AS EventScoreDesc
-                , SS.InsertDate
-            FROM TourReg AS TR 
-            INNER JOIN EventReg AS ER ON ER.MemberId = TR.MemberId AND ER.SanctionId = TR.SanctionId AND ER.AgeGroup = TR.AgeGroup AND ER.Event = 'Trick' 
-            INNER JOIN TrickScore AS SS ON SS.MemberId = TR.MemberId AND SS.SanctionId = TR.SanctionId AND SS.AgeGroup = TR.AgeGroup
-            WHERE TR.SanctionId = ?
-            
-            UNION
-            
-            SELECT TR.SkierName, TR.SanctionId, TR.MemberId, TR.SkiYearAge, TR.AgeGroup, TR.AgeGroup as Div, TR.Gender, TR.City, TR.State, TR.Federation
-                , ER.Event, COALESCE(SS.EventClass, ER.EventClass) as EventClass, ER.EventGroup, ER.TeamCode, COALESCE(ER.ReadyForPlcmt, 'N') as ReadyForPlcmt
-                , ER.RankingRating, ER.RankingScore
-                , SS.Round, COALESCE(SS.Status, 'TBD') AS Status, SS.NopsScore
-                , TRIM(CAST(ROUND(SS.ScoreFeet, 0) AS CHAR)) + 'FT (' + TRIM(CAST(ROUND(SS.ScoreMeters, 1) AS CHAR)) + 'M)' AS EventScoreDesc
-                , SS.InsertDate
-            FROM TourReg AS TR 
-            INNER JOIN EventReg AS ER ON ER.MemberId = TR.MemberId AND ER.SanctionId = TR.SanctionId AND ER.AgeGroup = TR.AgeGroup AND ER.Event = 'Jump' 
-            INNER JOIN JumpScore AS SS ON SS.MemberId = TR.MemberId AND SS.SanctionId = TR.SanctionId AND SS.AgeGroup = TR.AgeGroup
-            WHERE TR.SanctionId = ?
-            
-            ORDER BY InsertDate DESC
-            OFFSET ? ROWS
-            FETCH NEXT ? ROWS ONLY"
-
         Using connection As New OleDb.OleDbConnection(sConn)
-            Try
-                Using command As New OleDb.OleDbCommand()
-                    command.Connection = connection
-                    command.CommandType = CommandType.Text
-                    command.CommandText = sqlQuery
+            Using command As New OleDb.OleDbCommand("EXEC LiveWebScoreboard.dbo.PrGetMostRecentScores @InSanctionId = ?, @InLastMinuteCheck = ?", connection)
+                command.Parameters.Add("@InSanctionId", OleDb.OleDbType.VarChar).Value = sanctionId
+                command.Parameters.Add("@InLastMinuteCheck", OleDb.OleDbType.Integer).Value = 0
 
-                    ' Add parameters (3 for SanctionId in each UNION, 1 for OFFSET, 1 for FETCH)
-                    command.Parameters.Add("@SanctionId1", OleDb.OleDbType.VarChar, 6).Value = sanctionId
-                    command.Parameters.Add("@SanctionId2", OleDb.OleDbType.VarChar, 6).Value = sanctionId
-                    command.Parameters.Add("@SanctionId3", OleDb.OleDbType.VarChar, 6).Value = sanctionId
-                    command.Parameters.Add("@OffsetRows", OleDb.OleDbType.Integer).Value = offsetRows
-                    command.Parameters.Add("@MaxScores", OleDb.OleDbType.Integer).Value = maxScores
-
+                Try
                     connection.Open()
-
                     Using reader As OleDb.OleDbDataReader = command.ExecuteReader()
-                        Dim scoreCount As Integer = 0
-
                         While reader.Read()
-                            scoreCount += 1
-
-                            Dim score As New With {
-                                .skierName = If(IsDBNull(reader("SkierName")), "", reader("SkierName").ToString()),
-                                .sanctionId = If(IsDBNull(reader("SanctionId")), "", reader("SanctionId").ToString()),
-                                .memberId = If(IsDBNull(reader("MemberId")), "", reader("MemberId").ToString()),
-                                .division = If(IsDBNull(reader("Div")), "", reader("Div").ToString()),
-                                .event = If(IsDBNull(reader("Event")), "", reader("Event").ToString()),
-                                .round = If(IsDBNull(reader("Round")), 0, Convert.ToInt32(reader("Round"))),
-                                .status = If(IsDBNull(reader("Status")), "TBD", reader("Status").ToString()),
-                                .eventScoreDesc = If(IsDBNull(reader("EventScoreDesc")), "", reader("EventScoreDesc").ToString()),
-                                .nopsScore = If(IsDBNull(reader("NopsScore")), 0.0, Convert.ToDouble(reader("NopsScore"))),
-                                .insertDate = If(IsDBNull(reader("InsertDate")), DateTime.MinValue, Convert.ToDateTime(reader("InsertDate"))),
-                                .city = If(IsDBNull(reader("City")), "", reader("City").ToString()),
-                                .state = If(IsDBNull(reader("State")), "", reader("State").ToString()),
-                                .eventClass = If(IsDBNull(reader("EventClass")), "", reader("EventClass").ToString()),
-                                .readyForPlcmt = If(IsDBNull(reader("ReadyForPlcmt")), "N", reader("ReadyForPlcmt").ToString())
-                            }
-
-                            recentScores.Add(score)
+                            ' Build result object as Dictionary for JSON serialization
+                            Dim item As New Dictionary(Of String, Object)
+                            item("event") = If(IsDBNull(reader("Event")), "", reader("Event").ToString())
+                            item("skierName") = If(IsDBNull(reader("SkierName")), "", reader("SkierName").ToString())
+                            item("insertDate") = If(IsDBNull(reader("InsertDate")), DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"), Convert.ToDateTime(reader("InsertDate")).ToString("yyyy-MM-ddTHH:mm:ss"))
+                            item("division") = If(IsDBNull(reader("Div")), "", reader("Div").ToString())
+                            item("round") = If(IsDBNull(reader("Round")), 1, Convert.ToInt32(reader("Round")))
+                            item("sanctionId") = If(IsDBNull(reader("SanctionId")), "", reader("SanctionId").ToString())
+                            item("memberId") = If(IsDBNull(reader("MemberId")), "", reader("MemberId").ToString())
+                            item("eventScoreDesc") = If(IsDBNull(reader("EventScoreDesc")), "", reader("EventScoreDesc").ToString())
+                            recentScores.Add(item)
                         End While
                     End Using
-                End Using
-            Catch ex As Exception
-            End Try
+                Catch ex As Exception
+                    ' Return empty list on error
+                End Try
+            End Using
         End Using
 
         Return recentScores

@@ -173,63 +173,30 @@
                 }
                 return Promise.reject('Invalid tournament ID');
             }
-            
-            if (!isInitialLoad && TournamentInfo.isLoadingRecentScores) {
-                return Promise.resolve();
-            }
-            
-            if (!isInitialLoad) {
-                TournamentInfo.isLoadingRecentScores = true;
-            }
-            
+
             const params = this.buildBaseRequest(null, {
-                GET_RECENT_SCORES: '1',
-                OFFSET: offset
+                GET_RECENT_SCORES: '1'
             });
-            
-            const loadingMessage = isInitialLoad ? 'Loading recent scores...' : null;
-            const requestPromise = isInitialLoad 
-                ? this.makeRequest(params, loadingMessage)
-                : $.getJSON('GetLeaderboardSP.aspx', params);
-            
+
+            const loadingMessage = isInitialLoad ? 'Loading most recent scores...' : null;
+            const requestPromise = this.makeRequest(params, loadingMessage);
+
             return requestPromise
                 .done((response) => {
-                    if (!isInitialLoad) {
-                        TournamentInfo.isLoadingRecentScores = false;
-                    }
-                    
                     if (response.success && response.recentScores && response.recentScores.length > 0) {
                         if (isInitialLoad) {
                             TournamentInfo.displayRecentScores(response.recentScores);
-                        } else {
-                            TournamentInfo.allRecentScores.push(...response.recentScores);
-                            TournamentInfo.renderRecentScoresTable();
-                            TournamentInfo.observeLastRecentScoreRow();
                         }
                     } else {
                         if (isInitialLoad) {
-                            TournamentInfo.checkForEmptyContent();
-                        } else {
-                            if (TournamentInfo.recentScoresObserver) {
-                                TournamentInfo.recentScoresObserver.disconnect();
-                                TournamentInfo.recentScoresObserver = null;
-                            }
+                            $('#leaderboardContent').html('<div class="text-center p-4 text-muted"><p>No recent scores available</p></div>');
                         }
                     }
                 })
-                .fail((error) => {
-                    if (!isInitialLoad) {
-                        TournamentInfo.isLoadingRecentScores = false;
-                    }
-                    
-                    const errorMsg = isInitialLoad 
-                        ? '<div><p>Error loading recent scores</p></div>'
-                        : 'Error loading more recent scores';
-                        
+                .fail((xhr, status, error) => {
+                    const errorMessage = this.getErrorMessage(xhr, status, error);
                     if (isInitialLoad) {
-                        $('#leaderboardContent').html(errorMsg);
-                    } else {
-                        console.error(errorMsg, error);
+                        $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading recent scores: ' + errorMessage + '</p></div>');
                     }
                 });
         },
@@ -240,8 +207,8 @@
         },
         
         loadMoreRecentScores: function() {
-            const offset = TournamentInfo.allRecentScores?.length || 0;
-            return this.loadRecentScoresData(offset, false);
+            // No more batching - this will be replaced with stored procedure call
+            return Promise.resolve();
         },
         
         updateLeaderboard: function() {

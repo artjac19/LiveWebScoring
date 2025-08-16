@@ -219,7 +219,7 @@
         },
 
         loadMoreRecentScores: function() {
-            return TournamentDataLoader.loadMoreRecentScores();
+            return Promise.resolve();
         },
 
         getEventName: function(eventCode) {

@@ -29,7 +29,7 @@
                 '<button class="tnav-btn" data-view="entry-list">Entry List</button>' +
                 '<button class="tnav-btn" data-view="reports">Reports</button>' +
                 '<button class="tnav-btn" data-view="legacy-view">Legacy View</button>' +
-                '<button class="tnav-btn" data-view="home">Home</button>' +
+                '<button class="tnav-btn" data-view="home">Tournament List</button>' +
                 '<button class="tnav-btn details-btn" id="detailsToggleBtn">Details</button>' +
                 '</div>';
             

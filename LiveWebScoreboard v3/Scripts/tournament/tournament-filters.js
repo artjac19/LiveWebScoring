@@ -180,9 +180,7 @@
         },
 
         setupOnWaterDisplay: function(data) {
-            if (data.onWaterData && data.onWaterData.activeEvent && data.onWaterData.activeEvent.trim() !== '') {
-                $('#currentEventText').text('Current Event: ' + data.onWaterData.activeEvent);
-                
+            if (data.onWaterData && (data.onWaterData.slalomOnWater || data.onWaterData.trickOnWater || data.onWaterData.jumpOnWater)) {
                 let onWaterContent = '';
                 if (data.onWaterData.slalomOnWater) onWaterContent += '<div class="mb-2">' + data.onWaterData.slalomOnWater + '</div>';
                 if (data.onWaterData.trickOnWater) onWaterContent += '<div class="mb-2">' + data.onWaterData.trickOnWater + '</div>';
@@ -225,6 +223,13 @@
         updateEventFilterState: function($btn, eventCode) {
             $('#eventFilters .filter-btn').removeClass('active');
             $btn.addClass('active');
+            
+            // Hide divisions filter when "On the water" (MIXED) is selected
+            if (eventCode === 'MIXED') {
+                $('#divisionFilters').hide();
+            } else {
+                $('#divisionFilters').show();
+            }
         },
 
         handleEventFilterSelection: function(eventCode) {

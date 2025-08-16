@@ -457,9 +457,6 @@ td.date-col {
 .name-col {
     width: 40%;
 }
-    .name-col.td {
-        color: #444 !important;
-    }
 
 .loc-col {
     width: 40%;
@@ -480,7 +477,7 @@ td.date-col {
 
 .tournament-name {
     font-weight: bold;
-    color: #444;
+    color: #6c757d;
     margin: 0.9em 1.3em 1em 1.3em;
     text-align: center;
 }
@@ -535,11 +532,42 @@ td.date-col {
     margin-bottom: 1.5rem;
 }
 
+.on-water-table-wrapper {
+    border: 2px solid #15274D;
+    border-radius: 18px;
+    overflow: hidden;
+    background-color: #f8f9fa;
+}
+
+.on-water-header-section {
+    background-color: #d6eded;
+    border-bottom: 1px solid #15274D;
+    padding: 0.5rem 0.8rem;
+}
+
 .on-water-header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    justify-content: center;
+    margin: 0;
+}
+
+.on-water-content-section {
+    padding: 0.25rem 0.8rem;
+    background-color: #f8f9fa;
+    line-height: 1.5;
+}
+
+/* Ensure nested tables in onWaterContent inherit proper styling */
+#onWaterContent table {
+    margin: 0.5rem 0;
+    width: 100%;
+}
+
+#onWaterContent table td {
+    border: 1px solid #15274D;
+    padding: 0.25rem 0.8rem;
 }
 
 .leaderboard-content {

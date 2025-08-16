@@ -163,15 +163,19 @@
                 
                 <!-- On Water Display -->
                 <div id="onWaterDisplay" class="on-water-display" style="display: none;">
-                    <div class="alert alert-info mb-3">
-                        <div class="on-water-header">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 8v4l2.5 2.5"/>
-                            </svg>
-                            <strong id="currentEventText">Current Event</strong>
+                    <div class="on-water-table-wrapper">
+                        <div class="on-water-header-section">
+                            <div class="on-water-header">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 8v4l2.5 2.5"/>
+                                </svg>
+                                <strong id="onWaterHeaderText">Most Recent Performance</strong>
+                            </div>
                         </div>
-                        <div id="onWaterContent"></div>
+                        <div id="onWaterContent" class="on-water-content-section">
+                            <!-- Content will be populated by JavaScript -->
+                        </div>
                     </div>
                 </div>
                 
