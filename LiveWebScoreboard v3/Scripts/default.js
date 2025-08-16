@@ -142,11 +142,6 @@
             html += '</div>';
             
             $('#leaderboardContent').html(html);
-            
-            // Add loading signs to top team skiers
-            if (typeof TeamLoadingSigns !== 'undefined') {
-                TeamLoadingSigns.updateLoadingSigns();
-            }
         },
 
         setupRecentScoresInfiniteScroll: function() {
@@ -918,6 +913,11 @@
                         }
                     });
                     
+                    // Add loading signs to top team skiers
+                    if (typeof TeamLoadingSigns !== 'undefined') {
+                        TeamLoadingSigns.updateLoadingSigns();
+                    }
+                    
                     // Start observing the last element for infinite scroll
                     TournamentInfo.observeLastElement();
                     
@@ -1082,6 +1082,11 @@
                     
                     // Only update batch index on successful load
                     self.currentBatchIndex += 5;
+                    
+                    // Add loading signs to top team skiers for new content
+                    if (typeof TeamLoadingSigns !== 'undefined') {
+                        TeamLoadingSigns.updateLoadingSigns();
+                    }
                     
                     // Update observer to watch the new last element
                     self.observeLastElement();
