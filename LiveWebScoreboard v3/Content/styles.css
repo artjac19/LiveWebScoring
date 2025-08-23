@@ -53,7 +53,12 @@ div {
     align-items: center;
     gap: 15px;
     z-index: 1000;
-    position: relative;
+    position: fixed;
+    top: 0;
+}
+
+body {
+    padding-top: 60px;
 }
 
 .logo {
@@ -354,7 +359,7 @@ tr.table-header-row,
 }
 
 th {
-    color: #000;
+    color: #333;
     font-weight: 600;
 }
 
@@ -430,7 +435,7 @@ span.class-logo {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    color: #000;
+    color: #333;
     font-weight: bold;
     font-size: 10px;
     text-align: center;
@@ -450,8 +455,8 @@ span.class-logo.class-x { background-color: #dc3545; color: #fff; } /* Red with 
 }
 
 td.date-col {
-    font-weight: 600;
-    color: #6c757d !important;
+    font-weight: bold;
+    color: #333 !important;
 }
 
 .name-col {
@@ -477,7 +482,7 @@ td.date-col {
 
 .tournament-name {
     font-weight: bold;
-    color: #6c757d;
+    color: #333;
     margin: 0.9em 1.3em 1em 1.3em;
     text-align: center;
 }
@@ -603,7 +608,7 @@ td.date-col {
     gap: 10px;
     display: flex;
     align-items: center;
-    color: #444;
+    color: #333;
     line-height: 1.4;
     font-size: 1.1rem;
     margin: 0 0 0 20px;
@@ -785,14 +790,14 @@ td.date-col {
     }
 
     .mobile-tournament-title {
-        color: #444;
+        color: #333;
         font-weight: 600;
         font-size: 1.1rem;
         flex: 1;
     }
 
     .mobile-tournament-label {
-        color: #000;
+        color: #333;
         font-weight: 600;
         min-width: 90px;
         margin-right: 0.7em;
@@ -801,7 +806,7 @@ td.date-col {
     }
 
     .mobile-tournament-value {
-        color: #000;
+        color: #333;
         font-weight: 500;
         flex: 1 1 auto;
         text-align: left;
@@ -1036,6 +1041,11 @@ td.date-col {
         padding: 0.3em 0.6em;
     }
 
+    /* Hide search bar on mobile */
+    .search-input {
+        display: none !important;
+    }
+
 }
 
 @media (max-width: 570px) {
@@ -1050,6 +1060,7 @@ td.date-col {
     .multi-running-order-container table {
         flex: 1 1 100%;
         max-width: 100%;
+        min-width: 0 !important;
     }
 
     /* Stack trick passes vertically on small screens */
@@ -1105,4 +1116,42 @@ td.date-col {
     td:not(.date-col):not(.name-col) {
         font-size: 0.8rem;
     }
+}
+
+/* Mobile search overlay */
+.mobile-search-overlay {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: #fff;
+    z-index: 9999;
+    padding: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.mobile-search-overlay input {
+    width: calc(100% - 50px);
+    padding: 0.75rem;
+    border: 2px solid #15274D;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.mobile-search-overlay .close-search {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #666;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

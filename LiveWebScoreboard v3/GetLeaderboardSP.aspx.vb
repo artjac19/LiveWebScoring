@@ -455,7 +455,6 @@ Public Class GetLeaderboardSP
 
         ' Determine which rounds to show for each event
         sHtmlContent = "<div class='by-division-content'>"
-        sHtmlContent += "<h3>Division " & sDivisionCodePkd & " - Running Order & Leaderboards by Round</h3>"
 
         For Each eventCode As String In eventsToShow
             Dim maxRounds As Integer = 0
@@ -469,7 +468,6 @@ Public Class GetLeaderboardSP
             End Select
 
             If maxRounds > 0 Then
-                sHtmlContent += "<h4>" & GetEventName(eventCode) & "</h4>"
 
                 ' Show specific round or all rounds
                 If hasRound Then
@@ -494,11 +492,11 @@ Public Class GetLeaderboardSP
         Dim content As String = ""
 
         ' Create side-by-side layout for running order and leaderboard
-        content += "<div class='round-pair-container' style='display: flex; gap: 2rem; margin: 1rem 0;'>"
+        content += "<div style='display: flex; gap: 2rem; margin: 1rem 0; flex-wrap: wrap;'>"
 
         ' Left side: Running Order
-        content += "<div class='running-order-section' style='flex: 1;'>"
-        content += "<h5>Round " & roundNum & " - Running Order</h5>"
+        content += "<div style='flex: 1; min-width: 300px;'>"
+        content += "<h5>Running Order</h5>"
 
         ' Get running order count to determine if multi or single running order is needed
         Dim sRunOrdCountArray(0 To 4)
@@ -537,15 +535,15 @@ Public Class GetLeaderboardSP
         content += "</div>"
 
         ' Right side: Leaderboard (by round)
-        content += "<div class='leaderboard-section' style='flex: 1;'>"
-        content += "<h5>Round " & roundNum & " - Leaderboard</h5>"
+        content += "<div style='flex: 1; min-width: 300px;'>"
+        content += "<h5>Leaderboard</h5>"
 
         ' Get leaderboard BY ROUND using LeaderBoardROUND function
         Try
             Dim leaderboardHtml As String = LiveWebScoreBoard.ModDataAccess3.LeaderBoardROUND(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, roundNum, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
 
             If String.IsNullOrEmpty(leaderboardHtml) Then
-                content += "<p>Leaderboard not available</p>"
+                content += "<p>No scores yet</p>"
             Else
                 content += leaderboardHtml
             End If

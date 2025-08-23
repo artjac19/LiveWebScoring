@@ -95,6 +95,8 @@
                     <div class="filter-container">
                         <asp:Button ID="Btn_Recent20" runat="server" Text="Most Recent 20"
                             CssClass="filter-btn active" OnClick="ApplyFilter_Click" CommandArgument="0" />
+                        <asp:Button ID="Btn_Year2026" runat="server" Text="Ski Year 2026" CssClass="filter-btn"
+                            OnClick="ApplyFilter_Click" CommandArgument="26" />
                         <asp:Button ID="Btn_Year2025" runat="server" Text="Ski Year 2025" CssClass="filter-btn"
                             OnClick="ApplyFilter_Click" CommandArgument="25" />
                         <asp:Button ID="Btn_Year2024" runat="server" Text="Ski Year 2024" CssClass="filter-btn"
@@ -230,6 +232,13 @@
 
             </div>
     </form>
+
+    <!-- Mobile search overlay -->
+    <div class="mobile-search-overlay">
+        <button class="close-search" onclick="closeMobileSearch()">&times;</button>
+        <input type="text" id="mobileSearchInput" placeholder="Search tournaments..." autocomplete="off">
+    </div>
+
 </body>
 
 </html>

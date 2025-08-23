@@ -905,11 +905,9 @@
                         $('#leaderboardContent').removeClass('round-format');
                     }
                     
-                    // Add each division's results, filtering out empty/error results
+                    // Add each division's results
                     response.batchResults.forEach((result, index) => {
-                        if (result.success && result.htmlContent && 
-                            !(result.htmlContent.includes('NO') && 
-                            result.htmlContent.includes('SCORES FOUND'))) {
+                        if (result.success && result.htmlContent) {
                             $('#leaderboardContent').append(result.htmlContent);
                             
                             $('#leaderboardContent table').each(function() {
@@ -1066,11 +1064,9 @@
                         $('#leaderboardContent').removeClass('round-format');
                     }
                     
-                    // Append each division's results, filtering out empty/error results
+                    // Append each division's results
                     response.batchResults.forEach((result) => {
-                        if (result.success && result.htmlContent && 
-                            !(result.htmlContent.includes('NO') && 
-                            result.htmlContent.includes('SCORES FOUND'))) {
+                        if (result.success && result.htmlContent) {
                             // For ROUND format, append content directly (no wrapper div)
                             $('#leaderboardContent').append(result.htmlContent);
                             

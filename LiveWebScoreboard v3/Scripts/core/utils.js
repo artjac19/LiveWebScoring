@@ -81,16 +81,70 @@
             };
         },
 
+        // Mobile search functionality
+        openMobileSearch: function() {
+            document.querySelector('.mobile-search-overlay').style.display = 'block';
+            document.getElementById('mobileSearchInput').focus();
+        },
+
+        closeMobileSearch: function() {
+            document.querySelector('.mobile-search-overlay').style.display = 'none';
+            document.getElementById('mobileSearchInput').value = '';
+        },
+
+        performMobileSearch: function() {
+            const searchValue = document.getElementById('mobileSearchInput').value.trim();
+            if (searchValue) {
+                const searchInput = document.getElementById('TB_SanctionID');
+                const searchBtn = document.getElementById('Btn_SanctionID');
+                
+                if (searchInput && searchBtn) {
+                    searchInput.value = searchValue;
+                    // Make sure the input is visible temporarily for the click to work
+                    const originalDisplay = searchInput.style.display;
+                    searchInput.style.display = 'block';
+                    searchBtn.click();
+                    searchInput.style.display = originalDisplay;
+                }
+            }
+        },
+
         // Initialize global UI elements
         initializeGlobalUI: function() {
             // Initialize unofficial badge click handler
             $(document).on('click', '.unofficial-badge', function() {
                 alert('All results displayed here are unofficial. Contact your tournament scorers for official results.');
             });
+
+            // Handle search icon click for mobile
+            const searchBtn = document.getElementById('Btn_SanctionID');
+            if (searchBtn) {
+                searchBtn.addEventListener('click', function(e) {
+                    if (window.innerWidth < CONFIG.MOBILE_BREAKPOINT) {
+                        e.preventDefault();
+                        Utils.openMobileSearch();
+                    }
+                });
+            }
+
+            // Handle mobile search input
+            const mobileInput = document.getElementById('mobileSearchInput');
+            if (mobileInput) {
+                mobileInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        Utils.performMobileSearch();
+                        Utils.closeMobileSearch();
+                    }
+                });
+            }
         }
     };
 
     // Export to global scope
     window.Utils = Utils;
+    
+    // Export mobile search functions globally for onclick handlers
+    window.openMobileSearch = Utils.openMobileSearch;
+    window.closeMobileSearch = Utils.closeMobileSearch;
     
 })(window);

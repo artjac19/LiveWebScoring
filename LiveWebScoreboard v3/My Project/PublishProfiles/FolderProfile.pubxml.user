@@ -5,7 +5,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>C:\vsLiveWebScoreboard\MostRecentPublish</_PublishTargetUrl>
-    <History>True|2025-08-15T03:45:04.1408301Z||;True|2025-08-14T22:30:18.7444511-05:00||;True|2024-10-11T15:34:43.9257729-05:00||;True|2024-10-11T10:37:06.2806587-05:00||;True|2024-10-05T10:04:04.4116388-05:00||;True|2024-09-11T22:53:10.3774370-05:00||;True|2024-07-11T10:20:57.4370847-05:00||;True|2024-07-04T14:22:16.4187097-05:00||;True|2024-06-30T10:14:03.7424350-05:00||;True|2024-06-29T23:54:57.2122242-05:00||;True|2024-06-29T11:47:13.0754838-05:00||;True|2024-06-17T01:33:16.2898827-05:00||;True|2024-05-30T19:28:51.2472365-05:00||;True|2024-05-19T10:27:34.2229685-05:00||;True|2024-05-17T15:48:16.4392182-05:00||;True|2024-05-17T00:46:58.4168548-05:00||;True|2024-05-10T00:13:42.5461470-05:00||;True|2024-05-09T09:10:19.2124884-05:00||;True|2024-05-08T16:08:27.0897744-05:00||;True|2024-05-06T22:36:21.1611504-05:00||;True|2024-04-26T14:15:40.7051500-05:00||;True|2024-04-26T01:21:08.7664704-05:00||;True|2024-04-22T15:28:47.4973054-05:00||;True|2024-04-21T03:16:11.5319650-05:00||;True|2024-04-21T03:12:44.0028697-05:00||;True|2024-04-18T19:48:43.4506221-05:00||;True|2024-04-07T20:05:28.0992973-05:00||;True|2024-04-07T00:55:36.8047165-05:00||;True|2024-04-06T13:43:13.1063389-05:00||;True|2024-04-05T13:51:41.0367477-05:00||;True|2024-04-04T17:28:40.5722527-05:00||;True|2024-04-02T20:13:20.6702383-05:00||;True|2024-03-27T18:34:13.5991778-05:00||;True|2024-03-19T00:17:18.8950642-05:00||;True|2024-03-15T22:29:49.8383625-05:00||;True|2024-03-13T12:40:54.0669516-05:00||;True|2024-03-12T19:47:43.3196269-05:00||;True|2024-03-09T13:42:51.8169940-06:00||;True|2024-03-08T01:28:16.7202313-06:00||;True|2024-03-07T17:39:23.7825133-06:00||;True|2024-03-05T15:36:41.0383241-06:00||;True|2024-03-03T18:33:40.4138413-06:00||;True|2024-02-26T01:29:32.1497865-06:00||;True|2024-02-22T21:53:29.0501629-06:00||;False|2024-02-22T21:50:28.0333587-06:00||;True|2024-02-21T01:36:04.0833815-06:00||;True|2024-02-06T13:22:22.2499225-06:00||;True|2024-02-06T11:02:08.9869764-06:00||;True|2024-01-29T16:12:51.7147058-06:00||;False|2024-01-29T16:01:43.2777623-06:00||;False|2024-01-26T08:23:51.6297336-06:00||;False|2024-01-26T00:57:55.3159923-06:00||;False|2024-01-26T00:53:53.3308210-06:00||;False|2024-01-26T00:50:01.3811269-06:00||;False|2024-01-26T00:49:15.1389115-06:00||;True|2024-01-24T00:44:15.7895290-06:00||;True|2024-01-22T14:25:55.7215107-06:00||;True|2024-01-21T15:57:05.0820388-06:00||;</History>
+    <History>True|2025-08-16T19:22:48.7915799Z||;False|2025-08-16T14:20:31.8937698-05:00||;False|2025-08-16T14:20:11.1102370-05:00||;True|2025-08-14T22:45:04.1408301-05:00||;True|2025-08-14T22:30:18.7444511-05:00||;True|2024-10-11T15:34:43.9257729-05:00||;True|2024-10-11T10:37:06.2806587-05:00||;True|2024-10-05T10:04:04.4116388-05:00||;True|2024-09-11T22:53:10.3774370-05:00||;True|2024-07-11T10:20:57.4370847-05:00||;True|2024-07-04T14:22:16.4187097-05:00||;True|2024-06-30T10:14:03.7424350-05:00||;True|2024-06-29T23:54:57.2122242-05:00||;True|2024-06-29T11:47:13.0754838-05:00||;True|2024-06-17T01:33:16.2898827-05:00||;True|2024-05-30T19:28:51.2472365-05:00||;True|2024-05-19T10:27:34.2229685-05:00||;True|2024-05-17T15:48:16.4392182-05:00||;True|2024-05-17T00:46:58.4168548-05:00||;True|2024-05-10T00:13:42.5461470-05:00||;True|2024-05-09T09:10:19.2124884-05:00||;True|2024-05-08T16:08:27.0897744-05:00||;True|2024-05-06T22:36:21.1611504-05:00||;True|2024-04-26T14:15:40.7051500-05:00||;True|2024-04-26T01:21:08.7664704-05:00||;True|2024-04-22T15:28:47.4973054-05:00||;True|2024-04-21T03:16:11.5319650-05:00||;True|2024-04-21T03:12:44.0028697-05:00||;True|2024-04-18T19:48:43.4506221-05:00||;True|2024-04-07T20:05:28.0992973-05:00||;True|2024-04-07T00:55:36.8047165-05:00||;True|2024-04-06T13:43:13.1063389-05:00||;True|2024-04-05T13:51:41.0367477-05:00||;True|2024-04-04T17:28:40.5722527-05:00||;True|2024-04-02T20:13:20.6702383-05:00||;True|2024-03-27T18:34:13.5991778-05:00||;True|2024-03-19T00:17:18.8950642-05:00||;True|2024-03-15T22:29:49.8383625-05:00||;True|2024-03-13T12:40:54.0669516-05:00||;True|2024-03-12T19:47:43.3196269-05:00||;True|2024-03-09T13:42:51.8169940-06:00||;True|2024-03-08T01:28:16.7202313-06:00||;True|2024-03-07T17:39:23.7825133-06:00||;True|2024-03-05T15:36:41.0383241-06:00||;True|2024-03-03T18:33:40.4138413-06:00||;True|2024-02-26T01:29:32.1497865-06:00||;True|2024-02-22T21:53:29.0501629-06:00||;False|2024-02-22T21:50:28.0333587-06:00||;True|2024-02-21T01:36:04.0833815-06:00||;True|2024-02-06T13:22:22.2499225-06:00||;True|2024-02-06T11:02:08.9869764-06:00||;True|2024-01-29T16:12:51.7147058-06:00||;False|2024-01-29T16:01:43.2777623-06:00||;False|2024-01-26T08:23:51.6297336-06:00||;False|2024-01-26T00:57:55.3159923-06:00||;False|2024-01-26T00:53:53.3308210-06:00||;False|2024-01-26T00:50:01.3811269-06:00||;False|2024-01-26T00:49:15.1389115-06:00||;True|2024-01-24T00:44:15.7895290-06:00||;True|2024-01-22T14:25:55.7215107-06:00||;True|2024-01-21T15:57:05.0820388-06:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
@@ -19,10 +19,10 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>05/16/2019 07:33:30</publishTime>
     </File>
     <File Include="bin/LiveWebScoreBoard.dll">
-      <publishTime>08/14/2025 22:45:03</publishTime>
+      <publishTime>08/16/2025 14:22:42</publishTime>
     </File>
     <File Include="bin/LiveWebScoreBoard.pdb">
-      <publishTime>08/14/2025 22:45:03</publishTime>
+      <publishTime>08/16/2025 14:22:42</publishTime>
     </File>
     <File Include="bin/Microsoft.AspNet.FriendlyUrls.dll">
       <publishTime>07/30/2013 11:57:30</publishTime>
@@ -196,7 +196,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>02/11/2014 09:26:04</publishTime>
     </File>
     <File Include="bin/WebForms_Basic.xml">
-      <publishTime>08/14/2025 22:45:03</publishTime>
+      <publishTime>08/16/2025 14:22:42</publishTime>
     </File>
     <File Include="bin/WebGrease.dll">
       <publishTime>01/23/2014 07:57:34</publishTime>
@@ -307,10 +307,10 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>03/06/2025 09:21:55</publishTime>
     </File>
     <File Include="Content/styles.css">
-      <publishTime>08/14/2025 20:56:03</publishTime>
+      <publishTime>08/16/2025 12:33:58</publishTime>
     </File>
     <File Include="default.aspx">
-      <publishTime>08/14/2025 21:01:24</publishTime>
+      <publishTime>08/16/2025 12:39:44</publishTime>
     </File>
     <File Include="ErrorPages/Oops.aspx">
       <publishTime>03/06/2025 09:21:55</publishTime>
@@ -424,7 +424,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>08/14/2025 14:44:56</publishTime>
     </File>
     <File Include="Scripts/default.js">
-      <publishTime>08/14/2025 14:56:30</publishTime>
+      <publishTime>08/16/2025 13:57:18</publishTime>
     </File>
     <File Include="Scripts/jquery-3.4.1.js">
       <publishTime>03/06/2025 09:21:55</publishTime>
@@ -448,16 +448,16 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>03/06/2025 09:21:55</publishTime>
     </File>
     <File Include="Scripts/team-loading-signs.js">
-      <publishTime>08/12/2025 22:40:39</publishTime>
+      <publishTime>08/14/2025 23:10:44</publishTime>
     </File>
     <File Include="Scripts/tournament/data-loader.js">
-      <publishTime>08/14/2025 15:07:09</publishTime>
+      <publishTime>08/16/2025 13:57:04</publishTime>
     </File>
     <File Include="Scripts/tournament/tournament-filters.js">
-      <publishTime>08/14/2025 15:13:04</publishTime>
+      <publishTime>08/16/2025 12:40:06</publishTime>
     </File>
     <File Include="Scripts/tournament/tournament-html.js">
-      <publishTime>08/14/2025 14:02:35</publishTime>
+      <publishTime>08/16/2025 12:25:12</publishTime>
     </File>
     <File Include="Scripts/tournament/tournament-nav.js">
       <publishTime>08/14/2025 14:56:59</publishTime>
@@ -577,7 +577,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>08/12/2025 11:40:14</publishTime>
     </File>
     <File Include="TSkierListPro.aspx">
-      <publishTime>08/12/2025 15:55:24</publishTime>
+      <publishTime>08/14/2025 23:39:25</publishTime>
     </File>
     <File Include="TXDivisionPro.aspx">
       <publishTime>03/09/2024 16:44:07</publishTime>
@@ -592,7 +592,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>03/06/2025 09:21:55</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>08/14/2025 22:45:03</publishTime>
+      <publishTime>08/16/2025 14:22:48</publishTime>
     </File>
   </ItemGroup>
 </Project>

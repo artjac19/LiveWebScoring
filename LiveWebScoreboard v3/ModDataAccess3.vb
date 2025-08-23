@@ -47,7 +47,7 @@ Public Module ModDataAccess3
                 If sSelRnd = 0 Then
                     sRndsOffered = sRndsSlalomOffered
                     Dim compactClass As String = If(CInt(sRndsSlalomOffered) >= 3, " class=""compact""", "")
-                    sLine.Append("<table class=""recap-left-table slalom-table"" " & compactClass & ">") '& sSlalomHeader) '& sSlalomDVHeader)
+                    sLine.Append("<table" & compactClass & ">") '& sSlalomHeader) '& sSlalomDVHeader)
                     sSlalomHeader = "<thead><tr><th style=""background-color: #15274D; color: white; font-size: 0.7rem;"">SLALOM</th><th style=""background-color: #15274D; color: white; font-size: 0.7rem;"">Group / Div</th>"
                     For i = 1 To RndsSlalomOffered
                         If i <= 6 Then  ' Only show regular rounds, not runoffs
@@ -59,7 +59,7 @@ Public Module ModDataAccess3
                     sLine.Append(sSlalomHeader & "</tr></thead>")
                 Else
                     Dim compactClass As String = If(CInt(sRndsSlalomOffered) >= 3, " class=""compact""", "")
-                    sLine.Append("<table class=""recap-left-table slalom-table"" " & compactClass & ">") '& sSlalomHeader) '& sSlalomDVHeader)
+                    sLine.Append("<table" & compactClass & ">") '& sSlalomHeader) '& sSlalomDVHeader)
                     Dim roundText As String = If(sSelRnd = "25", "Runoff", "Round " & sSelRnd)
                     sLine.Append("<thead><tr><th style=""background-color: #15274D; color: white;"">SLALOM</th><th style=""background-color: #15274D; color: white;"">Group / Div</th><th style=""background-color: #15274D; color: white;"">Score " & roundText & "</th></tr></thead>")
                 End If
@@ -69,7 +69,7 @@ Public Module ModDataAccess3
                 If sSelRnd = 0 Then
                     sRndsOffered = sRndsTrickOffered
                     Dim compactClass As String = If(CInt(sRndsTrickOffered) >= 3, " class=""compact""", "")
-                    sLine.Append("<table class=""recap-left-table"" " & compactClass & ">") '& sTrickHeader) '& sTrickDVHeader)
+                    sLine.Append("<table" & compactClass & ">") '& sTrickHeader) '& sTrickDVHeader)
                     sTrickHeader = "<thead><tr><th style=""background-color: #15274D; color: white; font-size: 0.7rem;"">TRICK</th><th style=""background-color: #15274D; color: white; font-size: 0.7rem;"">Group / Div</th>"
                     For i = 1 To RndsTrickOffered
                         If i <= 6 Then  ' Only show regular rounds, not runoffs
@@ -79,7 +79,7 @@ Public Module ModDataAccess3
                     sLine.Append(sTrickHeader & "</tr></thead>")
                 Else
                     Dim compactClass As String = If(CInt(sRndsTrickOffered) >= 3, " class=""compact""", "")
-                    sLine.Append("<table class=""recap-left-table"" " & compactClass & ">") '& sTrickHeader) '& sTrickDVHeader)
+                    sLine.Append("<table" & compactClass & ">") '& sTrickHeader) '& sTrickDVHeader)
                     Dim roundText As String = If(sSelRnd = "25", "Runoff", "Round " & sSelRnd)
                     sLine.Append("<thead><tr><th style=""background-color: #15274D; color: white;"">TRICK</th><th style=""background-color: #15274D; color: white;"">Group / Div</th><th style=""background-color: #15274D; color: white;"">Score " & roundText & "</th></tr></thead>")
                 End If
@@ -89,7 +89,7 @@ Public Module ModDataAccess3
                 If sSelRnd = 0 Then
                     sRndsOffered = sRndsJumpOffered
                     Dim compactClass As String = If(CInt(sRndsJumpOffered) >= 3, " class=""compact""", "")
-                    sLine.Append("<table class=""recap-left-table jump-table"" " & compactClass & ">") '& sJumpHeader)  ' & sJumpDVHeader)
+                    sLine.Append("<table" & compactClass & ">") '& sJumpHeader)  ' & sJumpDVHeader)
                     sJumpHeader = "<thead><tr><th style=""background-color: #15274D; color: white; font-size: 0.7rem;"">JUMP</th><th style=""background-color: #15274D; color: white; font-size: 0.7rem;"">Group / Div</th>"
                     For i = 1 To sRndsJumpOffered
                         If i <= 6 Then  ' Only show regular rounds, not runoffs
@@ -100,7 +100,7 @@ Public Module ModDataAccess3
 
                 Else
                     Dim compactClass As String = If(CInt(sRndsJumpOffered) >= 3, " class=""compact""", "")
-                    sLine.Append("<table class=""recap-left-table jump-table"" " & compactClass & ">") '& sJumpHeader)  ' & sJumpDVHeader)
+                    sLine.Append("<table" & compactClass & ">") '& sJumpHeader)  ' & sJumpDVHeader)
                     Dim roundText As String = If(sSelRnd = "25", "Runoff", "Round " & sSelRnd)
                     sLine.Append("<thead><tr><th style=""background-color: #15274D; color: white;"">JUMP</th><th style=""background-color: #15274D; color: white;"">Group / Div</th><th style=""background-color: #15274D; color: white;"">Score " & roundText & "</th></tr></thead>")
                 End If
@@ -389,7 +389,7 @@ Public Module ModDataAccess3
                     End If
                 End Using
             Catch ex As Exception
-                sMsg = "Error at ScoresXRunOrdHoriz"
+                sMsg = "No running order available"
                 sErrDetails = sMsg & " " & ex.Message & " " & ex.StackTrace
             End Try
         End Using
@@ -597,7 +597,7 @@ Public Module ModDataAccess3
         sSQL += " Left Join (Select distinct SkierName, SanctionID, MemberID from LiveWebScoreboard.dbo.TourReg where sanctionID = '" & sSanctionID & "') As TR "
         sSQL += " On TR.sanctionID = SR.SanctionID And SR.MemberID = TR.MemberID "
         sSQL += " Where SR.SanctionId = '" & sSanctionID & "' "
-        '       sSQL += " and LastUpdateDate > DateAdd(Minute, 10, GetDate())"
+        sSQL += " and LastUpdateDate > DateAdd(Minute, -10, GetDate())"
         sSQL += " order by SR.LastUpdateDate desc, SR.MemberID  "
 
         Dim sConn As String = ""
@@ -747,7 +747,7 @@ Public Module ModDataAccess3
         Dim SQL As String = ""
         SQL = "SELECT top 4 MemberID, Insertdate, SanctionID, SkierName, AgeGroup,EventClass, EventScore, Round, EventScoreDesc from LiveWebScoreboard.dbo.vTrickResults "
         SQL += " Where SanctionID ='" & sSanctionID & "' "
-        '        SQL += " and LastUpdateDate > DateAdd(Minute, 5, GetDate())"
+        SQL += " and LastUpdateDate > DateAdd(Minute, -10, GetDate())"
         SQL += "  ORDER BY insertdate desc"
 
         Dim sMsg As String = ""
@@ -894,7 +894,7 @@ Public Module ModDataAccess3
         SQLsb.Append(" Left Join (Select distinct SkierName, SanctionID, MemberID from LiveWebScoreboard.dbo.TourReg where sanctionID = '" & sSanctionID & "') ")
         SQLsb.Append(" as TR On JR.sanctionID = TR.SanctionID And JR.MemberID = TR.MemberID ")
         SQLsb.Append(" Where TR.SanctionId = '" & sSanctionID & "' ") ' following has reride  and [round] <> 25 and TR.MemberID = '200149011' "
-        '       SQLsb.Append(" and LastUpdateDate > DateAdd(Minute, 10, GetDate())")
+        SQLsb.Append(" and LastUpdateDate > DateAdd(Minute, -10, GetDate())")
         SQLsb.Append(" order by LastUpdateDate desc ")
         sSQL = SQLsb.ToString
 
@@ -3121,7 +3121,6 @@ Public Module ModDataAccess3
                         sLine.Append("</table>")
                     Else
                         '      sLine.Append("<tr  class=""table-info""><td> " & sSkierName & "</td><td>No Scores</td></tr></table>")
-                        sMsg = "No Scores"
                     End If
 
                 End Using
@@ -5119,7 +5118,7 @@ Public Module ModDataAccess3
                                     sTmpEventGroup = sEventGroup
                                     'Make event group header - create individual table for this round
                                     Dim innerCompactClass As String = If(CInt(sRndCols) >= 3, " class=""compact""", "")
-                                    sRoundTable.Append("<table" & innerCompactClass & " class=""table table-striped recap-left-table"">")
+                                    sRoundTable.Append("<table" & innerCompactClass & " class=""table table-striped"">")
                                     sRoundTable.Append("<thead><tr><th colspan=""2"" style=""background-color: #15274D !important; color: white; text-align: center;"">" & sPREventCode & " Round " & sRndCount & ", " & sEventGroup & "</th></tr></thead><tbody>")
                                 End If
 
@@ -5152,7 +5151,7 @@ Public Module ModDataAccess3
                             sRoundTable.Clear()
 
                         Else 'No data
-                            sRoundTable.Append("<table" & If(CInt(sRndCols) >= 3, " class=""compact""", "") & " class=""table table-striped recap-left-table"">")
+                            sRoundTable.Append("<table" & If(CInt(sRndCols) >= 3, " class=""compact""", "") & " class=""table table-striped"">")
                             sRoundTable.Append("<thead><tr><th style=""background-color: #15274D !important; color: white; text-align: center;"">" & sPREventCode & " Round " & sRndCount & "</th></tr></thead>")
                             sRoundTable.Append("<tbody><tr><td>No " & sPREventCode & " Skiers Found</td></tr></tbody></table>")
                             sEventTable.Append(sRoundTable.ToString())

@@ -325,8 +325,74 @@
         },
         
         loadByDivisionContent: function(selectedEvent, selectedDivision, selectedRound) {
+            console.log('loadByDivisionContent called with:', selectedEvent, selectedDivision, selectedRound);
+            
+            // Check if division is selected first
+            if (!selectedDivision) {
+                $('#leaderboardContent').html('<div class="text-center p-4 text-muted"><p>Select a division to view results</p></div>');
+                return;
+            }
+            
+            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading by-division view...</p></div>');
+            
+            // If "All" events selected, make separate calls for S, T, J
+            if (!selectedEvent || selectedEvent === '0') {
+                let combinedHtml = '<div class="by-division-content">';
+                const events = ['S', 'T', 'J']; // Slalom, Trick, Jump order
+                
+                // Filter events to only include those that have the selected division
+                const eventsWithDivision = events.filter(eventCode => {
+                    const cachedDivisions = TournamentInfo.currentTournamentInfo?.availableDivisions?.[eventCode];
+                    if (!cachedDivisions) return false;
+                    return cachedDivisions.some(div => div.code === selectedDivision);
+                });
+                
+                if (eventsWithDivision.length === 0) {
+                    $('#leaderboardContent').html('<div class="text-center p-4 text-muted"><p>This division is not available in any events</p></div>');
+                    return;
+                }
+                
+                const eventResponses = [];
+                let completedCalls = 0;
+                
+                eventsWithDivision.forEach((eventCode, index) => {
+                    const params = this.buildBaseRequest(null, {
+                        EV: eventCode,
+                        DV: selectedDivision || 'ALL',
+                        RND: selectedRound || '0',
+                        GET_BY_DIVISION: '1'
+                    });
+                    
+                    $.getJSON('GetLeaderboardSP.aspx', params).done((response) => {
+                        eventResponses[index] = response;
+                        completedCalls++;
+                        
+                        if (completedCalls === eventsWithDivision.length) {
+                            // Combine responses in S, T, J order
+                            eventResponses.forEach((response) => {
+                                if (response && response.success && response.htmlContent) {
+                                    const tempDiv = $('<div>').html(response.htmlContent);
+                                    const innerContent = tempDiv.find('.by-division-content').html();
+                                    if (innerContent) {
+                                        combinedHtml += innerContent;
+                                    }
+                                }
+                            });
+                            
+                            combinedHtml += '</div>';
+                            $('#leaderboardContent').html(combinedHtml);
+                            
+                            if (AppState.currentDisplayMode === 'by-division') {
+                                TournamentDataLoader.cleanupByDivisionRunningOrder();
+                            }
+                        }
+                    });
+                });
+                return;
+            }
+            
             const params = this.buildBaseRequest(null, {
-                EV: selectedEvent || '0',
+                EV: selectedEvent,
                 DV: selectedDivision || 'ALL',
                 RND: selectedRound || '0',
                 GET_BY_DIVISION: '1'
@@ -334,19 +400,26 @@
             
             const request = Utils.createCancellableRequest('GetLeaderboardSP.aspx', params);
             
-            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading by-division view...</p></div>');
-            
             return request.promise.done(function(response) {
                 if (!request.isCurrent()) {
                     return;
                 }
                 
-                if (response.success && response.htmlContent) {
-                    $('#leaderboardContent').html(response.htmlContent);
-                    
-                    // Add loading signs to top team skiers
-                    if (typeof TeamLoadingSigns !== 'undefined') {
-                        TeamLoadingSigns.updateLoadingSigns();
+                if (response.success) {
+                    if (response.htmlContent) {
+                        $('#leaderboardContent').html(response.htmlContent);
+                        
+                        // Remove score columns from running order tables in by-division view only
+                        if (AppState.currentDisplayMode === 'by-division') {
+                            TournamentDataLoader.cleanupByDivisionRunningOrder();
+                        }
+                        
+                        // Add loading signs to top team skiers
+                        if (typeof TeamLoadingSigns !== 'undefined') {
+                            TeamLoadingSigns.updateLoadingSigns();
+                        }
+                    } else {
+                        $('#leaderboardContent').html('<div class="text-center p-4 text-muted"><p>Select a division to load information</p></div>');
                     }
                 } else {
                     $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading by-division view</p></div>');
@@ -357,6 +430,22 @@
                     return;
                 }
                 $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error: Could not load by-division view</p></div>');
+            });
+        },
+        
+        cleanupByDivisionRunningOrder: function() {
+            // Remove the rightmost column (scores) from running order tables only
+            // Target the first div in each flex container (running order side)
+            $('.by-division-content div[style*="display: flex"] div:first-child table').each(function() {
+                $(this).find('tr').each(function() {
+                    $(this).find('th:last-child, td:last-child').remove();
+                });
+                
+                // Adjust column widths: 70% name, 30% group/division
+                $(this).find('tr').each(function() {
+                    $(this).find('th:nth-child(1), td:nth-child(1)').css('width', '70%'); // Name column
+                    $(this).find('th:nth-child(2), td:nth-child(2)').css('width', '30%'); // Group/Div column
+                });
             });
         },
 

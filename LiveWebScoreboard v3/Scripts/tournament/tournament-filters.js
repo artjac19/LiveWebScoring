@@ -59,7 +59,10 @@
         setupByDivisionEventFilters: function(eventFilters, data) {
             if (data.availableEvents && data.availableEvents.length > 0) {
                 data.availableEvents.forEach(event => {
-                    eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
+                    // Only show individual events (S, T, J), exclude Overall (O)
+                    if (event.code !== 'O') {
+                        eventFilters.append(`<button class="filter-btn" data-filter="event" data-value="${event.code}">${event.name}</button>`);
+                    }
                 });
             }
         },
@@ -81,8 +84,10 @@
             
             const displayMode = AppState.currentDisplayMode || 'leaderboard';
             
-            if (displayMode === 'running-order' || displayMode === 'by-division') {
+            if (displayMode === 'running-order') {
                 divisionFilters.append('<button class="filter-btn active" data-filter="division" data-value="ALL">All</button>');
+            } else if (displayMode === 'by-division') {
+                
             } else {
                 divisionFilters.append('<button class="filter-btn active" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
                 divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">Alphabetical</button>');

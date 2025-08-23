@@ -50,6 +50,15 @@ Partial Public Class [Default]
     Protected WithEvents Btn_Recent20 As Global.System.Web.UI.WebControls.Button
 
     '''<summary>
+    '''Btn_Year2026 control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents Btn_Year2026 As Global.System.Web.UI.WebControls.Button
+
+    '''<summary>
     '''Btn_Year2025 control.
     '''</summary>
     '''<remarks>

@@ -269,7 +269,6 @@ Public Module ModDataAccessTeams
                         sLine.Append("</table>")
                     Else
                         '      sLine.Append("<tr  class=""table-info""><td> " & sSkierName & "</td><td>No Scores</td></tr></table>")
-                        sMsg = "No Scores"
                     End If
 
                 End Using
