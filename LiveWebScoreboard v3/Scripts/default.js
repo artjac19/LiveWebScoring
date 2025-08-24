@@ -246,10 +246,6 @@
             const filterState = this.getFilterState();
             TournamentNav.updateLeaderboardUrl(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound, filterState.selectedBestOf);
             
-            if (AppState.currentDisplayMode === 'by-division') {
-                this.loadByDivisionContent(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound);
-                return;
-            }
             
             if (filterState.isMixed) {
                 this.loadRecentScores();

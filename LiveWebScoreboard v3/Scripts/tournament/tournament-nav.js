@@ -66,6 +66,12 @@
         },
 
         navigateToHome: function(sanctionId) {
+            // Hide refresh button when going back to home
+            const refreshContainer = document.getElementById('refreshContainer');
+            if (refreshContainer) {
+                refreshContainer.style.display = 'none';
+            }
+            
             const homeUrl = new URL(window.location);
             const homeParams = new URLSearchParams();
             
@@ -111,15 +117,33 @@
         },
 
         navigateToEntryList: function(sanctionId) {
+            // Hide refresh button for entry list view
+            const refreshContainer = document.getElementById('refreshContainer');
+            if (refreshContainer) {
+                refreshContainer.style.display = 'none';
+            }
+            
             const entryListUrl = `TSkierListPro?SY=0&SID=${sanctionId}&TN=${encodeURIComponent(AppState.currentTournamentName)}&UN=0&FC=EL&FT=1&UT=0`;
             window.location.href = entryListUrl;
         },
 
         navigateToReports: function(sanctionId) {
+            // Hide refresh button for reports view
+            const refreshContainer = document.getElementById('refreshContainer');
+            if (refreshContainer) {
+                refreshContainer.style.display = 'none';
+            }
+            
             window.location.href = `TReports?SID=${sanctionId}`;
         },
 
         navigateToLegacyView: function(sanctionId) {
+            // Hide refresh button for legacy view
+            const refreshContainer = document.getElementById('refreshContainer');
+            if (refreshContainer) {
+                refreshContainer.style.display = 'none';
+            }
+            
             window.location.href = `Tournament?SN=${sanctionId}&FM=1&SY=0`;
         },
 
@@ -128,6 +152,13 @@
             this.repositionTournamentPanel();
             this.loadTournamentInfo(sanctionId);
             this.initializeScoresData(sanctionId);
+            
+            // Show refresh button for data views
+            const refreshContainer = document.getElementById('refreshContainer');
+            if (refreshContainer) {
+                refreshContainer.style.display = 'flex';
+                console.log('Refresh button should now be visible');
+            }
         },
 
         prepareScoresPageDOM: function() {
@@ -405,5 +436,187 @@
 
     // Export to global scope
     window.TournamentNav = TournamentNav;
+    
+    // Global refresh function
+    window.refreshTournamentData = function() {
+        if (!AppState.currentSelectedTournamentId) {
+            return;
+        }
+        
+        // Use the same function that filter buttons use to refresh data
+        TournamentInfo.applyFilterCombination();
+    };
+    
+    // Auto-refresh functionality
+    const AutoRefresh = {
+        intervalId: null,
+        currentInterval: 0,
+        isVisible: true,
+        lastVisibleTime: Date.now(),
+        visibilityCheckInterval: 1000, // Check every second
+        maxInactiveTime: 3600000, // 1 hour (3600000 milliseconds)
+
+        init: function() {
+            // Setup visibility change detection
+            this.setupVisibilityAPI();
+            
+            // Start visibility monitoring
+            this.startVisibilityMonitoring();
+            
+            // Bind dropdown events
+            this.bindDropdownEvents();
+        },
+
+        setupVisibilityAPI: function() {
+            const self = this;
+            
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    console.log('Tab/window hidden - starting invisibility timer from 0');
+                    self.isVisible = false;
+                    self.lastVisibleTime = Date.now(); // Reset timer to NOW when becoming hidden
+                    // Auto-refresh continues running during grace period
+                } else {
+                    console.log('Tab/window visible - stopping invisibility timer');
+                    self.isVisible = true;
+                    // No resume/pause logic - auto-refresh never stopped
+                }
+            });
+        },
+
+        startVisibilityMonitoring: function() {
+            const self = this;
+            
+            setInterval(function() {
+                // Only check if auto-refresh is still active and tab is invisible
+                if (!self.isVisible && self.currentInterval > 0) {
+                    const invisibleTime = Date.now() - self.lastVisibleTime;
+                    const invisibleSeconds = Math.floor(invisibleTime / 1000);
+                    
+                    if (invisibleTime > self.maxInactiveTime) {
+                        console.log(`Tab invisible for ${invisibleSeconds}s (max: ${self.maxInactiveTime/1000}s) - forcing auto-refresh OFF`);
+                        self.forceOff();
+                    } else {
+                        console.log(`Tab invisible for ${invisibleSeconds}s (max: ${self.maxInactiveTime/1000}s)`);
+                    }
+                }
+            }, self.visibilityCheckInterval);
+        },
+
+        bindDropdownEvents: function() {
+            const self = this;
+            
+            // Dropdown item selection
+            $(document).on('click', '.refresh-dropdown-item', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const $clicked = $(this);
+                const interval = parseInt($clicked.data('interval'));
+                
+                // Update active state immediately for visual feedback
+                $('.refresh-dropdown-item').removeClass('active');
+                $clicked.addClass('active');
+                
+                // Delay before hiding dropdown and setting interval
+                setTimeout(function() {
+                    self.setInterval(interval);
+                    $('#refreshDropdown').hide();
+                }, 300);
+            });
+            
+            // Close dropdown when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.refresh-container').length) {
+                    $('#refreshDropdown').hide();
+                }
+            });
+        },
+
+        setInterval: function(milliseconds) {
+            this.stop(); // Clear any existing timer
+            this.currentInterval = milliseconds;
+            
+            // Update UI
+            $('.refresh-dropdown-item').removeClass('active');
+            $('.refresh-dropdown-item[data-interval="' + milliseconds + '"]').addClass('active');
+            
+            // Update indicator
+            this.updateIndicator();
+            
+            // Start timer if interval > 0 (regardless of visibility)
+            if (milliseconds > 0) {
+                this.start();
+                console.log('Auto-refresh interval set to:', milliseconds, 'ms');
+            } else if (milliseconds === 0) {
+                console.log('Auto-refresh set to OFF');
+            }
+        },
+
+        updateIndicator: function() {
+            const indicator = $('#refreshIndicator');
+            
+            if (this.currentInterval === 0) {
+                indicator.hide();
+            } else {
+                let text = '';
+                if (this.currentInterval === 300000) text = '5min';
+                else if (this.currentInterval === 900000) text = '15min';
+                else if (this.currentInterval === 1800000) text = '30min';
+                else text = Math.round(this.currentInterval / 60000) + 'min';
+                
+                indicator.text(text).show();
+            }
+        },
+
+        start: function() {
+            if (this.currentInterval > 0) {
+                const self = this;
+                this.intervalId = setInterval(function() {
+                    if (AppState.currentSelectedTournamentId) {
+                        console.log('Auto-refreshing tournament data...');
+                        window.refreshTournamentData();
+                    }
+                }, this.currentInterval);
+                console.log('Auto-refresh timer started');
+            }
+        },
+
+        stop: function() {
+            if (this.intervalId) {
+                clearInterval(this.intervalId);
+                this.intervalId = null;
+                console.log('Auto-refresh timer stopped');
+            }
+        },
+
+
+        forceOff: function() {
+            // Permanently turn off auto-refresh after being invisible too long
+            this.currentInterval = 0;
+            this.stop();
+            $('.refresh-dropdown-item').removeClass('active');
+            $('.refresh-dropdown-item[data-interval="0"]').addClass('active');
+            this.updateIndicator(); // Hide the indicator
+            console.log('Auto-refresh PERMANENTLY turned OFF due to prolonged invisibility');
+        },
+
+        forceOffState: function() {
+            // Set dropdown to "Off" when pausing (temporary)
+            $('.refresh-dropdown-item').removeClass('active');
+            $('.refresh-dropdown-item[data-interval="0"]').addClass('active');
+            console.log('Dropdown forced to OFF state (temporary)');
+        }
+    };
+
+    // Global dropdown toggle function
+    window.toggleAutoRefreshDropdown = function() {
+        $('#refreshDropdown').toggle();
+    };
+    
+    // Initialize auto-refresh on page load
+    $(document).ready(function() {
+        AutoRefresh.init();
+    });
     
 })(window);

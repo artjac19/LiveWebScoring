@@ -83,29 +83,17 @@
 
         // Mobile search functionality
         openMobileSearch: function() {
-            document.querySelector('.mobile-search-overlay').style.display = 'block';
-            document.getElementById('mobileSearchInput').focus();
+            const searchInput = document.getElementById('TB_SanctionID');
+            if (searchInput) {
+                searchInput.classList.add('mobile-search-visible');
+                searchInput.focus();
+            }
         },
 
         closeMobileSearch: function() {
-            document.querySelector('.mobile-search-overlay').style.display = 'none';
-            document.getElementById('mobileSearchInput').value = '';
-        },
-
-        performMobileSearch: function() {
-            const searchValue = document.getElementById('mobileSearchInput').value.trim();
-            if (searchValue) {
-                const searchInput = document.getElementById('TB_SanctionID');
-                const searchBtn = document.getElementById('Btn_SanctionID');
-                
-                if (searchInput && searchBtn) {
-                    searchInput.value = searchValue;
-                    // Make sure the input is visible temporarily for the click to work
-                    const originalDisplay = searchInput.style.display;
-                    searchInput.style.display = 'block';
-                    searchBtn.click();
-                    searchInput.style.display = originalDisplay;
-                }
+            const searchInput = document.getElementById('TB_SanctionID');
+            if (searchInput) {
+                searchInput.classList.remove('mobile-search-visible');
             }
         },
 
@@ -121,22 +109,30 @@
             if (searchBtn) {
                 searchBtn.addEventListener('click', function(e) {
                     if (window.innerWidth < CONFIG.MOBILE_BREAKPOINT) {
-                        e.preventDefault();
-                        Utils.openMobileSearch();
+                        const searchInput = document.getElementById('TB_SanctionID');
+                        if (searchInput) {
+                            if (!searchInput.classList.contains('mobile-search-visible')) {
+                                // First click - show the search overlay
+                                e.preventDefault();
+                                Utils.openMobileSearch();
+                            }
+                            // Second click - let it search normally (don't prevent default)
+                        }
                     }
                 });
             }
 
-            // Handle mobile search input
-            const mobileInput = document.getElementById('mobileSearchInput');
-            if (mobileInput) {
-                mobileInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        Utils.performMobileSearch();
+            // Handle clicks outside search input to close it
+            document.addEventListener('click', function(e) {
+                const searchInput = document.getElementById('TB_SanctionID');
+                const searchBtn = document.getElementById('Btn_SanctionID');
+                
+                if (searchInput && searchInput.classList.contains('mobile-search-visible')) {
+                    if (e.target !== searchInput && e.target !== searchBtn) {
                         Utils.closeMobileSearch();
                     }
-                });
-            }
+                }
+            });
         }
     };
 
@@ -146,5 +142,6 @@
     // Export mobile search functions globally for onclick handlers
     window.openMobileSearch = Utils.openMobileSearch;
     window.closeMobileSearch = Utils.closeMobileSearch;
+    
     
 })(window);

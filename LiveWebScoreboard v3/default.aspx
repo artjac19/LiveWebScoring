@@ -144,6 +144,28 @@
                 </div>
             </div>
             
+            <!-- Floating refresh button with dropdown (hidden by default, shown when tournament is selected) -->
+            <div class="refresh-container" id="refreshContainer" style="display: none;">
+                <button type="button" class="refresh-btn" id="refreshBtn" onclick="refreshTournamentData()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                        <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                    </svg>
+                </button>
+                <button type="button" class="refresh-dropdown-btn" id="refreshDropdownBtn" onclick="toggleAutoRefreshDropdown()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="10" height="10">
+                        <path d="M7 10l5 5 5-5z"/>
+                    </svg>
+                </button>
+                <div class="refresh-indicator" id="refreshIndicator" style="display: none;">Auto: 15min</div>
+                <div class="refresh-dropdown" id="refreshDropdown">
+                    <div class="refresh-dropdown-title">Refresh every:</div>
+                    <button type="button" class="refresh-dropdown-item active" data-interval="0">Off</button>
+                    <button type="button" class="refresh-dropdown-item" data-interval="300000">5 min</button>
+                    <button type="button" class="refresh-dropdown-item" data-interval="900000">15 min</button>
+                    <button type="button" class="refresh-dropdown-item" data-interval="1800000">30 min</button>
+                </div>
+            </div>
+            
             <!-- Leaderboard section for scores -->
             <div id="leaderboardSection" style="display: none;">
                 <!-- Filter Bubbles -->
@@ -233,11 +255,6 @@
             </div>
     </form>
 
-    <!-- Mobile search overlay -->
-    <div class="mobile-search-overlay">
-        <button class="close-search" onclick="closeMobileSearch()">&times;</button>
-        <input type="text" id="mobileSearchInput" placeholder="Search tournaments..." autocomplete="off">
-    </div>
 
 </body>
 

@@ -3502,10 +3502,10 @@ Public Module ModDataAccess3
         sSQL = "Select SR.[Round], SR.Score, SR.PassLineLength, SR.Note, SR.Reride, SR.ScoreProt, SR.RerideReason, SS.Score as Buoys, SS.EventClass,  "
         sSQL += " TR.Federation, TR.City, Tr.State, ER.RankingScore, SR.LastUpdateDate "
         sSQL += " From LiveWebScoreboard.dbo.SlalomRecap SR "
-        sSQL += " left join LiveWebScoreboard.dbo.SlalomScore SS On SR.SanctionID = SS.SanctionID And SR.MemberID = SS.MemberID "
+        sSQL += " left join LiveWebScoreboard.dbo.SlalomScore SS On SR.SanctionID = SS.SanctionID And SR.MemberID = SS.MemberID And SR.AgeGroup = SS.AgeGroup And SR.[Round] = SS.[Round] "
         sSQL += " Left Join LiveWebScoreboard.dbo.TourReg TR on SR.SanctionID = TR.SanctionId And SR.MemberID = TR.MemberId "
-        sSQL += " left join LiveWebScoreboard.dbo.EventReg ER on SR.sanctionID = ER.SanctionID and SR.MemberId = ER.MemberID "
-        sSQL += "Where SR.SanctionId ='" & sSanctionID & "' AND  SR.MemberId='" & sMemberID & "' and SR.[Round] = SS.[Round] and ER.Event = 'Slalom'"
+        sSQL += " left join LiveWebScoreboard.dbo.EventReg ER on SR.sanctionID = ER.SanctionID and SR.MemberId = ER.MemberID and SR.AgeGroup = ER.AgeGroup "
+        sSQL += "Where SR.SanctionId ='" & sSanctionID & "' AND  SR.MemberId='" & sMemberID & "' and ER.Event = 'Slalom'"
         sSQL += " Order By SR.[Round], SR.SkierRunNum ASC "
         '       End If
         Dim sConn As String = ""
@@ -3701,7 +3701,7 @@ Public Module ModDataAccess3
         MyStringBuilder.Append(" From [LiveWebScoreboard].[dbo].[TrickPass] TP  ")
         MyStringBuilder.Append(" Left Join(Select distinct SkierName, SanctionID, MemberID from LiveWebScoreboard.dbo.TourReg where sanctionID = '" & sSanctionID & "') as TR  ")
         MyStringBuilder.Append("  On TR.sanctionID = TP.SanctionID And TR.MemberID = TP.MemberID  ")
-        MyStringBuilder.Append(" Left Join [LiveWebScoreboard].[dbo].TrickScore TS on TS.sanctionID = TP.SanctionID And TS.MemberID = TP.MemberID And TS.[round] = TP.[Round]  ")
+        MyStringBuilder.Append(" Left Join [LiveWebScoreboard].[dbo].TrickScore TS on TS.sanctionID = TP.SanctionID And TS.MemberID = TP.MemberID And TS.AgeGroup = TP.AgeGroup And TS.[round] = TP.[Round]  ")
         MyStringBuilder.Append(" LEFT OUTER JOIN [LiveWebScoreboard].dbo.TrickVideo AS TV ON TV.SanctionId = TR.SanctionId AND TV.MemberId = TR.MemberId ")
         MyStringBuilder.Append(" And TV.AgeGroup = TP.AgeGroup AND TV.Round = TP.Round ")
 
@@ -3919,7 +3919,7 @@ Public Module ModDataAccess3
         sSQL = "Select JR.SanctionID, JR.AgeGroup, JR.[round], JR.ScoreFeet, JR.ScoreMeters, JR.PassNum, JR.LastUpdateDate, "
         sSQL += " JR.Results, Jr.BoatSpeed, Jr.RampHeight, Jr.ScoreProt, JR.Reride, Jr.RerideReason, JS.EventClass "
         sSQL += " From JumpRecap JR "
-        sSQL += " left join jumpscore JS on JR.Sanctionid = JS.SanctionID and JR.MemberID = JS.MemberID and JR.[Round] = JS.[Round]"
+        sSQL += " left join jumpscore JS on JR.Sanctionid = JS.SanctionID and JR.MemberID = JS.MemberID and JR.AgeGroup = JS.AgeGroup and JR.[Round] = JS.[Round]"
         sSQL += " Where JR.SanctionId ='" & sSanctionID & "' AND JR.MemberId='" & sMemberID & "' "
         sSQL += " Order By JR.[round], JR.PassNum ASC , ScoreFeet "
 

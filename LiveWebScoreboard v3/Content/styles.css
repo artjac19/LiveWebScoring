@@ -61,6 +61,147 @@ body {
     padding-top: 60px;
 }
 
+/* Floating refresh container */
+.refresh-container {
+    position: fixed;
+    top: calc(60px + 1.5rem);
+    left: calc(2.5vw - 20px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+}
+
+/* Main refresh button */
+.refresh-btn {
+    width: 32px;
+    height: 40px;
+    background: #15274D;
+    color: white;
+    border: 2px solid white;
+    border-radius: 12px 0 0 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+    border-right: none;
+}
+
+.refresh-btn:hover {
+    background: white;
+    color: #15274D;
+}
+
+/* Dropdown arrow button */
+.refresh-dropdown-btn {
+    width: 16px;
+    height: 40px;
+    background: #15274D;
+    color: white;
+    border: 2px solid white;
+    border-radius: 0 12px 12px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    border-left: 1px solid rgba(255,255,255,0.3);
+}
+
+.refresh-dropdown-btn:hover {
+    background: white;
+    color: #15274D;
+}
+
+/* Dropdown menu */
+.refresh-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    border: 2px solid #15274D;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: none;
+    min-width: 80px;
+    z-index: 1001;
+}
+
+.refresh-dropdown.show {
+    display: block;
+}
+
+.refresh-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #15274D;
+    transition: background-color 0.2s;
+}
+
+.refresh-dropdown-item:hover {
+    background: #f0f0f0;
+}
+
+.refresh-dropdown-item.active {
+    background: #15274D;
+    color: white;
+}
+
+.refresh-dropdown-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #15274D;
+    padding: 6px 12px 4px 12px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.refresh-dropdown-item:first-child {
+    border-radius: 0;
+}
+
+.refresh-dropdown-item:last-child {
+    border-radius: 0 0 6px 6px;
+}
+
+.refresh-indicator {
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    margin-top: 4px;
+    padding: 2px 6px;
+    background: #ffd700;
+    color: #333;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Mobile positioning for refresh container */
+@media (max-width: 1000px) {
+    .refresh-container {
+        top: auto;
+        bottom: 30px;
+        right: 20px;
+        left: auto;
+    }
+    
+    .refresh-dropdown {
+        top: auto;
+        bottom: 100%;
+        left: auto;
+        right: 0;
+    }
+}
+
 .logo {
     width: auto;
     height: 40px;
@@ -895,6 +1036,7 @@ td.date-col {
         font-size: 0.8rem;
         padding: 0 0.5rem;
         height: 36px;
+        margin-right: 2rem;
     }
 
     /* Hide tournament details sections on mobile */
@@ -1041,9 +1183,31 @@ td.date-col {
         padding: 0.3em 0.6em;
     }
 
-    /* Hide search bar on mobile */
+    /* Move search bar to overlay position on mobile */
     .search-input {
+        position: fixed !important;
+        top: 65px !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        z-index: 9999 !important;
+        background: #fff !important;
+        border: 10px 5px 5px 5px solid #15274D !important;
+        border-radius: 4px !important;
+        font-size: 16px !important;
         display: none !important;
+    }
+    
+    .search-input.mobile-search-visible {
+        display: block !important;
+    }
+    
+    /* Mobile positioning for refresh button */
+    .refresh-btn {
+        top: auto;
+        bottom: 20px;
+        left: auto;
+        right: 20px;
     }
 
 }
@@ -1118,40 +1282,3 @@ td.date-col {
     }
 }
 
-/* Mobile search overlay */
-.mobile-search-overlay {
-    display: none;
-    position: fixed;
-    top: 60px;
-    left: 0;
-    right: 0;
-    background: #fff;
-    z-index: 9999;
-    padding: 1rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.mobile-search-overlay input {
-    width: calc(100% - 50px);
-    padding: 0.75rem;
-    border: 2px solid #15274D;
-    border-radius: 4px;
-    font-size: 16px;
-}
-
-.mobile-search-overlay .close-search {
-    position: absolute;
-    top: 50%;
-    right: 1rem;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    font-size: 2rem;
-    cursor: pointer;
-    color: #666;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
