@@ -3499,13 +3499,13 @@ Public Module ModDataAccess3
         ' 23S108, James Bryans,             OM, 000107150,  at least 1 round overall
         ' 23S108, Tristan Duplan-Fribourg, JM, 000181068, at least 1 round overall
         '       If sSkierEvent = "Slalom" Then
-        sSQL = "Select SR.[Round], SR.Score, SR.PassLineLength, SR.Note, SR.Reride, SR.ScoreProt, SR.RerideReason, SS.Score as Buoys, SS.EventClass,  "
+        sSQL = "Select DISTINCT SR.[Round], SR.SkierRunNum, SR.Score, SR.PassLineLength, SR.Note, SR.Reride, SR.ScoreProt, SR.RerideReason, SS.Score as Buoys, SS.EventClass,  "
         sSQL += " TR.Federation, TR.City, Tr.State, ER.RankingScore, SR.LastUpdateDate "
         sSQL += " From LiveWebScoreboard.dbo.SlalomRecap SR "
         sSQL += " left join LiveWebScoreboard.dbo.SlalomScore SS On SR.SanctionID = SS.SanctionID And SR.MemberID = SS.MemberID And SR.AgeGroup = SS.AgeGroup And SR.[Round] = SS.[Round] "
         sSQL += " Left Join LiveWebScoreboard.dbo.TourReg TR on SR.SanctionID = TR.SanctionId And SR.MemberID = TR.MemberId "
         sSQL += " left join LiveWebScoreboard.dbo.EventReg ER on SR.sanctionID = ER.SanctionID and SR.MemberId = ER.MemberID and SR.AgeGroup = ER.AgeGroup "
-        sSQL += "Where SR.SanctionId ='" & sSanctionID & "' AND  SR.MemberId='" & sMemberID & "' and ER.Event = 'Slalom'"
+        sSQL += "Where SR.SanctionId ='" & sSanctionID & "' AND  SR.MemberId='" & sMemberID & "' and (ER.Event = 'Slalom' OR ER.Event IS NULL)"
         sSQL += " Order By SR.[Round], SR.SkierRunNum ASC "
         '       End If
         Dim sConn As String = ""
