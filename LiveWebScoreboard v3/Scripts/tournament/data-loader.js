@@ -325,7 +325,6 @@
         },
         
         loadByDivisionContent: function(selectedEvent, selectedDivision, selectedRound) {
-            console.log('loadByDivisionContent called with:', selectedEvent, selectedDivision, selectedRound);
             
             // Check if division is selected first
             if (!selectedDivision) {
@@ -335,60 +334,44 @@
             
             $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading by-division view...</p></div>');
             
-            // If "All" events selected, make separate calls for S, T, J
-            if (!selectedEvent || selectedEvent === '0') {
-                let combinedHtml = '<div class="by-division-content">';
-                const events = ['S', 'T', 'J']; // Slalom, Trick, Jump order
-                
-                // Filter events to only include those that have the selected division
-                const eventsWithDivision = events.filter(eventCode => {
-                    const cachedDivisions = TournamentInfo.currentTournamentInfo?.availableDivisions?.[eventCode];
-                    if (!cachedDivisions) return false;
-                    return cachedDivisions.some(div => div.code === selectedDivision);
+            // If "All" events selected, let backend handle all events in one call
+            if (!selectedEvent || selectedEvent === '0' || selectedEvent === 'NONE') {
+                const params = this.buildBaseRequest(null, {
+                    EV: '0', // Let backend handle all events
+                    DV: selectedDivision || 'ALL',
+                    RND: selectedRound || '0',
+                    GET_BY_DIVISION: '1'
                 });
                 
-                if (eventsWithDivision.length === 0) {
-                    $('#leaderboardContent').html('<div class="text-center p-4 text-muted"><p>This division is not available in any events</p></div>');
-                    return;
-                }
+                const request = Utils.createCancellableRequest('GetLeaderboardSP.aspx', params);
                 
-                const eventResponses = [];
-                let completedCalls = 0;
-                
-                eventsWithDivision.forEach((eventCode, index) => {
-                    const params = this.buildBaseRequest(null, {
-                        EV: eventCode,
-                        DV: selectedDivision || 'ALL',
-                        RND: selectedRound || '0',
-                        GET_BY_DIVISION: '1'
-                    });
+                return request.promise.done(function(response) {
+                    if (!request.isCurrent()) {
+                        return;
+                    }
                     
-                    $.getJSON('GetLeaderboardSP.aspx', params).done((response) => {
-                        eventResponses[index] = response;
-                        completedCalls++;
-                        
-                        if (completedCalls === eventsWithDivision.length) {
-                            // Combine responses in S, T, J order
-                            eventResponses.forEach((response) => {
-                                if (response && response.success && response.htmlContent) {
-                                    const tempDiv = $('<div>').html(response.htmlContent);
-                                    const innerContent = tempDiv.find('.by-division-content').html();
-                                    if (innerContent) {
-                                        combinedHtml += innerContent;
-                                    }
-                                }
-                            });
+                    if (response.success) {
+                        if (response.htmlContent) {
+                            $('#leaderboardContent').html(response.htmlContent);
                             
-                            combinedHtml += '</div>';
-                            $('#leaderboardContent').html(combinedHtml);
-                            
+                            // Remove score columns from running order tables in by-division view only
                             if (AppState.currentDisplayMode === 'by-division') {
                                 TournamentDataLoader.cleanupByDivisionRunningOrder();
                             }
+                            
+                            // Add loading signs to top team skiers
+                            if (typeof TeamLoadingSigns !== 'undefined') {
+                                TeamLoadingSigns.updateLoadingSigns();
+                            }
+                        } else {
+                            $('#leaderboardContent').html('<div class="text-center p-4 text-muted"><p>This division is not available in any events</p></div>');
                         }
-                    });
+                    } else {
+                        $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading by-division view</p></div>');
+                    }
+                }).fail(() => {
+                    $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading by-division view</p></div>');
                 });
-                return;
             }
             
             const params = this.buildBaseRequest(null, {
@@ -434,17 +417,36 @@
         },
         
         cleanupByDivisionRunningOrder: function() {
-            // Remove the rightmost column (scores) from running order tables only
+            // Remove score columns from running order tables only
             // Target the first div in each flex container (running order side)
             $('.by-division-content div[style*="display: flex"] div:first-child table').each(function() {
-                $(this).find('tr').each(function() {
-                    $(this).find('th:last-child, td:last-child').remove();
+                const $table = $(this);
+                
+                $table.find('tr').each(function() {
+                    const $row = $(this);
+                    const $cells = $row.find('th, td');
+                    
+                    // Skip rows with colspan headers (event group headers) - they don't have score columns
+                    if ($cells.filter('[colspan]').length > 0) {
+                        return; // Skip this row entirely
+                    }
+                    
+                    // For data rows, remove all score columns (everything after Name and Group/Division)
+                    // Typically: Name (1st), Group/Division (2nd), then score columns (3rd+)
+                    if ($cells.length > 2) {
+                        // Remove all columns after the 2nd one (Name, Group/Div kept)
+                        $cells.slice(2).remove();
+                    }
                 });
                 
-                // Adjust column widths: 70% name, 30% group/division
-                $(this).find('tr').each(function() {
-                    $(this).find('th:nth-child(1), td:nth-child(1)').css('width', '70%'); // Name column
-                    $(this).find('th:nth-child(2), td:nth-child(2)').css('width', '30%'); // Group/Div column
+                // Adjust column widths for remaining columns: 70% name, 30% group/division
+                $table.find('tr').each(function() {
+                    const $row = $(this);
+                    // Skip colspan rows for width adjustment
+                    if ($row.find('[colspan]').length === 0) {
+                        $row.find('th:nth-child(1), td:nth-child(1)').css('width', '70%'); // Name column
+                        $row.find('th:nth-child(2), td:nth-child(2)').css('width', '30%'); // Group/Div column
+                    }
                 });
             });
         },

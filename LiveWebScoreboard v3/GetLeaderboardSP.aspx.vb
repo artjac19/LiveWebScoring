@@ -185,14 +185,14 @@ Public Class GetLeaderboardSP
                     .batchResults = batchResults
                 })
                 ' If no event specified, return tournament info and available options
-            ElseIf String.IsNullOrEmpty(sEventCodePkd) OrElse sEventCodePkd = "0" Then
-                jsonResponse = BuildTournamentInfoJson(sSanctionID, sTournName, sSlalomRounds, sTrickRounds, sJumpRounds, sFormatCode)
             ElseIf sGetRunningOrder = "1" Then
                 ' Return running order data
                 jsonResponse = BuildRunningOrderJson(sSanctionID, sYrPkd, sTournName, sEventCodePkd, sDivisionCodePkd, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, CShort(CInt(sUseNOPS)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
             ElseIf sGetByDivision = "1" Then
-                ' Return by division view data
+                ' Return by division view data - handles both specific events and "All" events
                 jsonResponse = BuildByDivisionJson(sSanctionID, sYrPkd, sTournName, sEventCodePkd, sDivisionCodePkd, sRndsPkd, sSlalomRounds, sTrickRounds, sJumpRounds, CShort(CInt(sUseNOPS)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
+            ElseIf String.IsNullOrEmpty(sEventCodePkd) OrElse sEventCodePkd = "0" Then
+                jsonResponse = BuildTournamentInfoJson(sSanctionID, sTournName, sSlalomRounds, sTrickRounds, sJumpRounds, sFormatCode)
             ElseIf String.IsNullOrEmpty(sDivisionCodePkd) Then
                 ' Event specified but no division - return just division data quickly
                 jsonResponse = BuildDivisionInfoJson(sSanctionID, sEventCodePkd)
@@ -316,13 +316,6 @@ Public Class GetLeaderboardSP
                     Else
                         sHtmlContent = LiveWebScoreBoard.ModDataAccess3.LeaderBoardBestRndLeftSP(sSanctionID, sYrPkd, sTournName, "J", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), CShort(CInt(sUseNops)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
                     End If
-                End If
-            Case "O"
-                ' Overall always uses BestRndLeftSP since it doesn't have round-specific scoring
-                If isCollegiate Then
-                    sHtmlContent = LiveWebScoreBoard.ModDataAccessTeams.LeaderBoardBestRndLeft(sSanctionID, sYrPkd, sTournName, "O", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), CShort(CInt(sUseNops)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
-                Else
-                    sHtmlContent = LiveWebScoreBoard.ModDataAccess3.LeaderBoardBestRndLeftSP(sSanctionID, sYrPkd, sTournName, "O", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), CShort(CInt(sUseNops)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
                 End If
         End Select
 
@@ -453,7 +446,10 @@ Public Class GetLeaderboardSP
             If sJumpRounds > 0 Then eventsToShow.Add("J")
         End If
 
-        ' Determine which rounds to show for each event
+        ' Get running order count once to determine if events have multiple running orders
+        Dim sRunOrdCountArray(0 To 4)
+        sRunOrdCountArray = LiveWebScoreBoard.ModDataAccess3.GetRunOrdercount(sSanctionID, "0", "0", "0")
+        
         sHtmlContent = "<div class='by-division-content'>"
 
         For Each eventCode As String In eventsToShow
@@ -468,18 +464,34 @@ Public Class GetLeaderboardSP
             End Select
 
             If maxRounds > 0 Then
+                ' Check if this event has multiple running orders
+                Dim sMulti As String = "0"
+                If Left(sRunOrdCountArray(0), 5) <> "Error" Then
+                    Select Case eventCode
+                        Case "S"
+                            sMulti = sRunOrdCountArray(1)
+                        Case "T"
+                            sMulti = sRunOrdCountArray(2)
+                        Case "J"
+                            sMulti = sRunOrdCountArray(3)
+                    End Select
+                End If
 
-                ' Show specific round or all rounds
+                ' Show specific round or all rounds based on tournament configuration
                 If hasRound Then
+                    ' User selected specific round
                     Dim roundNum As Integer = CInt(sRndsPkd)
                     If roundNum <= maxRounds Then
-                        sHtmlContent += BuildRoundContent(sSanctionID, sYrPkd, sTournName, eventCode, sDivisionCodePkd, roundNum.ToString(), sSlalomRounds, sTrickRounds, sJumpRounds, sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                        sHtmlContent += BuildRoundContent(sSanctionID, sYrPkd, sTournName, eventCode, sDivisionCodePkd, roundNum.ToString(), sSlalomRounds, sTrickRounds, sJumpRounds, sUseNops, sUseTeams, sFormatCode, sDisplayMetric, True)
                     End If
-                Else
-                    ' Show all rounds for this event
+                ElseIf sMulti = "1" Then
+                    ' Multiple running orders - show each round separately
                     For round As Integer = 1 To maxRounds
-                        sHtmlContent += BuildRoundContent(sSanctionID, sYrPkd, sTournName, eventCode, sDivisionCodePkd, round.ToString(), sSlalomRounds, sTrickRounds, sJumpRounds, sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+                        sHtmlContent += BuildRoundContent(sSanctionID, sYrPkd, sTournName, eventCode, sDivisionCodePkd, round.ToString(), sSlalomRounds, sTrickRounds, sJumpRounds, sUseNops, sUseTeams, sFormatCode, sDisplayMetric, True)
                     Next
+                Else
+                    ' Single running order - show all rounds together
+                    sHtmlContent += BuildRoundContent(sSanctionID, sYrPkd, sTournName, eventCode, sDivisionCodePkd, "0", sSlalomRounds, sTrickRounds, sJumpRounds, sUseNops, sUseTeams, sFormatCode, sDisplayMetric, False)
                 End If
             End If
         Next
@@ -488,7 +500,7 @@ Public Class GetLeaderboardSP
         Return sHtmlContent
     End Function
 
-    Private Function BuildRoundContent(sSanctionID As String, sYrPkd As String, sTournName As String, eventCode As String, divisionCode As String, roundNum As String, sSlalomRounds As Int16, sTrickRounds As Int16, sJumpRounds As Int16, sUseNops As Int16, sUseTeams As Int16, sFormatCode As String, sDisplayMetric As Int16) As String
+    Private Function BuildRoundContent(sSanctionID As String, sYrPkd As String, sTournName As String, eventCode As String, divisionCode As String, roundNum As String, sSlalomRounds As Int16, sTrickRounds As Int16, sJumpRounds As Int16, sUseNops As Int16, sUseTeams As Int16, sFormatCode As String, sDisplayMetric As Int16, isSpecificRound As Boolean) As String
         Dim content As String = ""
 
         ' Create side-by-side layout for running order and leaderboard
@@ -498,29 +510,16 @@ Public Class GetLeaderboardSP
         content += "<div style='flex: 1; min-width: 300px;'>"
         content += "<h5>Running Order</h5>"
 
-        ' Get running order count to determine if multi or single running order is needed
-        Dim sRunOrdCountArray(0 To 4)
-        sRunOrdCountArray = LiveWebScoreBoard.ModDataAccess3.GetRunOrdercount(sSanctionID, "0", "0", "0")
-
         Try
             Dim runningOrderHtml As String = ""
-            If Left(sRunOrdCountArray(0), 5) <> "Error" Then
-                Dim sMulti As String = ""
-                Select Case eventCode
-                    Case "S"
-                        sMulti = sRunOrdCountArray(1)
-                    Case "T"
-                        sMulti = sRunOrdCountArray(2)
-                    Case "J"
-                        sMulti = sRunOrdCountArray(3)
-                End Select
-
-                ' Call appropriate running order function with proper round parameters
-                If sMulti = "1" Then
-                    runningOrderHtml = LiveWebScoreBoard.ModDataAccess3.ScoresXMultiRunOrdHoriz(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, roundNum, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
-                Else
-                    runningOrderHtml = LiveWebScoreBoard.ModDataAccess3.ScoresXRunOrdHoriz(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, roundNum, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
-                End If
+            
+            ' Call appropriate running order function based on whether we're showing specific rounds
+            If isSpecificRound Then
+                ' Specific round - use multi function (it handles both multi and single running orders for specific rounds)
+                runningOrderHtml = LiveWebScoreBoard.ModDataAccess3.ScoresXMultiRunOrdHoriz(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, roundNum, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+            Else
+                ' All rounds together - use regular function
+                runningOrderHtml = LiveWebScoreBoard.ModDataAccess3.ScoresXRunOrdHoriz(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, roundNum, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
             End If
 
             If String.IsNullOrEmpty(runningOrderHtml) Then
@@ -534,13 +533,21 @@ Public Class GetLeaderboardSP
 
         content += "</div>"
 
-        ' Right side: Leaderboard (by round)
+        ' Right side: Leaderboard - use proper placement format logic
         content += "<div style='flex: 1; min-width: 300px;'>"
         content += "<h5>Leaderboard</h5>"
 
-        ' Get leaderboard BY ROUND using LeaderBoardROUND function
         Try
-            Dim leaderboardHtml As String = LiveWebScoreBoard.ModDataAccess3.LeaderBoardROUND(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, roundNum, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+            Dim leaderboardHtml As String = ""
+            Dim sPlcmntFormat As String = LiveWebScoreBoard.ModDataAccessPro.GetPlcmtFormat(sSanctionID, GetEventName(eventCode))
+            
+            ' Use proper placement format logic - same as scores view
+            If UCase(sPlcmntFormat) = "ROUND" Then
+                leaderboardHtml = LiveWebScoreBoard.ModDataAccess3.LeaderBoardROUND(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, roundNum, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+            Else
+                ' For all non-ROUND formats, use best round function
+                leaderboardHtml = LiveWebScoreBoard.ModDataAccess3.LeaderBoardBestRndLeftSP(sSanctionID, sYrPkd, sTournName, eventCode, divisionCode, roundNum, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
+            End If
 
             If String.IsNullOrEmpty(leaderboardHtml) Then
                 content += "<p>No scores yet</p>"
@@ -556,7 +563,7 @@ Public Class GetLeaderboardSP
 
         Return content
     End Function
-
+    
     Private Function GetEventName(eventCode As String) As String
         Select Case eventCode
             Case "S"
@@ -565,12 +572,11 @@ Public Class GetLeaderboardSP
                 Return "Trick"
             Case "J"
                 Return "Jump"
-            Case "O"
-                Return "Overall"
             Case Else
-                Return "Event"
+                Return "Slalom"
         End Select
     End Function
+
 
     Private Function GetOnWaterData(sSanctionID As String, sSlalomRounds As Int16, sTrickRounds As Int16, sJumpRounds As Int16) As Object
         Dim sActiveEvent As String = LiveWebScoreBoard.ModDataAccess3.GetCurrentEvent(sSanctionID, -15)

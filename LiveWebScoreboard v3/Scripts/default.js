@@ -246,6 +246,10 @@
             const filterState = this.getFilterState();
             TournamentNav.updateLeaderboardUrl(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound, filterState.selectedBestOf);
             
+            if (AppState.currentDisplayMode === 'by-division') {
+                this.loadByDivisionContent(filterState.selectedEvent, filterState.selectedDivision, filterState.selectedRound);
+                return;
+            }
             
             if (filterState.isMixed) {
                 this.loadRecentScores();
@@ -793,10 +797,8 @@
             divisionFilters.empty();
             
             // Add division filter options based on display mode
-            if (AppState.currentDisplayMode === 'running-order') {
+            if (AppState.currentDisplayMode === 'running-order' || AppState.currentDisplayMode === 'by-division') {
                 divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="ALL">All</button>');
-            } else if (AppState.currentDisplayMode === 'by-division') {
-                // By-division mode: no default buttons, just dynamic divisions
             } else {
                 if (eventCode !== 'O') {
                     divisionFilters.append('<button class="filter-btn" data-filter="division" data-value="MOST_RECENT">Most Recent</button>');
