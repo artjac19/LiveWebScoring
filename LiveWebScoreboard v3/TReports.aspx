@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="Content/bootstrap.min.css" />
     <link rel="stylesheet" href="Content/styles.css" />
     <style>
+        /* Override global body padding from styles.css */
+        body {
+            padding-top: 0 !important;
+        }
+
         /* TRecap-style navbar overrides */
         .blue-bar {
             background-color: #15274D;

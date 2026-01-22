@@ -29,7 +29,13 @@
             HF_SanctionID.Value = sSanctionID
                 HF_YearPkd.Value = sYrPkd  ' = ddl_YrPkd.selectedvalue
                 HF_TournName.Value = sTournName
-            Dim sSkierList As String = ModDataAccess3.GetEntryList(sSanctionID, sTournName, sYrPkd)
+            ' Use mock data if enabled
+            Dim sSkierList As String
+            If MockData.USE_MOCK_DATA Then
+                sSkierList = MockData.GetMockEntryList()
+            Else
+                sSkierList = ModDataAccess3.GetEntryList(sSanctionID, sTournName, sYrPkd)
+            End If
             InsertHere.InnerHtml = sSkierList
 
             End If

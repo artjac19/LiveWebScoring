@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="Content/bootstrap.min.css" />
     <link rel="stylesheet" href="Content/styles.css" />
     <style>
+        /* Override global body padding from styles.css */
+        body {
+            padding-top: 0 !important;
+        }
+
         /* TRecap-style navbar overrides */
         .blue-bar {
             background-color: #15274D;
@@ -44,19 +49,20 @@
         }
 
         .navbar-title {
-            font-size: 0.7rem !important;
+            font-size: 1.2rem !important;
         }
 
         .navbar-title span {
-            font-size: 0.7rem !important;
+            font-size: 1rem !important;
         }
 
         /* Mobile responsive styling */
         @media (max-width: 768px) {
-            body form div.blue-bar div.navbar-title,
-            body form div.blue-bar div.navbar-title span,
-            body form div.blue-bar div.navbar-title span h3 {
-                font-size: 0.7rem !important;
+            .navbar-title {
+                font-size: 1rem !important;
+            }
+            .navbar-title span {
+                font-size: 0.9rem !important;
             }
         }
     </style>

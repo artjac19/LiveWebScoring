@@ -619,6 +619,7 @@ td.date-col {
     border-radius: 18px;
     padding: 0;
     margin: 0;
+    position: relative;
 }
 
 .tournament-name {
@@ -642,6 +643,35 @@ td.date-col {
     gap: 0.5rem;
     margin: 1rem;
     justify-content: center;
+}
+
+/* Back button - top left of tournament panel */
+.tnav-back-btn {
+    position: absolute;
+    left: 1.25rem;
+    top: 1.25rem;
+    width: 34px;
+    height: 34px;
+    background: #15274D;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.tnav-back-btn:hover {
+    background-color: #f8f9fa;
+    color: #15274D;
+}
+
+.tnav-back-btn svg {
+    width: 20px;
+    height: 20px;
 }
 
 .tnav-btn {

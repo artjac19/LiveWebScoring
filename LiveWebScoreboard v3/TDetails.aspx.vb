@@ -11,6 +11,13 @@ Public Class TDetails
             Response.Clear()
             Response.ContentType = "application/json"
 
+            ' Handle mock data mode
+            If MockData.USE_MOCK_DATA Then
+                Response.Write(MockData.GetMockTournamentDetails())
+                Response.End()
+                Exit Sub
+            End If
+
             Dim sanctionId As String = Request.QueryString("sid")
 
             If String.IsNullOrEmpty(sanctionId) OrElse Not Regex.IsMatch(sanctionId, "^[0-9][0-9][CEMSWUX][0-9][0-9][0-9]$") Then

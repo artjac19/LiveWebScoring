@@ -10,19 +10,25 @@
         
         buildDetailsHtml: function(response, trickVideoText) {
             let combinedHtml = '<div class="tournament-detail-panel">';
+
+            // Back button - positioned top left of panel, hidden on home screen
+            combinedHtml += '<button class="tnav-back-btn" id="tnavBackBtn" data-view="home" title="Back to Tournament List">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>' +
+                '</button>';
+
             let tournamentName = '';
 
             const detailsResult = this.buildDetailsSection(response, trickVideoText);
             tournamentName = detailsResult.tournamentName;
-            
+
             // Store tournament name in AppState for leaderboard use
             AppState.currentTournamentName = tournamentName;
-            
+
             if (tournamentName) {
                 const sizeClass = tournamentName.length > 25 ? 'tournament-name-small' : 'tournament-name-large';
                 combinedHtml += '<div class="tournament-name ' + sizeClass + '">' + tournamentName + '</div>';
             }
-            
+
             combinedHtml += '<div class="tnav-buttons">' +
                 '<button class="tnav-btn" data-view="scores">Scores</button>' +
                 '<button class="tnav-btn" data-view="running-order">Running Order</button>' +
@@ -30,7 +36,6 @@
                 '<button class="tnav-btn" data-view="entry-list">Entry List</button>' +
                 '<button class="tnav-btn" data-view="reports">Reports</button>' +
                 '<button class="tnav-btn" data-view="legacy-view">Legacy View</button>' +
-                '<button class="tnav-btn" data-view="home">Tournament List</button>' +
                 '<button class="tnav-btn details-btn" id="detailsToggleBtn">Details</button>' +
                 '</div>';
             

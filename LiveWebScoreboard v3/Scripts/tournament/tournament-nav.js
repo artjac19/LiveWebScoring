@@ -10,40 +10,60 @@
         
         bindTNav: function() {
             $('.tnav-btn').off('click.tnav');
-            
+            $('.tnav-back-btn').off('click.tnav');
+
             // Restore active state if we have one saved
             if (AppState.currentActiveView) {
                 $('.tnav-btn[data-view="' + AppState.currentActiveView + '"]').addClass('active');
             }
-            
+
             $('.tnav-btn').on('click.tnav', (e) => {
                 e.preventDefault();
-                
+
                 const $btn = $(e.target);
-                
+
                 // Skip navigation for Details button
                 if ($btn.hasClass('details-btn')) {
                     return;
                 }
-                
+
                 const view = $btn.data('view');
                 const sanctionId = AppState.currentSelectedTournamentId;
-                
+
                 if (!sanctionId) {
                     console.error('No tournament selected');
                     return;
                 }
-                
+
                 this.setActiveNavButton($btn, view);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 this.handleViewNavigation(view, sanctionId);
             });
+
+            // Back button handler - navigates to home/tournament list
+            $('.tnav-back-btn').on('click.tnav', (e) => {
+                e.preventDefault();
+                const sanctionId = AppState.currentSelectedTournamentId;
+                this.navigateToHome(sanctionId);
+            });
+
+            // Update back button visibility based on current view
+            this.updateBackButtonVisibility();
         },
 
         setActiveNavButton: function($btn, view) {
             $('.tnav-btn').removeClass('active');
             $btn.addClass('active');
             AppState.currentActiveView = view;
+            this.updateBackButtonVisibility();
+        },
+
+        updateBackButtonVisibility: function() {
+            const backBtn = document.getElementById('tnavBackBtn');
+            if (backBtn) {
+                const view = AppState.currentActiveView;
+                backBtn.style.display = (view === 'home' || !view) ? 'none' : 'flex';
+            }
         },
 
         handleViewNavigation: function(view, sanctionId) {

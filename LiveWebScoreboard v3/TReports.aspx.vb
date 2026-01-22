@@ -23,7 +23,12 @@
                 Exit Sub
             End Try
         End If
-        sMsg = ModDataAccess3.GetReportList(sSanctionID)
+        ' Use mock data if enabled
+        If MockData.USE_MOCK_DATA Then
+            sMsg = MockData.GetMockReportList()
+        Else
+            sMsg = ModDataAccess3.GetReportList(sSanctionID)
+        End If
         ReportList.InnerHtml = sMsg
     End Sub
 

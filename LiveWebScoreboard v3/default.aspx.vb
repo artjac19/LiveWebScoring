@@ -70,6 +70,12 @@ Public Class [Default]
     End Sub
 
     Private Sub LoadTournamentList(sSkiYr As String)
+        ' Use mock data if enabled
+        If MockData.USE_MOCK_DATA Then
+            TList.InnerHtml = MockData.GetMockTournamentList()
+            Exit Sub
+        End If
+
         Dim region As String = ""
 
         If Request("RG") IsNot Nothing Then

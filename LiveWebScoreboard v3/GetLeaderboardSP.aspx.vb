@@ -9,6 +9,11 @@ Public Class GetLeaderboardSP
         Response.ContentType = "application/json"
         Response.Clear()
 
+        ' Handle mock data mode (toggle is in MockData.vb)
+        If MockData.USE_MOCK_DATA Then
+            HandleMockRequest()
+            Exit Sub
+        End If
 
         Dim jsonResponse As String = ""
         Dim startTime As DateTime = DateTime.Now
@@ -625,6 +630,57 @@ Public Class GetLeaderboardSP
         Dim errorResponse = New With {.success = False, .error = message}
         Dim serializer As New JavaScriptSerializer()
         Response.Write(serializer.Serialize(errorResponse))
+        Response.End()
+    End Sub
+
+    Private Sub HandleMockRequest()
+        Dim jsonResponse As String = ""
+        Dim sEventCodePkd As String = Request("EV")
+        Dim sDivisionCodePkd As String = Request("DV")
+        Dim sGetRunningOrder As String = Request("GET_RUNNING_ORDER")
+        Dim sGetRecentScores As String = Request("GET_RECENT_SCORES")
+        Dim sGetMostRecent As String = Request("GET_MOST_RECENT")
+        Dim sLoadAllDivisions As String = Request("LOAD_ALL_DIVISIONS")
+        Dim sBatchDivisions As String = Request("BATCH_DIVISIONS")
+        Dim sGetByDivision As String = Request("GET_BY_DIVISION")
+
+        ' Route to appropriate mock data based on request type
+        If sGetRecentScores = "1" Then
+            jsonResponse = MockData.GetMockRecentScores()
+        ElseIf sGetMostRecent = "1" Then
+            ' Return prioritized divisions for infinite scroll
+            jsonResponse = MockData.GetMockPrioritizedDivisions()
+        ElseIf sLoadAllDivisions = "1" Then
+            ' Return all available divisions
+            jsonResponse = MockData.GetMockAllDivisions()
+        ElseIf Not String.IsNullOrEmpty(sBatchDivisions) Then
+            ' Parse batch request and return mock results
+            Dim serializer As New JavaScriptSerializer()
+            Try
+                Dim batchRequests = serializer.Deserialize(Of List(Of Dictionary(Of String, Object)))(sBatchDivisions)
+                Dim events As New List(Of String)
+                Dim divisions As New List(Of String)
+                For Each req In batchRequests
+                    events.Add(req("event").ToString())
+                    divisions.Add(req("division").ToString())
+                Next
+                jsonResponse = MockData.GetMockBatchResults(events, divisions)
+            Catch
+                jsonResponse = MockData.GetMockTournamentInfo()
+            End Try
+        ElseIf sGetRunningOrder = "1" Then
+            jsonResponse = MockData.GetMockRunningOrder(If(sEventCodePkd, "S"), If(sDivisionCodePkd, "M1"))
+        ElseIf sGetByDivision = "1" Then
+            jsonResponse = MockData.GetMockByDivision(If(sEventCodePkd, ""), If(sDivisionCodePkd, "M1"))
+        ElseIf String.IsNullOrEmpty(sEventCodePkd) OrElse sEventCodePkd = "0" Then
+            jsonResponse = MockData.GetMockTournamentInfo()
+        ElseIf String.IsNullOrEmpty(sDivisionCodePkd) Then
+            jsonResponse = MockData.GetMockDivisions(sEventCodePkd)
+        Else
+            jsonResponse = MockData.GetMockLeaderboard(sEventCodePkd, sDivisionCodePkd)
+        End If
+
+        Response.Write(jsonResponse)
         Response.End()
     End Sub
 End Class
