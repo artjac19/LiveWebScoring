@@ -1988,29 +1988,28 @@ Public Module ModDataAccess3
                 Dim sTrickNops As String = "--"
                 Dim sJumpNops As String = "--"
 
-                Try
+                ' Use different column names for Overall vs other events
+                If selEvent = "O" Then
+                    If Not IsDBNull(MyDataReader.Item("PointsScoreSlalom")) Then
+                        sSlalomNops = Format(MyDataReader.Item("PointsScoreSlalom"), "0.00")
+                    End If
+                    If Not IsDBNull(MyDataReader.Item("PointsScoreTrick")) Then
+                        sTrickNops = Format(MyDataReader.Item("PointsScoreTrick"), "0.00")
+                    End If
+                    If Not IsDBNull(MyDataReader.Item("PointsScoreJump")) Then
+                        sJumpNops = Format(MyDataReader.Item("PointsScoreJump"), "0.00")
+                    End If
+                Else
                     If Not IsDBNull(MyDataReader.Item("NopsScoreSlalom")) Then
                         sSlalomNops = Format(MyDataReader.Item("NopsScoreSlalom"), "0.00")
                     End If
-                Catch ex As Exception
-                    sSlalomNops = "--"
-                End Try
-
-                Try
                     If Not IsDBNull(MyDataReader.Item("NopsScoreTrick")) Then
                         sTrickNops = Format(MyDataReader.Item("NopsScoreTrick"), "0.00")
                     End If
-                Catch ex As Exception
-                    sTrickNops = "--"
-                End Try
-
-                Try
                     If Not IsDBNull(MyDataReader.Item("NopsScoreJump")) Then
                         sJumpNops = Format(MyDataReader.Item("NopsScoreJump"), "0.00")
                     End If
-                Catch ex As Exception
-                    sJumpNops = "--"
-                End Try
+                End If
 
                 sDVScoresSection.Append("<td>" & sSlalomNops & "</td>")
                 sDVScoresSection.Append("<td>" & sTrickNops & "</td>")
@@ -2175,7 +2174,24 @@ Public Module ModDataAccess3
         cmdRead.CommandText = sSql
 
         If selEvent = "O" Then
-            cmdRead = GetOverallScoresData(sSanctionID, sSelDV)
+            ' Use appropriate stored procedure based on tournament type
+            Dim isCollegiate As Boolean = (selFormat = "NCWL")
+            Dim procedureName As String = If(isCollegiate, "PrGetScoresOverallPlcmt", "PrGetScoresOverall")
+            
+
+            cmdRead.CommandType = CommandType.StoredProcedure
+            cmdRead.CommandText = procedureName
+
+            ' Use VarChar like other stored procedures - calling by division format
+            cmdRead.Parameters.Add("@InSanctionId", OleDb.OleDbType.VarChar, 6).Value = sSanctionID
+            If sSelDV = "" Or sSelDV = "All" Then
+                cmdRead.Parameters.Add("@InDiv", OleDb.OleDbType.VarChar, 3).Value = "All"
+            Else
+                cmdRead.Parameters.Add("@InDiv", OleDb.OleDbType.VarChar, 3).Value = sSelDV
+            End If
+
+
+            'cmdRead = GetOverallScoresData(sSanctionID, sSelDV) ' Commented out for testing
         Else
             'Regular event stored procedures (PrLeaderBoard)
             cmdRead.Parameters.Add("@InSanctionID", OleDb.OleDbType.VarChar)
@@ -2207,11 +2223,35 @@ Public Module ModDataAccess3
                     cmdRead.Connection = Cnnt 'New OleDbConnection(sConn)
                     cmdRead.Connection.Open()
                     MyDataReader = cmdRead.ExecuteReader
+
+
                     If MyDataReader.HasRows = True Then
                         Dim rowCount As Integer = 0
                         Do While MyDataReader.Read()
                             rowCount += 1
+                            
+                            ' Debug: Show columns IMMEDIATELY for Overall events
+                            If selEvent = "O" And rowCount = 1 Then
+                                System.Diagnostics.Debug.WriteLine("=== FIRST ROW - SHOWING ALL COLUMNS ===")
+                                For colIdx As Integer = 0 To MyDataReader.FieldCount - 1
+                                    System.Diagnostics.Debug.WriteLine("Column " & colIdx & ": '" & MyDataReader.GetName(colIdx) & "'")
+                                Next
+                                System.Diagnostics.Debug.WriteLine("======================================")
+                            End If
+                            
                             If selEvent = "O" Then
+                                If rowCount <= 3 Then ' Log first few rows only
+                                    System.Diagnostics.Debug.WriteLine("=== Row " & rowCount & " ===")
+                                    Try
+                                        System.Diagnostics.Debug.WriteLine("SanctionId: " & CStr(MyDataReader.Item("SanctionId")))
+                                        System.Diagnostics.Debug.WriteLine("SkierName: " & CStr(MyDataReader.Item("SkierName")))
+                                        System.Diagnostics.Debug.WriteLine("AgeGroup: " & CStr(MyDataReader.Item("AgeGroup")))
+                                        System.Diagnostics.Debug.WriteLine("Round: " & CStr(MyDataReader.Item("Round")))
+                                        System.Diagnostics.Debug.WriteLine("PointsScoreOverall: " & CStr(MyDataReader.Item("PointsScoreOverall")))
+                                    Catch ex As Exception
+                                        System.Diagnostics.Debug.WriteLine("Column access error: " & ex.Message)
+                                    End Try
+                                End If
                                 sSanctionID = CStr(MyDataReader.Item("SanctionId"))   ' Note: SanctionId from stored procedure
                                 sSkierName = CStr(MyDataReader.Item("SkierName"))
 
@@ -2233,8 +2273,18 @@ Public Module ModDataAccess3
                                     sMemberID = ""
                                 End If
 
-                                If Not IsDBNull(MyDataReader.Item("NopsScoreOverall")) Then
-                                    sScoreBest = Format(MyDataReader.Item("NopsScoreOverall"), "0.00")
+                                ' Debug: Show what columns are available when error occurs
+                                If rowCount = 1 Then
+                                    System.Diagnostics.Debug.WriteLine("=== COLUMNS AVAILABLE IN DATA READER ===")
+                                    For colIdx As Integer = 0 To MyDataReader.FieldCount - 1
+                                        System.Diagnostics.Debug.WriteLine("Column " & colIdx & ": '" & MyDataReader.GetName(colIdx) & "'")
+                                    Next
+                                    System.Diagnostics.Debug.WriteLine("=========================================")
+                                End If
+                                
+                                ' Temporarily use a safe column access method
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreOverall")) Then
+                                    sScoreBest = Format(MyDataReader.Item("PointsScoreOverall"), "0.00")
                                 Else
                                     sScoreBest = "0.00"
                                 End If
@@ -2274,8 +2324,8 @@ Public Module ModDataAccess3
 
                             If selEvent = "O" Then
 
-                                If Not IsDBNull(MyDataReader.Item("NopsScoreOverall")) Then
-                                    sNopsScore = Format(MyDataReader.Item("NopsScoreOverall"), "0.00")
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreOverall")) Then
+                                    sNopsScore = Format(MyDataReader.Item("PointsScoreOverall"), "0.00")
                                 Else
                                     sNopsScore = "0.00"
                                 End If
@@ -2339,7 +2389,10 @@ Public Module ModDataAccess3
                                     sHasVideo = "<img src=""Images/Flag-green16.png"" alt=""Trick Video Available"" title=""Trick Video Available, Select skier on Entry List"" />"
                                 End If
                             End If
-                            sPlcmtFormat = UCase(MyDataReader.Item("plcmtformat"))
+                            ' Skip placement format for Overall events - not needed
+                            If selEvent <> "O" Then
+                                sPlcmtFormat = UCase(MyDataReader.Item("plcmtformat"))
+                            End If
 
                             If sTmpDv = "" Then
                                 'Get the division header for first division
@@ -2415,8 +2468,13 @@ Public Module ModDataAccess3
 
                 End Using
             Catch ex As Exception
-                sMsg = "Error at LeaderBoardBestRndLeftSP"
-                sErrDetails = sMsg & " " & ex.Message & " " & ex.StackTrace
+                sMsg = "Error at LeaderBoardBestRndLeftSP: " & ex.Message
+                sErrDetails = sMsg & " " & ex.StackTrace
+                System.Diagnostics.Debug.WriteLine("=== STORED PROCEDURE ERROR ===")
+                System.Diagnostics.Debug.WriteLine("Error Message: " & ex.Message)
+                System.Diagnostics.Debug.WriteLine("Stack Trace: " & ex.StackTrace)
+                System.Diagnostics.Debug.WriteLine("Event: " & selEvent)
+                System.Diagnostics.Debug.WriteLine("===============================")
             End Try
 
         End Using
@@ -4056,7 +4114,7 @@ Public Module ModDataAccess3
         Return sText
     End Function
 
-    Friend Function RecapOverall(ByVal SanctionID As String, ByVal MemberID As String, ByVal SkierName As String) As String
+    Friend Function RecapOverall(ByVal SanctionID As String, ByVal MemberID As String, ByVal SkierName As String, Optional ByVal FormatCode As String = "LBSP") As String
         'Pulled from wfwShowScoreRecap.php
         ' 
         Dim sMsg As String = ""
@@ -4094,7 +4152,14 @@ Public Module ModDataAccess3
         Dim sNotOverall As String = ""
 
 
-        sSQL = "select * from vOverallResults where SanctionID ='" & sSanctionID & "'  and OverallScore > 0 and MemberID = '" & sMemberID & "'"
+        ' Use appropriate stored procedure based on format code
+        If FormatCode = "NCWL" Then
+            ' Collegiate tournaments use placement-based stored procedure
+            sSQL = "EXEC LiveWebScoreboard.dbo.PrGetScoresOverallPlcmt @InSanctionId = '" & sSanctionID & "', @InMemberId = '" & sMemberID & "'"
+        Else
+            ' Regular tournaments use standard stored procedure  
+            sSQL = "EXEC LiveWebScoreboard.dbo.PrGetScoresOverall @InSanctionId = '" & sSanctionID & "', @InMemberId = '" & sMemberID & "'"
+        End If
 
         Dim sConn As String = ""
         Try
@@ -4125,113 +4190,120 @@ Public Module ModDataAccess3
                     MyDataReader = cmdRead.ExecuteReader
                     sText += "<h4 style='margin-bottom: 1rem;'>Overall Scores</h4>"
                     sText += "<table class=""table table-striped table-bordered"">"
-                    sText += "<thead><tr><th style=""font-size: 0.7rem;"">Age Group</th><th style=""font-size: 0.7rem;"">Round</th><th style=""font-size: 0.7rem;"">Overall Score</th><th style=""font-size: 0.7rem;"">Slalom NOPS</th><th style=""font-size: 0.7rem;"">Trick NOPS</th><th style=""font-size: 0.7rem;"">Jump NOPS</th></tr></thead>"
+                    If FormatCode = "NCWL" Then
+                        ' Collegiate tournaments don't have rounds for any event
+                        sText += "<thead><tr><th style=""font-size: 0.7rem;"">Age Group</th><th style=""font-size: 0.7rem;"">Overall Score</th><th style=""font-size: 0.7rem;"">Slalom NOPS</th><th style=""font-size: 0.7rem;"">Trick NOPS</th><th style=""font-size: 0.7rem;"">Jump NOPS</th></tr></thead>"
+                    Else
+                        ' Regular tournaments have rounds
+                        sText += "<thead><tr><th style=""font-size: 0.7rem;"">Age Group</th><th style=""font-size: 0.7rem;"">Round</th><th style=""font-size: 0.7rem;"">Overall Score</th><th style=""font-size: 0.7rem;"">Slalom NOPS</th><th style=""font-size: 0.7rem;"">Trick NOPS</th><th style=""font-size: 0.7rem;"">Jump NOPS</th></tr></thead>"
+                    End If
                     sText += "<tbody>"
 
                     If MyDataReader.HasRows = True Then
                         Do While MyDataReader.Read()
-                            ' Get AgeGroup from the data
-                            If Not IsDBNull(MyDataReader.Item("AgeGroup")) Then
-                                sAgeGroup = CStr(MyDataReader.Item("AgeGroup"))
+                            ' Handle AgeGroup/Division column differences  
+                            If FormatCode = "NCWL" Then
+                                ' Collegiate uses AgeGroup
+                                If Not IsDBNull(MyDataReader.Item("AgeGroup")) Then
+                                    sAgeGroup = CStr(MyDataReader.Item("AgeGroup"))
+                                Else
+                                    sAgeGroup = ""
+                                End If
+                            Else
+                                ' Regular tournaments - check what column they use for division
+                                If Not IsDBNull(MyDataReader.Item("AgeGroup")) Then
+                                    sAgeGroup = CStr(MyDataReader.Item("AgeGroup"))
+                                Else
+                                    sAgeGroup = ""
+                                End If
                             End If
 
-                            If IsDBNull(MyDataReader.Item("Round")) Then
-                                sRound = "N/A"
-                            Else
-                                sRound = CStr(MyDataReader.Item("Round"))
+                            ' Handle Round column - only for regular tournaments (collegiate doesn't have rounds)
+                            If FormatCode <> "NCWL" Then
+                                ' Only try to read Round column for regular tournaments
+                                If IsDBNull(MyDataReader.Item("Round")) Then
+                                    sRound = "N/A"
+                                Else
+                                    sRound = CStr(MyDataReader.Item("Round"))
+                                End If
                             End If
-                            If IsDBNull(MyDataReader.Item("Event")) Then
-                                sEvent = "N/A"
+                            ' Note: sRound is not used for collegiate tournaments
+                            ' Use exact same logic as ModDataAccessTeams for collegiate
+                            If FormatCode = "NCWL" Then
+                                ' Collegiate Overall - copy exact logic from ModDataAccessTeams
+                                If Not IsDBNull(MyDataReader.Item("OverallPoints")) Then
+                                    sOverallScore = MyDataReader.Item("OverallPoints")
+                                    System.Diagnostics.Debug.WriteLine("COLLEGIATE RECAP - OverallPoints: " & sOverallScore)
+                                Else
+                                    sOverallScore = ""
+                                End If
+                                ' Get individual event scores
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreSlalom")) Then
+                                    sSlalomNopsScore = MyDataReader.Item("PointsScoreSlalom")
+                                    System.Diagnostics.Debug.WriteLine("COLLEGIATE RECAP - PointsScoreSlalom: " & sSlalomNopsScore)
+                                Else
+                                    sSlalomNopsScore = "0"
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreTrick")) Then
+                                    sTrickNopsScore = MyDataReader.Item("PointsScoreTrick")
+                                    System.Diagnostics.Debug.WriteLine("COLLEGIATE RECAP - PointsScoreTrick: " & sTrickNopsScore)
+                                Else
+                                    sTrickNopsScore = "0"
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreJump")) Then
+                                    sJumpNopsScore = MyDataReader.Item("PointsScoreJump")
+                                    System.Diagnostics.Debug.WriteLine("COLLEGIATE RECAP - PointsScoreJump: " & sJumpNopsScore)
+                                Else
+                                    sJumpNopsScore = "0"
+                                End If
                             Else
-                                sEvent = CStr(MyDataReader.Item("Event"))
+                                ' Regular tournaments
+                                If IsDBNull(MyDataReader.Item("PointsScoreOverall")) Then
+                                    sOverallScore = "N/A"
+                                Else
+                                    sOverallScore = Format(MyDataReader.Item("PointsScoreOverall"), "0.00")
+                                End If
+                                If IsDBNull(MyDataReader.Item("PointsScoreSlalom")) Then
+                                    sSlalomNopsScore = "N/A"
+                                Else
+                                    sSlalomNopsScore = Format(MyDataReader.Item("PointsScoreSlalom"), "0.00")
+                                End If
+                                If IsDBNull(MyDataReader.Item("PointsScoreTrick")) Then
+                                    sTrickNopsScore = "N/A"
+                                Else
+                                    sTrickNopsScore = Format(MyDataReader.Item("PointsScoreTrick"), "0.00")
+                                End If
+                                If IsDBNull(MyDataReader.Item("PointsScoreJump")) Then
+                                    sJumpNopsScore = "N/A"
+                                Else
+                                    sJumpNopsScore = Format(MyDataReader.Item("PointsScoreJump"), "0.00")
+                                End If
                             End If
-                            If IsDBNull(MyDataReader.Item("OverallScore")) Then
-                                sOverallScore = "N/A"
-                            Else
-                                sOverallScore = CStr(MyDataReader.Item("OverallScore"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("SlalomNopsScore")) Then
-                                sSlalomNopsScore = "N/A"
-                            Else
-                                sSlalomNopsScore = CStr(MyDataReader.Item("SlalomNopsScore"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("TrickNopsScore")) Then
-                                sTrickNopsScore = "N/A"
-                            Else
-                                sTrickNopsScore = CStr(MyDataReader.Item("TrickNopsScore"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("JumpNopsScore")) Then
-                                sJumpNopsScore = "N/A"
-                            Else
-                                sJumpNopsScore = CStr(MyDataReader.Item("JumpNopsScore"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("SlalomScore")) Then
-                                sSlalomScore = "N/A"
-                            Else
-                                sSlalomScore = CStr(MyDataReader.Item("SlalomScore"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("FinalPassScore")) Then
-                                sFinalPassScore = "N/A"
-                            Else
-                                sFinalPassScore = CStr(MyDataReader.Item("FinalPassScore"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("FinalSpeedMPH")) Then
-                                sFinalSpeedMPH = "N/A"
-                            Else
-                                sFinalSpeedMPH = CStr(MyDataReader.Item("FinalSpeedMPH"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("FinalSpeedKPH")) Then
-                                sFinalspeedKPH = "N/A"
-                            Else
-                                sFinalspeedKPH = CStr(MyDataReader.Item("FinalspeedKPH"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("FinalLen")) Then
-                                sFinalLen = "N/A"
-                            Else
-                                sFinalLen = CStr(MyDataReader.Item("FinalLen"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("FinalLenOff")) Then
-                                sFinalLenOff = "N/A"
-                            Else
-                                sFinalLenOff = CStr(MyDataReader.Item("FinalLenOff"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("TrickScore")) Then
-                                sTrickScore = "N/A"
-                            Else
-                                sTrickScore = CStr(MyDataReader.Item("TrickScore"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("ScorePass1")) Then
-                                sScorePass1 = "N/A"
-                            Else
-                                sScorePass1 = CStr(MyDataReader.Item("ScorePass1"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("ScorePass2")) Then
-                                sScorePass2 = "N/A"
-                            Else
-                                sScorePass2 = CStr(MyDataReader.Item("ScorePass2"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("ScoreFeet")) Then
-                                sScoreFeet = "N/A"
-                            Else
-                                sScoreFeet = CStr(MyDataReader.Item("ScoreFeet"))
-                            End If
-                            If IsDBNull(MyDataReader.Item("ScoreMeters")) Then
-                                sScoreMeters = "N/A"
-                            Else
-                                sScoreMeters = CStr(MyDataReader.Item("ScoreMeters"))
-                            End If
+                            ' All other columns removed - not needed for Overall recap display
 
-                            sText += "<tr><td>" & sAgeGroup & "</td><td>" & sRound & "</td><td><strong>" & sOverallScore & "</strong></td><td>" & sSlalomNopsScore & "</td><td>" & sTrickNopsScore & "</td><td>" & sJumpNopsScore & "</td></tr>"
+                            If FormatCode = "NCWL" Then
+                                ' Collegiate tournaments don't have rounds - exclude Round column
+                                sText += "<tr><td>" & sAgeGroup & "</td><td><strong>" & sOverallScore & "</strong></td><td>" & sSlalomNopsScore & "</td><td>" & sTrickNopsScore & "</td><td>" & sJumpNopsScore & "</td></tr>"
+                            Else
+                                ' Regular tournaments have rounds - include Round column
+                                sText += "<tr><td>" & sAgeGroup & "</td><td>" & sRound & "</td><td><strong>" & sOverallScore & "</strong></td><td>" & sSlalomNopsScore & "</td><td>" & sTrickNopsScore & "</td><td>" & sJumpNopsScore & "</td></tr>"
+                            End If
 
                         Loop
                     Else
-                        sText += "<tr><td colspan=""6"">No Overall results found for selected skier.</td></tr>"
+                        If FormatCode = "NCWL" Then
+                            ' Collegiate has 5 columns (no Round)
+                            sText += "<tr><td colspan=""5"">No Overall results found for selected skier.</td></tr>"
+                        Else
+                            ' Regular has 6 columns (includes Round)
+                            sText += "<tr><td colspan=""6"">No Overall results found for selected skier.</td></tr>"
+                        End If
                     End If 'end of has rows
                     sText += "</tbody></table>"
                 End Using
 
             Catch ex As Exception
-                sMsg += "Error Can't retrieve Overall Scores. " 'SQL= " & SQL & "<br>IndivJumpResults Caught: <br />" & ex.Message & " " & ex.StackTrace & "<br>"
+                sMsg += "Error Can't retrieve Overall Scores. SQL= " & sSQL & "<br>RecapOverall Caught: <br />" & ex.Message & " " & ex.StackTrace & "<br>"
                 sErrDetails = ex.Message & " " & ex.StackTrace & "<br>error at RecapOverall:  SQL= " & sSQL
                 sText += "</tbody></table>"
             Finally

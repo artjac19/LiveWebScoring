@@ -13,6 +13,11 @@ Public Class [Default]
             If Request("YR") IsNot Nothing Then
                 sSkiYr = Trim(Request("YR"))
 
+                ' Validate year parameter - must be "0" or 2-digit year
+                If sSkiYr <> "0" AndAlso Not Regex.IsMatch(sSkiYr, "^[0-9][0-9]$") Then
+                    sSkiYr = "0"
+                End If
+
                 SetActiveFilterButton(sSkiYr)
             Else
                 sSkiYr = "0" ' Code for Most Recent 20
@@ -69,6 +74,10 @@ Public Class [Default]
 
         If Request("RG") IsNot Nothing Then
             region = Trim(Request("RG"))
+            ' Validate region - must be single character E/S/M/C/W or empty
+            If region <> "" AndAlso Not Regex.IsMatch(region, "^[ESCMW]$", RegexOptions.IgnoreCase) Then
+                region = ""
+            End If
             SetActiveRegionButton(region)
         End If
 

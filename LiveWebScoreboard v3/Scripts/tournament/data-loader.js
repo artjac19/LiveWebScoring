@@ -145,7 +145,11 @@
                 RND: selectedRound || '0'
             });
             
-            return this.makeRequest(params, 'Loading overall scores...')
+            // Show loading message
+            $('#leaderboardContent').html('<div class="text-center p-4"><p>Loading overall scores...</p></div>');
+            
+            const request = Utils.createCancellableRequest('GetLeaderboardSP.aspx', params);
+            return request.promise
                 .done((response) => {
                     console.log('[OVERALL-JS] GetLeaderboardSP response:', response);
                     if (response.success && response.htmlContent) {

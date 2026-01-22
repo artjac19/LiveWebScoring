@@ -22,6 +22,7 @@ Public Class GetLeaderboardSP
             Dim sEventCodePkd As String = Request("EV")
             Dim sDivisionCodePkd As String = Request("DV")
             Dim sRndsPkd As String = Request("RND")
+            
             Dim sUseNOPS As String = Request("UN")
             Dim sUseTeams As String = Request("UT")
             Dim sFromTournament As String = Request("FT")
@@ -228,16 +229,9 @@ Public Class GetLeaderboardSP
         If sTrickRounds > 0 Then info.availableEvents.Add(New With {.code = "T", .name = "Trick", .rounds = sTrickRounds})
         If sJumpRounds > 0 Then info.availableEvents.Add(New With {.code = "J", .name = "Jump", .rounds = sJumpRounds})
 
-        ' Add Overall if there are multiple events (Overall combines all events)
-        Dim eventCount As Integer = 0
-        If sSlalomRounds > 0 Then eventCount += 1
-        If sTrickRounds > 0 Then eventCount += 1
-        If sJumpRounds > 0 Then eventCount += 1
-
-        If eventCount > 1 Then
-            Dim maxRounds As Integer = Math.Max(Math.Max(sSlalomRounds, sTrickRounds), sJumpRounds)
-            info.availableEvents.Add(New With {.code = "O", .name = "Overall", .rounds = maxRounds})
-        End If
+        ' Add Overall - always available
+        Dim maxRounds As Integer = Math.Max(Math.Max(sSlalomRounds, sTrickRounds), sJumpRounds)
+        info.availableEvents.Add(New With {.code = "O", .name = "Overall", .rounds = maxRounds})
 
         ' Get available divisions using new LoadDvData function
         info.availableDivisions = LiveWebScoreBoard.ModDataAccess3.LoadDvData(sSanctionID, "")
@@ -317,6 +311,23 @@ Public Class GetLeaderboardSP
                         sHtmlContent = LiveWebScoreBoard.ModDataAccess3.LeaderBoardBestRndLeftSP(sSanctionID, sYrPkd, sTournName, "J", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), CShort(CInt(sUseNops)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
                     End If
                 End If
+            Case "O"
+                sPlcmntFormat = LiveWebScoreBoard.ModDataAccessPro.GetPlcmtFormat(sSanctionID, "Overall")
+                
+                ' Use proper leaderboard functions like S/T/J events
+                If UCase(sPlcmntFormat) = "ROUND" Then
+                    If isCollegiate Then
+                        sHtmlContent = LiveWebScoreBoard.ModDataAccessTeams.LeaderBoardBestRndLeft(sSanctionID, sYrPkd, sTournName, "O", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), CShort(CInt(sUseNops)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
+                    Else
+                        sHtmlContent = LiveWebScoreBoard.ModDataAccess3.LeaderBoardROUND(sSanctionID, sYrPkd, sTournName, "O", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), CShort(CInt(sUseNops)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
+                    End If
+                Else
+                    If isCollegiate Then
+                        sHtmlContent = LiveWebScoreBoard.ModDataAccessTeams.LeaderBoardBestRndLeft(sSanctionID, sYrPkd, sTournName, "O", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), CShort(CInt(sUseNops)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
+                    Else
+                        sHtmlContent = LiveWebScoreBoard.ModDataAccess3.LeaderBoardBestRndLeftSP(sSanctionID, sYrPkd, sTournName, "O", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), CShort(CInt(sUseNops)), CShort(CInt(sUseTeams)), sFormatCode, sDisplayMetric)
+                    End If
+                End If
         End Select
 
         ' Log database time  
@@ -374,9 +385,6 @@ Public Class GetLeaderboardSP
                     Else
                         sHtmlContent = LiveWebScoreBoard.ModDataAccess3.ScoresXRunOrdHoriz(sSanctionID, sYrPkd, sTournName, "J", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
                     End If
-                Case "O"
-                    ' Overall always uses single running order
-                    sHtmlContent = LiveWebScoreBoard.ModDataAccess3.ScoresXRunOrdHoriz(sSanctionID, sYrPkd, sTournName, "O", sDivisionCodePkd, sRndsPkd, CStr(sSlalomRounds), CStr(sTrickRounds), CStr(sJumpRounds), sUseNops, sUseTeams, sFormatCode, sDisplayMetric)
             End Select
         End If
 
@@ -540,6 +548,7 @@ Public Class GetLeaderboardSP
         Try
             Dim leaderboardHtml As String = ""
             Dim sPlcmntFormat As String = LiveWebScoreBoard.ModDataAccessPro.GetPlcmtFormat(sSanctionID, GetEventName(eventCode))
+            
             
             ' Use proper placement format logic - same as scores view
             If UCase(sPlcmntFormat) = "ROUND" Then

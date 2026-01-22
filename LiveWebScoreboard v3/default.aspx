@@ -40,7 +40,7 @@
 </head>
 
 <body>
-    <form id="form1" runat="server">
+    <form id="form1" runat="server" style="display: flex; flex-direction: column; min-height: 100vh;">
         <!-- Blue Navbar -->
         <div class="blue-bar">
             <a href="javascript:void(0)" onclick="window.location.href='default.aspx'"
@@ -234,25 +234,10 @@
                             </ol>
                         </div>
                         -->
-            <div class="row" style="margin: 200px 0 100px 0; align-self: center;">
-                <div style="text-align: center;">
-                    Live Web Scoreboard is a free volunteer created resource intended to advance the sport of
-                    waterskiing. All scores listed are UNOFFICIAL.
-                    <br />&copy; 2024 All rights reserved
-                    <br />
-                        No Yada Yada<br />
-                        <b>Privacy Policy</b><br />
-                        This site does not collect or store any information from site users.
-                        Information displayed is in the public domain and freely available elsewhere, albeit not quite
-                        as conveniently.<br />
-
-                        <b>Terms of Use</b><br />
-                        Enjoy the content. Do not make any modifications. You may place a link to
-                        scores.waterskiresults.com on your website.
-                        Republication by any other means is prohibited without written consent.
-                </div>
-
-            </div>
+            <footer style="padding: 1.5rem; background: #15274D; color: #94a3b8; text-align: center; font-size: 0.85rem; margin-top: auto;">
+                <p style="margin: 0 0 0.25rem 0;">Live Web Scoreboard | Volunteer-made for waterskiing. All scores <strong style="color: red;">UNOFFICIAL</strong>.</p>
+                <p style="margin: 0; font-size: 0.75rem; color: #64748b;">&copy; 2025 &bull; No data collected &bull; Do not republish</p>
+            </footer>
     </form>
 
 

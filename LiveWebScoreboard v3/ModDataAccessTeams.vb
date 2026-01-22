@@ -90,6 +90,10 @@ Public Module ModDataAccessTeams
                 sSelEvent = "Jump"
                 sSql = "PrLeaderBoard"
 
+            Case "O"
+                sSelEvent = "Overall"
+                sSql = "PrGetScoresOverallPlcmt"
+
             Case Else  'Load all by default
                 sMsg = "<td>Event Code out of range</td></tr>"
                 Return sMsg
@@ -113,26 +117,33 @@ Public Module ModDataAccessTeams
         Dim cmdRead As New OleDb.OleDbCommand
         cmdRead.CommandType = CommandType.StoredProcedure
         cmdRead.CommandText = sSql
-        cmdRead.Parameters.Add("@InSanctionID", OleDb.OleDbType.VarChar)
-        cmdRead.Parameters("@InSanctionID").Size = 6
-        cmdRead.Parameters("@InSanctionID").Value = sSanctionID
-        cmdRead.Parameters("@InSanctionID").Direction = ParameterDirection.Input
+        ' Use different parameters for Overall vs other events
+        If sSelEvent = "Overall" Then
+            ' Overall stored procedure parameters
+            cmdRead.Parameters.Add("@InSanctionId", OleDb.OleDbType.VarChar, 6).Value = sSanctionID
+            cmdRead.Parameters.Add("@InDiv", OleDb.OleDbType.VarChar, 3).Value = sSelDV
+        Else
+            ' Regular event stored procedure parameters
+            cmdRead.Parameters.Add("@InSanctionID", OleDb.OleDbType.VarChar)
+            cmdRead.Parameters("@InSanctionID").Size = 6
+            cmdRead.Parameters("@InSanctionID").Value = sSanctionID
+            cmdRead.Parameters("@InSanctionID").Direction = ParameterDirection.Input
 
-        cmdRead.Parameters.Add("@InEvCode", OleDb.OleDbType.VarChar)
-        cmdRead.Parameters("@InEvCode").Size = 12
-        cmdRead.Parameters("@InEvCode").Value = sSelEvent
-        cmdRead.Parameters("@InEvCode").Direction = ParameterDirection.Input
+            cmdRead.Parameters.Add("@InEvCode", OleDb.OleDbType.VarChar)
+            cmdRead.Parameters("@InEvCode").Size = 12
+            cmdRead.Parameters("@InEvCode").Value = sSelEvent
+            cmdRead.Parameters("@InEvCode").Direction = ParameterDirection.Input
 
+            cmdRead.Parameters.Add("@InFormat", OleDb.OleDbType.VarChar)
+            cmdRead.Parameters("@InFormat").Size = 12
+            cmdRead.Parameters("@InFormat").Value = "All"    '0 = All Rounds    sSelRnd
+            cmdRead.Parameters("@InFormat").Direction = ParameterDirection.Input
 
-        cmdRead.Parameters.Add("@InFormat", OleDb.OleDbType.VarChar)
-        cmdRead.Parameters("@InFormat").Size = 12
-        cmdRead.Parameters("@InFormat").Value = "All"    '0 = All Rounds    sSelRnd
-        cmdRead.Parameters("@InFormat").Direction = ParameterDirection.Input
-
-        cmdRead.Parameters.Add("@InDV", OleDb.OleDbType.VarChar)
-        cmdRead.Parameters("@InDV").Size = 3
-        cmdRead.Parameters("@InDV").Value = sSelDV   'This is the division selected for display.  sDv is the division in which the skier is performing.
-        cmdRead.Parameters("@InDV").Direction = ParameterDirection.Input
+            cmdRead.Parameters.Add("@InDV", OleDb.OleDbType.VarChar)
+            cmdRead.Parameters("@InDV").Size = 3
+            cmdRead.Parameters("@InDV").Value = sSelDV   'This is the division selected for display.  sDv is the division in which the skier is performing.
+            cmdRead.Parameters("@InDV").Direction = ParameterDirection.Input
+        End If
 
         '    cmdRead.Parameters.Add("@InGroup", OleDb.OleDbType.VarChar)
         '    cmdRead.Parameters("@InGroup").Size = 3
@@ -148,26 +159,53 @@ Public Module ModDataAccessTeams
                     cmdRead.Connection.Open()
                     MyDataReader = cmdRead.ExecuteReader
                     If MyDataReader.HasRows = True Then
+                        ' Debug: Print all column names for Overall events
+                        If sSelEvent = "Overall" Then
+                            System.Diagnostics.Debug.WriteLine("=== OVERALL COLUMNS ===")
+                            For colIndex As Integer = 0 To MyDataReader.FieldCount - 1
+                                System.Diagnostics.Debug.WriteLine("Column " & colIndex & ": " & MyDataReader.GetName(colIndex))
+                            Next
+                            System.Diagnostics.Debug.WriteLine("=====================")
+                        End If
                         Do While MyDataReader.Read()
                             sSanctionID = CStr(MyDataReader.Item("SanctionID"))
                             sSkierName = CStr(MyDataReader.Item("SkierName"))
 
-                            If Not IsDBNull(MyDataReader.Item("DiV")) Then
-                                sDv = CStr(MyDataReader.Item("DiV"))
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                If Not IsDBNull(MyDataReader.Item("AgeGroup")) Then
+                                    sDv = CStr(MyDataReader.Item("AgeGroup"))
+                                Else
+                                    sDv = ""
+                                End If
                             Else
-                                sDv = ""
+                                If Not IsDBNull(MyDataReader.Item("DiV")) Then
+                                    sDv = CStr(MyDataReader.Item("DiV"))
+                                Else
+                                    sDv = ""
+                                End If
                             End If
 
-                            If Not IsDBNull(MyDataReader.Item("TeamCode")) Then
-                                sTeamCode = CStr(MyDataReader.Item("TeamCode"))
+                            ' Only get TeamCode for non-Overall events (Overall doesn't have TeamCode column)
+                            If sSelEvent <> "Overall" Then
+                                If Not IsDBNull(MyDataReader.Item("TeamCode")) Then
+                                    sTeamCode = CStr(MyDataReader.Item("TeamCode"))
+                                Else
+                                    sTeamCode = ""
+                                End If
                             Else
-                                sTeamCode = ""
+                                sTeamCode = "" ' Overall doesn't need team code
                             End If
 
-                            If Not IsDBNull(MyDataReader.Item("Round")) Then
-                                sRound = CStr(MyDataReader.Item("Round"))
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sRound = "1" ' Overall doesn't have rounds, set default
                             Else
-                                sRound = ""
+                                If Not IsDBNull(MyDataReader.Item("Round")) Then
+                                    sRound = CStr(MyDataReader.Item("Round"))
+                                Else
+                                    sRound = ""
+                                End If
                             End If
                             If Not IsDBNull(MyDataReader.Item("MemberID")) Then
                                 sMemberID = MyDataReader.Item("MemberID")
@@ -179,91 +217,144 @@ Public Module ModDataAccessTeams
                             '                           Else
                             '                               sScoreBest = ""
                             '                           End If
-                            If Not IsDBNull(MyDataReader.Item("EventScoreDesc")) Then
-                                sEventScoreDesc = MyDataReader.Item("EventScoreDesc")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                If Not IsDBNull(MyDataReader.Item("OverallPoints")) Then
+                                    sEventScoreDesc = MyDataReader.Item("OverallPoints") & " points"
+                                Else
+                                    sEventScoreDesc = ""
+                                End If
                             Else
-                                sEventScoreDesc = ""
+                                If Not IsDBNull(MyDataReader.Item("EventScoreDesc")) Then
+                                    sEventScoreDesc = MyDataReader.Item("EventScoreDesc")
+                                Else
+                                    sEventScoreDesc = ""
+                                End If
                             End If
-                            If Not IsDBNull(MyDataReader.Item("EventClass")) Then
-                                sEventClass = MyDataReader.Item("EventClass")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sEventClass = "" ' Overall doesn't have EventClass
                             Else
-                                sEventClass = ""
+                                If Not IsDBNull(MyDataReader.Item("EventClass")) Then
+                                    sEventClass = MyDataReader.Item("EventClass")
+                                Else
+                                    sEventClass = ""
+                                End If
                             End If
-                            If Not IsDBNull(MyDataReader.Item("City")) Then
-                                sCity = MyDataReader.Item("City")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sCity = "" ' Overall doesn't have City
                             Else
-                                sCity = ""
+                                If Not IsDBNull(MyDataReader.Item("City")) Then
+                                    sCity = MyDataReader.Item("City")
+                                Else
+                                    sCity = ""
+                                End If
                             End If
-                            If Not IsDBNull(MyDataReader.Item("State")) Then
-                                sState = MyDataReader.Item("State")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sState = "" ' Overall doesn't have State
                             Else
-                                sState = ""
+                                If Not IsDBNull(MyDataReader.Item("State")) Then
+                                    sState = MyDataReader.Item("State")
+                                Else
+                                    sState = ""
+                                End If
                             End If
-                            If Not IsDBNull(MyDataReader.Item("Federation")) Then
-                                sFederation = MyDataReader.Item("Federation")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sFederation = "" ' Overall doesn't have Federation
                             Else
-                                sFederation = ""
+                                If Not IsDBNull(MyDataReader.Item("Federation")) Then
+                                    sFederation = MyDataReader.Item("Federation")
+                                Else
+                                    sFederation = ""
+                                End If
                             End If
-                            If Not IsDBNull(MyDataReader.Item("RankingScore")) Then
-                                sRankingScore = MyDataReader.Item("RankingScore")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sRankingScore = "" ' Overall doesn't have RankingScore
                             Else
-                                sRankingScore = ""
+                                If Not IsDBNull(MyDataReader.Item("RankingScore")) Then
+                                    sRankingScore = MyDataReader.Item("RankingScore")
+                                Else
+                                    sRankingScore = ""
+                                End If
                             End If
-                            If Not IsDBNull(MyDataReader.Item("NOPSScore")) Then
-                                sNopsScore = MyDataReader.Item("NOPSScore")
+                            ' Use different column names for Overall vs other events
+                            Dim sSlalomPoints As String = ""
+                            Dim sTrickPoints As String = ""
+                            Dim sJumpPoints As String = ""
+                            If sSelEvent = "Overall" Then
+                                If Not IsDBNull(MyDataReader.Item("OverallPoints")) Then
+                                    sNopsScore = MyDataReader.Item("OverallPoints")
+                                Else
+                                    sNopsScore = ""
+                                End If
+                                ' Get individual event scores
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreSlalom")) Then
+                                    sSlalomPoints = MyDataReader.Item("PointsScoreSlalom")
+                                Else
+                                    sSlalomPoints = "0"
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreTrick")) Then
+                                    sTrickPoints = MyDataReader.Item("PointsScoreTrick")
+                                Else
+                                    sTrickPoints = "0"
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreJump")) Then
+                                    sJumpPoints = MyDataReader.Item("PointsScoreJump")
+                                Else
+                                    sJumpPoints = "0"
+                                End If
                             Else
-                                sNopsScore = ""
+                                If Not IsDBNull(MyDataReader.Item("NOPSScore")) Then
+                                    sNopsScore = MyDataReader.Item("NOPSScore")
+                                Else
+                                    sNopsScore = ""
+                                End If
                             End If
                             If sTmpDv = "" Then
                                 'Add the division header for first division
-                                sLine.Append("<table style=""margin-bottom: 1rem;"" width=""100%"">")
-                                '   sLine.Append("<td Class=""table-primary"" width=""5%""></td>")
-                                sLine.Append("<td class=""table-header-row"" colspan=""4""><b> " & UCase(sSelEvent) & " " & sDv & "&nbsp;</b></td></tr>")
+                                sLine.Append("<table class=""table table-striped division-section"" style=""margin-bottom: 1rem;"">")
+                                If sSelEvent = "Overall" Then
+                                    sLine.Append("<tr class=""table-header-row""><td width=""35%""><b>" & UCase(sSelEvent) & " " & sDv & "&nbsp;</b></td><td>Overall</td><td>Slalom</td><td>Trick</td><td>Jump</td></tr>")
+                                Else
+                                    sLine.Append("<tr class=""table-header-row""><td colspan=""3""><b> " & UCase(sSelEvent) & " " & sDv & "&nbsp;</b></td></tr>")
+                                End If
                                 sTmpDv = sDv
                             End If
                             'Get the first MemberID' first record in first pass through data
                             If stmpMemberID = "" Then stmpMemberID = sMemberID
 
-                            If sTmpDv = sDv Then 'Continue in same Division
-                                'Add the data line
-                                sLine.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sSkiYear & "&MID=" & sMemberID & "&DV=" & sSelDV & "&EV=" & sEventPkd & "&TN=" & sTName & "")
-                                sLine.Append("&FC=NCWL&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a></td>")   '   
-                                sLine.Append("<td><b> " & sTeamCode & "</b></td>")
-                                sLine.Append("<td>" & sEventScoreDesc & "</td></tr>")
-                                'sLine.Append("<td><b> " & sScoreBest & " " & sUnit & "</b></td><td>" & sEventScoreDesc & "</td></tr>")
-
-                                '   sMultiRndScores = ModDataAccessTeams.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
-                                '   If sMultiRndScores <> "Error" Then
-                                '       sLine.Append(sMultiRndScores)
-                                '       sMultiRndScores = ""
-                                '   Else
-                                '       'FIX THIS ERROR TRAP
-                                '   End If
-                            Else 'Division changed.
-
+                            ' Handle division change if needed
+                            If sTmpDv <> sDv Then 'Division changed - close previous table and start new one
                                 sLine.Append("</table>")
                                 stmpMemberID = sMemberID
                                 sTmpDv = sDv
                                 'start new division header
-                                sLine.Append("<table class=""table"" width=""100%"">")
-                                sLine.Append("<tr><td class=""table-warning"" width=""25%""><b> Leader Board </b></td>")
-                                '   sLine.Append("<td Class=""table-primary"" width=""5%""></td>")
-                                sLine.Append("<td Class=""table-primary""><b>" & UCase(sSelEvent) & "</b></td>")
-                                sLine.Append("<td Class=""table-primary"" colspan=""2""><b>Group: " & sDv & " &nbsp;</b><span class=""bg-danger text-white"" > <b>! UNOFFICIAL !</b></span></td></tr>")
-                                'Add the data line
-
-                                sLine.Append("<tr><td class=""table-warning""><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sSkiYear & "&MID=" & sMemberID & "&DV=" & sSelDV & "&EV=" & sEventPkd & "&TN=" & sTName & "")
-                                sLine.Append("&FC=NCWL&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a></td>")   '   
-                                sLine.Append("<td><b> " & sTeamCode & "</b></td>")
-                                sLine.Append("<td><b> " & sScoreBest & " " & sUnit & "</b></td><td>" & sEventScoreDesc & "</td></tr>")
+                                sLine.Append("<table class=""table table-striped division-section"" style=""margin-bottom: 1rem;"">") 
+                                If sSelEvent = "Overall" Then
+                                    sLine.Append("<tr class=""table-header-row""><td width=""35%""><b>" & UCase(sSelEvent) & " " & sDv & "&nbsp;</b></td><td>Overall</td><td>Slalom</td><td>Trick</td><td>Jump</td></tr>")
+                                Else
+                                    sLine.Append("<tr class=""table-header-row""><td colspan=""3""><b> " & UCase(sSelEvent) & " " & sDv & "&nbsp;</b></td></tr>")
+                                End If
+                            End If
+                            
+                            ' Add data row (same logic regardless of division change)
+                            sLine.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sSkiYear & "&MID=" & sMemberID & "&DV=" & sSelDV & "&EV=" & sEventPkd & "&TN=" & sTName & "")
+                            sLine.Append("&FC=NCWL&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><strong>" & sSkierName & "</strong></a></td>")   '   
+                            If sSelEvent = "Overall" Then
+                                sLine.Append("<td>" & sNopsScore & "</td><td>" & sSlalomPoints & "</td><td>" & sTrickPoints & "</td><td>" & sJumpPoints & "</td></tr>")
+                            Else
+                                sLine.Append("<td>" & sTeamCode & "</td><td>" & sEventScoreDesc & "</td></tr>")
+                            End If
                                 '                                sMultiRndScores = ModDataAccessTeams.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
                                 '                                If sMultiRndScores <> "Error" Then
                                 '                                    sLine.Append(sMultiRndScores)
                                 '                                Else
                                 '                                    'FIX THIS ERROR TRAP
                                 '                                End If
-                            End If
-
                         Loop
                         'Close the DV table for the specified division
                         sLine.Append("</table>")
@@ -273,7 +364,11 @@ Public Module ModDataAccessTeams
 
                 End Using
             Catch ex As Exception
-                sMsg = "Error at MDATeams.GetBestRndLeft"
+                sMsg = "Error at MDATeams.GetBestRndLeft: " & ex.Message
+                System.Diagnostics.Debug.WriteLine("=== TEAMS ERROR ===")
+                System.Diagnostics.Debug.WriteLine("Event: " & sSelEvent)
+                System.Diagnostics.Debug.WriteLine("Error: " & ex.Message)
+                System.Diagnostics.Debug.WriteLine("Stack: " & ex.StackTrace)
                 sErrDetails = sMsg & " " & ex.Message & " " & ex.StackTrace
             End Try
 
@@ -384,6 +479,9 @@ Public Module ModDataAccessTeams
                 '                    sRoundsHTML += "<td>Rnd " & sSelRnd & "</td><td>Class</td><td> Ft/M </td><td>NOPS</td><td>Details</td><td>Time</td>"
                 '                    sRndCols = "6"
                 '                End If
+            Case "O"
+                sSelEvent = "Overall"
+                sSql = "PrGetScoresOverallPlcmt"
             Case Else  'Load all by default
                 sMsg = "<td>Event Code out of range</td></tr>"
                 Return sMsg
@@ -407,25 +505,23 @@ Public Module ModDataAccessTeams
         Dim cmdRead As New OleDb.OleDbCommand
         cmdRead.CommandType = CommandType.StoredProcedure
         cmdRead.CommandText = sSql
-        cmdRead.Parameters.Add("@InSanctionID", OleDb.OleDbType.VarChar)
-        cmdRead.Parameters("@InSanctionID").Size = 6
-        cmdRead.Parameters("@InSanctionID").Value = sSanctionID
-        cmdRead.Parameters("@InSanctionID").Direction = ParameterDirection.Input
+        ' Use different parameters for Overall vs other events
+        If sSelEvent = "Overall" Then
+            ' Overall stored procedure parameters
+            cmdRead.Parameters.Add("@InSanctionId", OleDb.OleDbType.VarChar, 6).Value = sSanctionID
+            cmdRead.Parameters.Add("@InDiv", OleDb.OleDbType.VarChar, 3).Value = sSelDV
+        Else
+            ' Regular event stored procedure parameters
+            cmdRead.Parameters.Add("@InSanctionID", OleDb.OleDbType.VarChar)
+            cmdRead.Parameters("@InSanctionID").Size = 6
+            cmdRead.Parameters("@InSanctionID").Value = sSanctionID
+            cmdRead.Parameters("@InSanctionID").Direction = ParameterDirection.Input
 
-        '       cmdRead.Parameters.Add("@InEvCode", OleDb.OleDbType.VarChar)
-        '       cmdRead.Parameters("@InEvCode").Size = 12
-        '       cmdRead.Parameters("@InEvCode").Value = sPREventCode
-        '       cmdRead.Parameters("@InEvCode").Direction = ParameterDirection.Input
-
-        '       cmdRead.Parameters.Add("@InRnd", OleDb.OleDbType.Char)
-        '       cmdRead.Parameters("@InRnd").Size = 1
-        '       cmdRead.Parameters("@InRnd").Value = "0"    '0 = All Rounds    sSelRnd
-        ''        cmdRead.Parameters("@InRnd").Direction = ParameterDirection.Input
-
-        cmdRead.Parameters.Add("@InDV", OleDb.OleDbType.VarChar)
-        cmdRead.Parameters("@InDV").Size = 3
-        cmdRead.Parameters("@InDV").Value = sSelDV   'This is the division selected for display.  sDv is the division in which the skier is performing.
-        cmdRead.Parameters("@InDV").Direction = ParameterDirection.Input
+            cmdRead.Parameters.Add("@InDV", OleDb.OleDbType.VarChar)
+            cmdRead.Parameters("@InDV").Size = 3
+            cmdRead.Parameters("@InDV").Value = sSelDV   'This is the division selected for display.  sDv is the division in which the skier is performing.
+            cmdRead.Parameters("@InDV").Direction = ParameterDirection.Input
+        End If
 
         '    cmdRead.Parameters.Add("@InGroup", OleDb.OleDbType.VarChar)
         '    cmdRead.Parameters("@InGroup").Size = 3
@@ -441,26 +537,53 @@ Public Module ModDataAccessTeams
                     cmdRead.Connection.Open()
                     MyDataReader = cmdRead.ExecuteReader
                     If MyDataReader.HasRows = True Then
+                        ' Debug: Print all column names for Overall events
+                        If sSelEvent = "Overall" Then
+                            System.Diagnostics.Debug.WriteLine("=== OVERALL COLUMNS ===")
+                            For colIndex As Integer = 0 To MyDataReader.FieldCount - 1
+                                System.Diagnostics.Debug.WriteLine("Column " & colIndex & ": " & MyDataReader.GetName(colIndex))
+                            Next
+                            System.Diagnostics.Debug.WriteLine("=====================")
+                        End If
                         Do While MyDataReader.Read()
                             sSanctionID = CStr(MyDataReader.Item("SanctionID"))
                             sSkierName = CStr(MyDataReader.Item("SkierName"))
 
-                            If Not IsDBNull(MyDataReader.Item("DiV")) Then
-                                sDv = CStr(MyDataReader.Item("DiV"))
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                If Not IsDBNull(MyDataReader.Item("AgeGroup")) Then
+                                    sDv = CStr(MyDataReader.Item("AgeGroup"))
+                                Else
+                                    sDv = ""
+                                End If
                             Else
-                                sDv = ""
+                                If Not IsDBNull(MyDataReader.Item("DiV")) Then
+                                    sDv = CStr(MyDataReader.Item("DiV"))
+                                Else
+                                    sDv = ""
+                                End If
                             End If
 
-                            If Not IsDBNull(MyDataReader.Item("TeamCode")) Then
-                                sTeamCode = CStr(MyDataReader.Item("TeamCode"))
+                            ' Only get TeamCode for non-Overall events (Overall doesn't have TeamCode column)
+                            If sSelEvent <> "Overall" Then
+                                If Not IsDBNull(MyDataReader.Item("TeamCode")) Then
+                                    sTeamCode = CStr(MyDataReader.Item("TeamCode"))
+                                Else
+                                    sTeamCode = ""
+                                End If
                             Else
-                                sTeamCode = ""
+                                sTeamCode = "" ' Overall doesn't need team code
                             End If
 
-                            If Not IsDBNull(MyDataReader.Item("Round")) Then
-                                sRound = CStr(MyDataReader.Item("Round"))
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sRound = "1" ' Overall doesn't have rounds, set default
                             Else
-                                sRound = ""
+                                If Not IsDBNull(MyDataReader.Item("Round")) Then
+                                    sRound = CStr(MyDataReader.Item("Round"))
+                                Else
+                                    sRound = ""
+                                End If
                             End If
                             If Not IsDBNull(MyDataReader.Item("MemberID")) Then
                                 sMemberID = MyDataReader.Item("MemberID")
@@ -472,48 +595,109 @@ Public Module ModDataAccessTeams
                             Else
                                 sScoreBest = ""
                             End If
-                            If Not IsDBNull(MyDataReader.Item("EventScoreDesc")) Then
-                                sEventScoreDesc = MyDataReader.Item("EventScoreDesc")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                If Not IsDBNull(MyDataReader.Item("OverallPoints")) Then
+                                    sEventScoreDesc = MyDataReader.Item("OverallPoints") & " points"
+                                Else
+                                    sEventScoreDesc = ""
+                                End If
                             Else
-                                sEventScoreDesc = ""
+                                If Not IsDBNull(MyDataReader.Item("EventScoreDesc")) Then
+                                    sEventScoreDesc = MyDataReader.Item("EventScoreDesc")
+                                Else
+                                    sEventScoreDesc = ""
+                                End If
                             End If
-                            If Not IsDBNull(MyDataReader.Item("EventClass")) Then
-                                sEventClass = MyDataReader.Item("EventClass")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sEventClass = "" ' Overall doesn't have EventClass
                             Else
-                                sEventClass = ""
+                                If Not IsDBNull(MyDataReader.Item("EventClass")) Then
+                                    sEventClass = MyDataReader.Item("EventClass")
+                                Else
+                                    sEventClass = ""
+                                End If
                             End If
-                            If Not IsDBNull(MyDataReader.Item("City")) Then
-                                sCity = MyDataReader.Item("City")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sCity = "" ' Overall doesn't have City
                             Else
-                                sCity = ""
+                                If Not IsDBNull(MyDataReader.Item("City")) Then
+                                    sCity = MyDataReader.Item("City")
+                                Else
+                                    sCity = ""
+                                End If
                             End If
-                            If Not IsDBNull(MyDataReader.Item("State")) Then
-                                sState = MyDataReader.Item("State")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sState = "" ' Overall doesn't have State
                             Else
-                                sState = ""
+                                If Not IsDBNull(MyDataReader.Item("State")) Then
+                                    sState = MyDataReader.Item("State")
+                                Else
+                                    sState = ""
+                                End If
                             End If
-                            If Not IsDBNull(MyDataReader.Item("Federation")) Then
-                                sFederation = MyDataReader.Item("Federation")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sFederation = "" ' Overall doesn't have Federation
                             Else
-                                sFederation = ""
+                                If Not IsDBNull(MyDataReader.Item("Federation")) Then
+                                    sFederation = MyDataReader.Item("Federation")
+                                Else
+                                    sFederation = ""
+                                End If
                             End If
-                            If Not IsDBNull(MyDataReader.Item("RankingScore")) Then
-                                sRankingScore = MyDataReader.Item("RankingScore")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sRankingScore = "" ' Overall doesn't have RankingScore
                             Else
-                                sRankingScore = ""
+                                If Not IsDBNull(MyDataReader.Item("RankingScore")) Then
+                                    sRankingScore = MyDataReader.Item("RankingScore")
+                                Else
+                                    sRankingScore = ""
+                                End If
                             End If
-                            If Not IsDBNull(MyDataReader.Item("NOPSScore")) Then
-                                sNopsScore = MyDataReader.Item("NOPSScore")
+                            ' Use different column names for Overall vs other events
+                            Dim sSlalomPoints As String = ""
+                            Dim sTrickPoints As String = ""
+                            Dim sJumpPoints As String = ""
+                            If sSelEvent = "Overall" Then
+                                If Not IsDBNull(MyDataReader.Item("OverallPoints")) Then
+                                    sNopsScore = MyDataReader.Item("OverallPoints")
+                                Else
+                                    sNopsScore = ""
+                                End If
+                                ' Get individual event scores
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreSlalom")) Then
+                                    sSlalomPoints = MyDataReader.Item("PointsScoreSlalom")
+                                Else
+                                    sSlalomPoints = "0"
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreTrick")) Then
+                                    sTrickPoints = MyDataReader.Item("PointsScoreTrick")
+                                Else
+                                    sTrickPoints = "0"
+                                End If
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreJump")) Then
+                                    sJumpPoints = MyDataReader.Item("PointsScoreJump")
+                                Else
+                                    sJumpPoints = "0"
+                                End If
                             Else
-                                sNopsScore = ""
+                                If Not IsDBNull(MyDataReader.Item("NOPSScore")) Then
+                                    sNopsScore = MyDataReader.Item("NOPSScore")
+                                Else
+                                    sNopsScore = ""
+                                End If
                             End If
                             If sTmpDv = "" Then
                                 'Add the division header for first division
-                                sLine.Append("<table class=""table"" width=""100%"">")
-                                sLine.Append("<tr><td class=""table-warning"" width=""25%""><b> Leader Board </b></td>")
-                                '   sLine.Append("<td Class=""table-primary"" width=""5%""></td>")
-                                sLine.Append("<td Class=""table-primary""><b>" & UCase(sSelEvent) & "</b></td>")
-                                sLine.Append("<td Class=""table-primary"" colspan=""2""><b>Group: " & sDv & " &nbsp;</b><span class=""bg-danger text-white"" > <b>! UNOFFICIAL !</b></span></td></tr>")
+                                sLine.Append("<table width=""100%"">")
+                                sLine.Append("<tr><td width=""25%""><b>Leader Board</b></td>")
+                                sLine.Append("<td><b>" & UCase(sSelEvent) & "</b></td>")
+                                sLine.Append("<td colspan=""2""><b>Group: " & sDv & "</b></td></tr>")
                                 sTmpDv = sDv
                             End If
                             'Get the first MemberID' first record in first pass through data
@@ -521,10 +705,13 @@ Public Module ModDataAccessTeams
 
                             If sTmpDv = sDv Then 'Continue in same Division
                                 'Add the data line
-                                sLine.Append("<tr><td class=""table-warning""><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sSkiYear & "&MID=" & sMemberID & "&DV=" & sSelDV & "&EV=" & sEventPkd & "&TN=" & sTName & "")
-                                sLine.Append("&FC=NCWL&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a></td>")   '   
-                                sLine.Append("<td><b> " & sTeamCode & "</b></td>")
-                                sLine.Append("<td><b> " & sScoreBest & " " & sUnit & "</b></td><td>" & sEventScoreDesc & "</td></tr>")
+                                sLine.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sSkiYear & "&MID=" & sMemberID & "&DV=" & sSelDV & "&EV=" & sEventPkd & "&TN=" & sTName & "")
+                                sLine.Append("&FC=NCWL&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><strong>" & sSkierName & "</strong></a></td>")   '   
+                                If sSelEvent = "Overall" Then
+                                    sLine.Append("<td>" & sNopsScore & "</td><td>" & sSlalomPoints & "</td><td>" & sTrickPoints & "</td><td>" & sJumpPoints & "</td></tr>")
+                                Else
+                                    sLine.Append("<td>" & sTeamCode & "</td><td>" & sEventScoreDesc & "</td></tr>")
+                                End If
                                 '   sMultiRndScores = ModDataAccessTeams.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
                                 '   If sMultiRndScores <> "Error" Then
                                 '       sLine.Append(sMultiRndScores)
@@ -538,25 +725,24 @@ Public Module ModDataAccessTeams
                                 stmpMemberID = sMemberID
                                 sTmpDv = sDv
                                 'start new division header
-                                sLine.Append("<table class=""table"" width=""100%"">")
-                                sLine.Append("<tr><td class=""table-warning"" width=""25%""><b> Leader Board </b></td>")
-                                '   sLine.Append("<td Class=""table-primary"" width=""5%""></td>")
-                                sLine.Append("<td Class=""table-primary""><b>" & UCase(sSelEvent) & "</b></td>")
-                                sLine.Append("<td Class=""table-primary"" colspan=""2""><b>Group: " & sDv & " &nbsp;</b><span class=""bg-danger text-white"" > <b>! UNOFFICIAL !</b></span></td></tr>")
+                                sLine.Append("<table width=""100%"">")
+                                sLine.Append("<tr><td colspan=""4""><b> " & UCase(sSelEvent) & " " & sDv & "&nbsp;</b></td></tr>")
                                 'Add the data line
 
-                                sLine.Append("<tr><td class=""table-warning""><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sSkiYear & "&MID=" & sMemberID & "&DV=" & sSelDV & "&EV=" & sEventPkd & "&TN=" & sTName & "")
-                                sLine.Append("&FC=NCWL&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><b>" & sSkierName & "</b></a></td>")   '   
-                                sLine.Append("<td><b> " & sTeamCode & "</b></td>")
-                                sLine.Append("<td><b> " & sScoreBest & " " & sUnit & "</b></td><td>" & sEventScoreDesc & "</td></tr>")
-                                '                                sMultiRndScores = ModDataAccessTeams.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
-                                '                                If sMultiRndScores <> "Error" Then
-                                '                                    sLine.Append(sMultiRndScores)
-                                '                                Else
-                                '                                    'FIX THIS ERROR TRAP
-                                '                                End If
+                                sLine.Append("<tr><td><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sSkiYear & "&MID=" & sMemberID & "&DV=" & sSelDV & "&EV=" & sEventPkd & "&TN=" & sTName & "")
+                                sLine.Append("&FC=NCWL&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ ><strong>" & sSkierName & "</strong></a></td>")   '   
+                                If sSelEvent = "Overall" Then
+                                    sLine.Append("<td>" & sNopsScore & "</td><td>" & sSlalomPoints & "</td><td>" & sTrickPoints & "</td><td>" & sJumpPoints & "</td></tr>")
+                                Else
+                                    sLine.Append("<td>" & sTeamCode & "</td><td>" & sEventScoreDesc & "</td></tr>")
+                                End If
                             End If
-
+                            '                                sMultiRndScores = ModDataAccessTeams.LBGetRndScores(sSanctionID, sMemberID, sSelEvent, sDv, sSelRnd, sRound, sRndsSlalomOffered, sRndsTrickOffered, sRndsJumpOffered, sNopsScore)
+                            '                                If sMultiRndScores <> "Error" Then
+                            '                                    sLine.Append(sMultiRndScores)
+                            '                                Else
+                            '                                    'FIX THIS ERROR TRAP
+                            '                                End If
                         Loop
                         'Close the DV table for the specified division
                         sLine.Append("</table>")
@@ -723,16 +909,29 @@ Public Module ModDataAccessTeams
                     cmdRead.Connection.Open()
                     MyDataReader = cmdRead.ExecuteReader
                     If MyDataReader.HasRows = True Then
+                        ' Debug: Print all column names for Overall events
+                        If sSelEvent = "Overall" Then
+                            System.Diagnostics.Debug.WriteLine("=== OVERALL COLUMNS ===")
+                            For colIndex As Integer = 0 To MyDataReader.FieldCount - 1
+                                System.Diagnostics.Debug.WriteLine("Column " & colIndex & ": " & MyDataReader.GetName(colIndex))
+                            Next
+                            System.Diagnostics.Debug.WriteLine("=====================")
+                        End If
                         Do While MyDataReader.Read()
                             If Not IsDBNull(MyDataReader.Item("DiV")) Then
                                 sDV = CStr(MyDataReader.Item("DiV"))
                             Else
                                 sDV = ""
                             End If
-                            If Not IsDBNull(MyDataReader.Item("EventClass")) Then
-                                sEventClass = MyDataReader.Item("EventClass")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sEventClass = "" ' Overall doesn't have EventClass
                             Else
-                                sEventClass = ""
+                                If Not IsDBNull(MyDataReader.Item("EventClass")) Then
+                                    sEventClass = MyDataReader.Item("EventClass")
+                                Else
+                                    sEventClass = ""
+                                End If
                             End If
                             If Not IsDBNull(MyDataReader.Item("Round")) Then
                                 sRnd = CStr(MyDataReader.Item("Round"))
@@ -753,24 +952,33 @@ Public Module ModDataAccessTeams
                                     sEventScoreDesc = "N/A"
                                 End If
 
-                                If Not IsDBNull(MyDataReader.Item("NopsScore")) Then
-                                    sNOPS = CStr(MyDataReader.Item("NopsScore"))
+                                ' Use different column names for Overall vs other events
+                                If sSelEvent = "Overall" Then
+                                    If Not IsDBNull(MyDataReader.Item("PointsScoreOverall")) Then
+                                        sNOPS = CStr(MyDataReader.Item("PointsScoreOverall"))
+                                    Else
+                                        sNOPS = "N/A"
+                                    End If
                                 Else
-                                    sNOPS = "N/A"
+                                    If Not IsDBNull(MyDataReader.Item("NopsScore")) Then
+                                        sNOPS = CStr(MyDataReader.Item("NopsScore"))
+                                    Else
+                                        sNOPS = "N/A"
+                                    End If
                                 End If
-                            Else 'Overall Fields
-                                If Not IsDBNull(MyDataReader.Item("SlalomNopsScore")) Then
-                                    sSNops = CStr(MyDataReader.Item("SlalomNopsScore"))
+                            Else 'Overall Fields - use Points columns from stored procedure
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreSlalom")) Then
+                                    sSNops = CStr(MyDataReader.Item("PointsScoreSlalom"))
                                 Else
                                     sSNops = "N/A"
                                 End If
-                                If Not IsDBNull(MyDataReader.Item("TrickNopsScore")) Then
-                                    sTNops = CStr(MyDataReader.Item("TrickNopsScore"))
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreTrick")) Then
+                                    sTNops = CStr(MyDataReader.Item("PointsScoreTrick"))
                                 Else
                                     sTNops = "N/A"
                                 End If
-                                If Not IsDBNull(MyDataReader.Item("JumpNopsScore")) Then
-                                    sJNops = CStr(MyDataReader.Item("JumpNopsScore"))
+                                If Not IsDBNull(MyDataReader.Item("PointsScoreJump")) Then
+                                    sJNops = CStr(MyDataReader.Item("PointsScoreJump"))
                                 Else
                                     sJNops = "N/A"
                                 End If
@@ -1023,26 +1231,53 @@ Public Module ModDataAccessTeams
                     cmdRead.Connection.Open()
                     MyDataReader = cmdRead.ExecuteReader
                     If MyDataReader.HasRows = True Then
+                        ' Debug: Print all column names for Overall events
+                        If sSelEvent = "Overall" Then
+                            System.Diagnostics.Debug.WriteLine("=== OVERALL COLUMNS ===")
+                            For colIndex As Integer = 0 To MyDataReader.FieldCount - 1
+                                System.Diagnostics.Debug.WriteLine("Column " & colIndex & ": " & MyDataReader.GetName(colIndex))
+                            Next
+                            System.Diagnostics.Debug.WriteLine("=====================")
+                        End If
                         Do While MyDataReader.Read()
                             sSkierName = CStr(MyDataReader.Item("SkierName"))
 
 
-                            If Not IsDBNull(MyDataReader.Item("TeamCode")) Then
-                                sTeamCode = CStr(MyDataReader.Item("TeamCode"))
+                            ' Only get TeamCode for non-Overall events (Overall doesn't have TeamCode column)
+                            If sSelEvent <> "Overall" Then
+                                If Not IsDBNull(MyDataReader.Item("TeamCode")) Then
+                                    sTeamCode = CStr(MyDataReader.Item("TeamCode"))
+                                Else
+                                    sTeamCode = ""
+                                End If
                             Else
-                                sTeamCode = ""
+                                sTeamCode = "" ' Overall doesn't need team code
                             End If
 
-                            If Not IsDBNull(MyDataReader.Item("DiV")) Then
-                                sDv = CStr(MyDataReader.Item("DiV"))
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                If Not IsDBNull(MyDataReader.Item("AgeGroup")) Then
+                                    sDv = CStr(MyDataReader.Item("AgeGroup"))
+                                Else
+                                    sDv = ""
+                                End If
                             Else
-                                sDv = ""
+                                If Not IsDBNull(MyDataReader.Item("DiV")) Then
+                                    sDv = CStr(MyDataReader.Item("DiV"))
+                                Else
+                                    sDv = ""
+                                End If
                             End If
 
-                            If Not IsDBNull(MyDataReader.Item("EventClass")) Then
-                                sEventClass = MyDataReader.Item("EventClass")
+                            ' Use different column names for Overall vs other events
+                            If sSelEvent = "Overall" Then
+                                sEventClass = "" ' Overall doesn't have EventClass
                             Else
-                                sEventClass = ""
+                                If Not IsDBNull(MyDataReader.Item("EventClass")) Then
+                                    sEventClass = MyDataReader.Item("EventClass")
+                                Else
+                                    sEventClass = ""
+                                End If
                             End If
 
                             If Not IsDBNull(MyDataReader.Item("EventGroup")) Then
@@ -1098,21 +1333,21 @@ Public Module ModDataAccessTeams
 
                             If sTmpEventGroup = "" Then
                                 sTmpEventGroup = sEventGroup
-                                sLine.Append("<tr><td  class=""table-success"" width=""20%"" ><b>Running Order</b></td><td class=""text-bg-info""  colspan=""" & (sRndCols) & """>EventGroup: <b>" & sTmpEventGroup & "</b>, Div: <b>" & sDv & "</b> &nbsp; <span class=""bg-danger text-white"" > <b>UNOFFICIAL !</b></span></td></tr>")  '<td  class=""table-info"" colspan=""2""><b>Leader Board</b></td></tr>")
+                                sLine.Append("<tr><td width=""20%"" ><b>Running Order</b></td><td colspan=""" & (sRndCols) & """>EventGroup: <b>" & sTmpEventGroup & "</b>, Div: <b>" & sDv & "</b></td></tr>")  '<td  class=""table-info"" colspan=""2""><b>Leader Board</b></td></tr>")
                                 sTmpDV = sDv
                             End If
 
                             If sTmpEventGroup = sEventGroup Then 'For NCWSA split by Event Group and division
                                 '                                If sTmpDV = sDv Then ' Split divisions here
                                 If sTmpDV <> sDv Then 'add another header
-                                    sLine.Append("<tr><td  class=""table-success"" width=""20%"" ><b>Running Order</b></td><td class=""text-bg-info""  colspan=""" & (sRndCols) & """>EventGroup: <b>" & sEventGroup & "</b>, Div: <b>" & sDv & "</b> &nbsp; <span class=""bg-danger text-white"" > <b>UNOFFICIAL !</b></span></td></tr>")  '<td  class=""table-info"" colspan=""2""><b>Leader Board</b></td></tr>")
+                                    sLine.Append("<tr><td width=""20%"" ><b>Running Order</b></td><td colspan=""" & (sRndCols) & """>EventGroup: <b>" & sEventGroup & "</b>, Div: <b>" & sDv & "</b></td></tr>")  '<td  class=""table-info"" colspan=""2""><b>Leader Board</b></td></tr>")
                                     sTmpDV = sDv
                                 End If
 
 
                                 'only need score for first round
-                                sLine.Append("<tr><td Class = ""table-success"" width=""20%""><a runat=""server""  target=""_blank""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sSkiYear & "&MID=" & sMemberID & "&DV=" & sDv & "&EV=" & sSelEvent & "&TN=" & sTName & "&FC=NCWRO&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ >" & sSkierName & "</a></td>")
-                                sLine.Append("<td><b>" & sTeamCode & "</b></td>")
+                                sLine.Append("<tr><td width=""20%""><a runat=""server""  target=""_blank""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sSkiYear & "&MID=" & sMemberID & "&DV=" & sDv & "&EV=" & sSelEvent & "&TN=" & sTName & "&FC=NCWRO&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ >" & sSkierName & "</a></td>")
+                                sLine.Append("<td>" & sTeamCode & "</td>")
                                 If sPREventCode = "Slalom" Then
                                     sLine.Append("<td><b>" & sEventScore & " " & sUnits & "</b></td>")
                                 End If
@@ -1121,10 +1356,10 @@ Public Module ModDataAccessTeams
                             Else 'EventGroupChanged
 
                                 'New Event Header
-                                sLine.Append("<tr><td  class=""table-success"" width=""20%"" ><b>Running Order</b></td><td class=""text-bg-info""  colspan=""" & (sRndCols) & """>EventGroup: <b>" & sEventGroup & "</b>, Div: <b>" & sDv & "</b> &nbsp; <span class=""bg-danger text-white"" > <b>UNOFFICIAL !</b></span></td></tr>")  '<td  class=""table-info"" colspan=""2""><b>Leader Board</b></td></tr>")
+                                sLine.Append("<tr><td width=""20%"" ><b>Running Order</b></td><td colspan=""" & (sRndCols) & """>EventGroup: <b>" & sEventGroup & "</b>, Div: <b>" & sDv & "</b></td></tr>")  '<td  class=""table-info"" colspan=""2""><b>Leader Board</b></td></tr>")
                                 'Skier details
                                 sLine.Append("<tr><td class = ""table-success"" width=""25%""><a runat=""server""  href=""Trecap?SID=" & sSanctionID & "&SY=" & sSkiYear & "&MID=" & sMemberID & "&DV=" & sDv & "&EV=" & sSelEvent & "&TN=" & sTName & "&FC=NCWRO&FT=0&RP=1&UN=0&UT=0&SN=" & sSkierName & """ >" & sSkierName & "</a></td>")
-                                sLine.Append("<td><b>" & sTeamCode & "</b></td>")
+                                sLine.Append("<td>" & sTeamCode & "</td>")
                                 If sPREventCode = "Slalom" Then
                                     sLine.Append("<td><b>" & sEventScore & " " & sUnits & "</b></td>")
                                 End If

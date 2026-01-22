@@ -157,9 +157,8 @@ Public Class TRecap
             If sJumpRounds > 0 Then
                 JumpRecap.InnerHtml = ModDataAccess3.RecapJump(sSanctionID, sMemberID, sAgeGroup, sSkierName)
             End If
-            If sEventCount > 2 Then
-                OverallRecap.InnerHtml = ModDataAccess3.RecapOverall(sSanctionID, sMemberID, sSkierName)
-            End If
+            ' Always show overall results regardless of event count - let stored procedure determine what data exists
+            OverallRecap.InnerHtml = ModDataAccess3.RecapOverall(sSanctionID, sMemberID, sSkierName, sFormatCode)
         End If
 
     End Sub
