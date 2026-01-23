@@ -62,7 +62,9 @@
             const backBtn = document.getElementById('tnavBackBtn');
             if (backBtn) {
                 const view = AppState.currentActiveView;
-                backBtn.style.display = (view === 'home' || !view) ? 'none' : 'flex';
+                // Only show back button on these specific views
+                const showOnViews = ['scores', 'running-order', 'by-division'];
+                backBtn.style.display = showOnViews.includes(view) ? 'flex' : 'none';
             }
         },
 
@@ -109,31 +111,60 @@
             window.location.href = homeUrlString;
         },
 
+        // Load a view's content WITHOUT updating URL/history
+        // Use this for restoring state on back/forward navigation
+        loadView: function(view, sanctionId) {
+            if (!sanctionId) return;
+
+            // Set flag to prevent URL updates during restoration
+            AppState.isRestoringFromHistory = true;
+
+            AppState.currentActiveView = view;
+            AppState.currentSelectedTournamentId = sanctionId;
+
+            if (view === 'scores') {
+                AppState.currentDisplayMode = 'leaderboard';
+            } else if (view === 'running-order' || view === 'by-division') {
+                AppState.currentDisplayMode = view;
+            }
+
+            this.loadScores(sanctionId);
+
+            // Update active button
+            $('.tnav-btn').removeClass('active');
+            $(`.tnav-btn[data-view="${view}"]`).addClass('active');
+            this.updateBackButtonVisibility();
+
+            // Unfreeze and clear flag after async operations complete
+            setTimeout(() => {
+                const overlay = document.getElementById('navOverlay');
+                if (overlay) overlay.style.display = 'none';
+                AppState.isRestoringFromHistory = false;
+            }, 500);
+        },
+
         navigateToScores: function(sanctionId) {
             const currentUrl = new URL(window.location);
             const params = { view: 'scores' };
-            
+
             // Preserve existing parameters
             ['search', 'YR', 'RG', 'sanctionId'].forEach(param => {
                 const value = currentUrl.searchParams.get(param);
                 if (value) params[param] = value;
             });
-            
+
             this.updateUrlParameters(params);
-            AppState.currentDisplayMode = 'leaderboard';
-            this.loadScores(sanctionId);
+            this.loadView('scores', sanctionId);
         },
 
         navigateToRunningOrder: function(sanctionId) {
-            this.updateUrlParameters({ view: 'running-order', sid: sanctionId });
-            AppState.currentDisplayMode = 'running-order';
-            this.loadScores(sanctionId);
+            this.updateUrlParameters({ view: 'running-order', sanctionId: sanctionId });
+            this.loadView('running-order', sanctionId);
         },
 
         navigateToByDivision: function(sanctionId) {
-            this.updateUrlParameters({ view: 'by-division', sid: sanctionId });
-            AppState.currentDisplayMode = 'by-division';
-            this.loadScores(sanctionId);
+            this.updateUrlParameters({ view: 'by-division', sanctionId: sanctionId });
+            this.loadView('by-division', sanctionId);
         },
 
         navigateToEntryList: function(sanctionId) {
@@ -300,10 +331,16 @@
             });
         },
 
-        updateUrlParameters: function(params) {
+        updateUrlParameters: function(params, usePushState = true) {
+            // Skip URL updates if we're restoring from history (prevents breaking back button)
+            if (AppState.isRestoringFromHistory) {
+                console.log('[History] Skipping URL update - restoring from history');
+                return;
+            }
+
             // Update URL with current filter parameters without triggering page reload
             const url = new URL(window.location);
-            
+
             Object.keys(params).forEach(key => {
                 if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
                     url.searchParams.set(key, params[key]);
@@ -311,9 +348,16 @@
                     url.searchParams.delete(key);
                 }
             });
-            
+
             // Update browser URL without reload
-            window.history.replaceState({}, '', url.toString());
+            // Use pushState for navigation (enables back button), replaceState for minor updates
+            if (usePushState) {
+                console.log('[History] pushState:', url.toString(), 'history.length:', history.length + 1);
+                window.history.pushState({ view: params.view }, '', url.toString());
+            } else {
+                console.log('[History] replaceState:', url.toString());
+                window.history.replaceState({}, '', url.toString());
+            }
         },
 
         updateTournamentSearchUrl: function() {
@@ -348,7 +392,7 @@
             // Get existing URL parameters
             const currentUrl = new URL(window.location);
             const params = {};
-            
+
             // Preserve existing non-filter parameters
             if (currentUrl.searchParams.get('search')) {
                 params.search = currentUrl.searchParams.get('search');
@@ -365,7 +409,7 @@
             if (currentUrl.searchParams.get('view')) {
                 params.view = currentUrl.searchParams.get('view');
             }
-            
+
             // Add filter parameters if they have values
             if (selectedEvent && selectedEvent !== 'NONE') {
                 params.event = selectedEvent;
@@ -379,8 +423,9 @@
             if (selectedBestOf) {
                 params.bestof = selectedBestOf;
             }
-            
-            this.updateUrlParameters(params);
+
+            // Filter changes use pushState so user can navigate back through them
+            this.updateUrlParameters(params, true);
         },
         
         restoreFilterStateFromUrl: function() {
@@ -462,11 +507,118 @@
         if (!AppState.currentSelectedTournamentId) {
             return;
         }
-        
+
+        // Freeze screen during refresh
+        document.body.style.pointerEvents = 'none';
+        document.body.style.opacity = '0.999';
+
         // Use the same function that filter buttons use to refresh data
         TournamentInfo.applyFilterCombination();
+
+        // Unfreeze after data loads
+        setTimeout(() => {
+            document.body.style.pointerEvents = '';
+            document.body.style.opacity = '';
+        }, 500);
     };
-    
+
+    // Create/show overlay to freeze screen during navigation
+    function showNavOverlay() {
+        let overlay = document.getElementById('navOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'navOverlay';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#f8f9fa;z-index:9999;';
+            document.body.appendChild(overlay);
+        }
+        overlay.style.display = 'block';
+    }
+
+    function hideNavOverlay() {
+        const overlay = document.getElementById('navOverlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    }
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function(event) {
+        console.log('[History] popstate fired, URL:', window.location.href, 'state:', event.state, 'history.length:', history.length);
+
+        // Show overlay to freeze screen
+        showNavOverlay();
+
+        // Set flag to prevent any URL updates during restoration
+        AppState.isRestoringFromHistory = true;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const view = urlParams.get('view');
+        const sanctionId = urlParams.get('sanctionId');
+
+        // Check if going back to initial state or no tournament selected
+        if (!sanctionId || (event.state && event.state.initial)) {
+            // Going back to tournament list - show list, hide scores
+            console.log('[History] Restoring home/tournament list view');
+            AppState.currentActiveView = 'home';
+            AppState.currentSelectedTournamentId = null;
+
+            // Show tournament list elements
+            $('#tFilters').show();
+            if (window.innerWidth <= 1000) {
+                $('#tMobile').show();
+                $('#tDesktop').hide();
+            } else {
+                $('#tDesktop').show();
+                $('#tMobile').hide();
+            }
+
+            // Hide scores/leaderboard elements
+            $('#leaderboardSection').hide();
+            $('#tInfo').hide();
+
+            // Clear selected states
+            document.querySelectorAll('#TList tr').forEach(r => r.classList.remove('selected'));
+            document.querySelectorAll('.mobile-tournament-card').forEach(c => c.classList.remove('selected'));
+
+            // Hide refresh button
+            const refreshContainer = document.getElementById('refreshContainer');
+            if (refreshContainer) {
+                refreshContainer.style.display = 'none';
+            }
+
+            TournamentNav.updateBackButtonVisibility();
+
+            // Unfreeze screen and clear flag
+            setTimeout(() => {
+                hideNavOverlay();
+                AppState.isRestoringFromHistory = false;
+            }, 100);
+            return;
+        }
+
+        if (view && ['scores', 'running-order', 'by-division'].includes(view)) {
+            // Restore the view directly without pushing new state
+            console.log('[History] Restoring', view, 'view for tournament', sanctionId);
+            TournamentNav.loadView(view, sanctionId);
+        } else {
+            // Tournament selected but no view - just show tournament info panel
+            console.log('[History] Restoring tournament info for', sanctionId);
+            AppState.currentActiveView = 'home';
+            AppState.currentSelectedTournamentId = sanctionId;
+            TournamentNav.updateBackButtonVisibility();
+            // Reload tournament info panel if needed, skip URL update since we're restoring history
+            if (typeof TournamentInfo !== 'undefined' && TournamentInfo.load) {
+                TournamentInfo.load(sanctionId, '', true);
+            }
+        }
+
+        // Unfreeze screen and clear flag after async operations complete
+        setTimeout(() => {
+            hideNavOverlay();
+            AppState.isRestoringFromHistory = false;
+        }, 500);
+    });
+
     // Auto-refresh functionality
     const AutoRefresh = {
         intervalId: null,

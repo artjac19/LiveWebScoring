@@ -2,7 +2,8 @@
     'use strict';
 
     const TournamentInfo = {
-        load: function(sanctionId, trickVideoText) {
+        // skipUrlUpdate: set to true when restoring from history navigation
+        load: function(sanctionId, trickVideoText, skipUrlUpdate) {
             // Remove existing panel only if selecting a different tournament
             if (AppState.currentSelectedTournamentId && AppState.currentSelectedTournamentId !== sanctionId) {
                 const existingPanel = document.querySelector('#tInfo');
@@ -12,31 +13,34 @@
                 // Reset active view when switching to a new tournament
                 AppState.currentActiveView = 'home';
             }
-            
+
             AppState.currentSelectedTournamentId = sanctionId;
             AppState.currentTrickVideoText = trickVideoText || '';
-            
+
             if (!AppState.currentActiveView) {
                 AppState.currentActiveView = 'home';
             }
-            
-            const currentUrl = new URL(window.location);
-            const params = {};
-            
-            // Preserve existing search and filter parameters
-            if (currentUrl.searchParams.get('search')) {
-                params.search = currentUrl.searchParams.get('search');
+
+            // Only update URL if not restoring from history
+            if (!skipUrlUpdate) {
+                const currentUrl = new URL(window.location);
+                const params = {};
+
+                // Preserve existing search and filter parameters
+                if (currentUrl.searchParams.get('search')) {
+                    params.search = currentUrl.searchParams.get('search');
+                }
+                if (currentUrl.searchParams.get('YR')) {
+                    params.YR = currentUrl.searchParams.get('YR');
+                }
+                if (currentUrl.searchParams.get('RG')) {
+                    params.RG = currentUrl.searchParams.get('RG');
+                }
+
+                params.sanctionId = sanctionId;
+
+                TournamentNav.updateUrlParameters(params);
             }
-            if (currentUrl.searchParams.get('YR')) {
-                params.YR = currentUrl.searchParams.get('YR');
-            }
-            if (currentUrl.searchParams.get('RG')) {
-                params.RG = currentUrl.searchParams.get('RG');
-            }
-            
-            params.sanctionId = sanctionId;
-            
-            TournamentNav.updateUrlParameters(params);
 
             TournamentUI.renderInfo();
                 
@@ -1216,6 +1220,11 @@
     window.TournamentInfo = TournamentInfo;
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Establish initial history entry on page load
+        // This ensures there's always a "home" state to go back to
+        window.history.replaceState({ view: 'home', initial: true }, '', window.location.href);
+        console.log('[History] Initial state established via replaceState:', window.location.href);
+
         // Ensure tournament search elements are visible on page load (only on mobile)
         if (window.innerWidth <= 1000) {
             $('#tMobile').show();
@@ -1227,7 +1236,7 @@
         if (searchParam) {
             $('#TB_SanctionID').val(searchParam);
         }
-        
+
         // Restore selected tournament if sanctionId parameter exists
         const sanctionIdParam = urlParams.get('sanctionId');
         const viewParam = urlParams.get('view');
@@ -1238,17 +1247,17 @@
             }, 250);
         }
         
-        // Search input field - update URL as user types
+        // Search input field - update URL as user types (use replaceState to avoid cluttering history)
         $('#TB_SanctionID').on('input keyup', function() {
             // Debounce the URL updates
             clearTimeout(window.searchInputTimeout);
             window.searchInputTimeout = setTimeout(function() {
                 const searchValue = $('#TB_SanctionID').val().trim();
                 if (searchValue) {
-                    TournamentNav.updateUrlParameters({ search: searchValue });
+                    TournamentNav.updateUrlParameters({ search: searchValue }, false);
                 } else {
                     // Clear search parameter if input is empty
-                    TournamentNav.updateUrlParameters({});
+                    TournamentNav.updateUrlParameters({}, false);
                 }
             }, 500);
         });

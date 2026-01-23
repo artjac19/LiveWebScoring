@@ -1085,6 +1085,20 @@ td.date-col {
         display: none;
     }
 
+    /* Back button - smaller on mobile */
+    .tnav-back-btn {
+        left: 0.5rem;
+        top: 0.5rem;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+    }
+
+    .tnav-back-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
     .tournament-list-container {
         display: flex;
         flex-direction: row !important;

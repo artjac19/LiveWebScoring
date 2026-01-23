@@ -276,6 +276,8 @@
             if (found) {
                 // Now load the tournament info - renderInfo will find the selected card/row
                 TournamentInfo.load(sanctionId, trickVideoText);
+
+                // If a view is specified, navigate to it (this is initial page load, so push state)
                 if (view) {
                     setTimeout(() => {
                         const viewButton = document.querySelector(`.tnav-btn[data-view="${view}"]`);
