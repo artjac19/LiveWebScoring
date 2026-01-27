@@ -241,55 +241,42 @@
             }
         },
         
-        selectTournamentFromUrl: function(sanctionId, view) {
+        selectTournamentFromUrl: function(sanctionId) {
             // Try to find the tournament with the given sanctionId
             let found = false;
             let trickVideoText = '';
-            
+
             // First, clear all existing selections
             document.querySelectorAll('#TList tr').forEach(r => r.classList.remove('selected'));
             document.querySelectorAll('.mobile-tournament-card').forEach(c => c.classList.remove('selected'));
-            
+
             // Check desktop table rows first
             document.querySelectorAll('#TList table tr').forEach(row => {
                 const sanctionCell = row.querySelector('.sanction-col');
                 if (sanctionCell && sanctionCell.textContent.trim() === sanctionId) {
-                    // Mark row as selected and get trick video text
                     row.classList.add('selected');
                     trickVideoText = row.getAttribute('data-trick-video') || '';
                     found = true;
                 }
             });
-            
+
             // Also check mobile cards and mark selected
             document.querySelectorAll('.mobile-tournament-card').forEach(card => {
                 if (card.getAttribute('data-sanction-id') === sanctionId) {
                     card.classList.add('selected');
                     if (!found) {
-                        // Get trick video text if not already found from desktop
                         trickVideoText = card.getAttribute('data-trick-video') || '';
                         found = true;
                     }
                 }
             });
-            
-            if (found) {
-                // Now load the tournament info - renderInfo will find the selected card/row
-                TournamentInfo.load(sanctionId, trickVideoText);
 
-                // If a view is specified, navigate to it (this is initial page load, so push state)
-                if (view) {
-                    setTimeout(() => {
-                        const viewButton = document.querySelector(`.tnav-btn[data-view="${view}"]`);
-                        if (viewButton) {
-                            viewButton.click();
-                        }
-                    }, 500);
-                }
+            if (found) {
+                TournamentInfo.load(sanctionId, trickVideoText);
             } else {
                 // Try again after a longer delay in case the list is still loading
                 setTimeout(() => {
-                    this.selectTournamentFromUrl(sanctionId, view);
+                    this.selectTournamentFromUrl(sanctionId);
                 }, 500);
             }
         }

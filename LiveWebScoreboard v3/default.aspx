@@ -8,7 +8,8 @@
     <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Live Web Scorebook Home Page</title>
+    <title>Waterski Results</title>
+    <link rel="icon" type="image/svg+xml" href="images/skigirl.svg" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" />
     <link rel="stylesheet" href="Content/bootstrap.min.css" />
     <!-- Bootstrap Bundle with Popper -->
@@ -40,7 +41,7 @@
 </head>
 
 <body>
-    <form id="form1" runat="server" style="display: flex; flex-direction: column; min-height: 100vh;">
+    <form id="form1" runat="server" style="display: flex; flex-direction: column; min-height: 100vh; overflow-y: clip;">
         <!-- Blue Navbar -->
         <div class="blue-bar">
             <a href="javascript:void(0)" onclick="window.location.href='default.aspx'"
@@ -124,6 +125,10 @@
                         <asp:Button ID="Btn_RegionNone" runat="server" Text="All" CssClass="filter-btn"
                             OnClick="ApplyFilter_Click" CommandArgument="" />
                     </div>
+                </div>
+                <div id="collegeTab" class="college-tab">
+                    <span class="college-tab-text">Interested in waterskiing at college?</span>
+                    <a class="college-tab-link" href="https://forms.fillout.com/t/ou6uBmtPSEus" target="_blank">NCWSA Highschool Intake Form</a>
                 </div>
                 <div class="tournament-list-container">
                     <asp:Label ID="lbl_Errors" runat="server" ForeColor="Red" Font-Bold="true"></asp:Label>
@@ -234,7 +239,7 @@
                             </ol>
                         </div>
                         -->
-            <footer style="padding: 1.5rem; background: #15274D; color: #94a3b8; text-align: center; font-size: 0.85rem; margin-top: auto;">
+            <footer style="padding: 1.5rem; background: #15274D; color: #94a3b8; text-align: center; font-size: 0.85rem; margin-top: 50rem;">
                 <p style="margin: 0 0 0.25rem 0;">Live Web Scoreboard | Volunteer-made for waterskiing. All scores <strong style="color: red;">UNOFFICIAL</strong>.</p>
                 <p style="margin: 0; font-size: 0.75rem; color: #64748b;">&copy; 2025 &bull; No data collected &bull; Do not republish</p>
             </footer>

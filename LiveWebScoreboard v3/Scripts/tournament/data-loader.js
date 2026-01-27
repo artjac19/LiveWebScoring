@@ -151,7 +151,6 @@
             const request = Utils.createCancellableRequest('GetLeaderboardSP.aspx', params);
             return request.promise
                 .done((response) => {
-                    console.log('[OVERALL-JS] GetLeaderboardSP response:', response);
                     if (response.success && response.htmlContent) {
                         // Add skier links to Overall results before displaying
                         const htmlWithLinks = TournamentHTML.addOverallSkierLinks(response.htmlContent);

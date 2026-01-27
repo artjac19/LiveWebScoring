@@ -882,7 +882,6 @@
             request.promise.done((response) => {
                 // Check if this is still the current request
                 if (!request.isCurrent()) {
-                    console.log('Ignoring stale response from cancelled request');
                     return;
                 }
                 if (response.success && response.batchResults) {
@@ -941,7 +940,6 @@
             .fail((error) => {
                 // Check if this is still the current request before showing error
                 if (!request.isCurrent()) {
-                    console.log('Ignoring error from cancelled request');
                     return;
                 }
             });
@@ -1219,50 +1217,88 @@
     // Export TournamentInfo to global scope for component access
     window.TournamentInfo = TournamentInfo;
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // Establish initial history entry on page load
-        // This ensures there's always a "home" state to go back to
-        window.history.replaceState({ view: 'home', initial: true }, '', window.location.href);
-        console.log('[History] Initial state established via replaceState:', window.location.href);
+    function directInitFromUrl(sanctionId, view) {
+        console.log('[directInit] Starting direct init for', sanctionId, view);
+        var tournamentName = '';
+        var trickVideoText = '';
+        var rows = document.querySelectorAll('#TList table tr');
+        console.log('[directInit] Found', rows.length, 'rows in #TList table');
+        for (var i = 0; i < rows.length; i++) {
+            var tds = rows[i].querySelectorAll('td');
+            if (tds.length === 2) {
+                var cell = tds[1];
+                var bolds = cell.querySelectorAll('b');
+                if (bolds.length >= 2) {
+                    var dsText = bolds[1].textContent.trim();
+                    var parts = dsText.split(/\s+/);
+                    if (parts.length >= 2 && parts[1] === sanctionId) {
+                        var a = cell.querySelector('a');
+                        if (a) {
+                            tournamentName = a.textContent.trim();
+                        }
+                        var flagHtml = tds[0].innerHTML.trim();
+                        trickVideoText = (flagHtml && flagHtml.includes('<img')) ? 'Available' : 'Not Available';
+                        break;
+                    }
+                }
+            }
+        }
 
-        // Ensure tournament search elements are visible on page load (only on mobile)
+        console.log('[directInit] Extracted name:', tournamentName, '| video:', trickVideoText);
+        AppState.currentSelectedTournamentId = sanctionId;
+        AppState.currentTournamentName = tournamentName;
+        AppState.currentTrickVideoText = trickVideoText;
+        AppState.currentActiveView = view;
+        if (view === 'scores') {
+            AppState.currentDisplayMode = 'leaderboard';
+        } else if (view === 'running-order' || view === 'by-division') {
+            AppState.currentDisplayMode = view;
+        }
+
+        TournamentNav._isRestoring = true;
+        TournamentNav.loadScores(sanctionId);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
         if (window.innerWidth <= 1000) {
             $('#tMobile').show();
         }
 
-        // Read URL parameters on page load and populate search input
-        const urlParams = new URLSearchParams(window.location.search);
-        const searchParam = urlParams.get('search');
+        var urlParams = new URLSearchParams(window.location.search);
+        var searchParam = urlParams.get('search');
         if (searchParam) {
             $('#TB_SanctionID').val(searchParam);
         }
 
-        // Restore selected tournament if sanctionId parameter exists
-        const sanctionIdParam = urlParams.get('sanctionId');
-        const viewParam = urlParams.get('view');
-        if (sanctionIdParam) {
-            // Wait for tournament list to load, then select the tournament
+        var sanctionIdParam = urlParams.get('sanctionId');
+        var viewParam = urlParams.get('view');
+        console.log('[DOMContentLoaded] sanctionId:', sanctionIdParam, 'view:', viewParam);
+
+        if (sanctionIdParam && viewParam && ['scores', 'running-order', 'by-division'].includes(viewParam)) {
+            console.log('[DOMContentLoaded] → directInitFromUrl path');
+            directInitFromUrl(sanctionIdParam, viewParam);
+        } else if (sanctionIdParam) {
+            console.log('[DOMContentLoaded] → selectTournamentFromUrl path (no view)');
             setTimeout(function() {
-                TournamentList.selectTournamentFromUrl(sanctionIdParam, viewParam);
+                TournamentList.selectTournamentFromUrl(sanctionIdParam);
             }, 250);
         }
-        
-        // Search input field - update URL as user types (use replaceState to avoid cluttering history)
+
+        // Search input field - update URL as user types
         $('#TB_SanctionID').on('input keyup', function() {
-            // Debounce the URL updates
             clearTimeout(window.searchInputTimeout);
             window.searchInputTimeout = setTimeout(function() {
-                const searchValue = $('#TB_SanctionID').val().trim();
+                var searchValue = $('#TB_SanctionID').val().trim();
+                TournamentNav._isRestoring = true;
                 if (searchValue) {
-                    TournamentNav.updateUrlParameters({ search: searchValue }, false);
+                    TournamentNav.updateUrlParameters({ search: searchValue });
                 } else {
-                    // Clear search parameter if input is empty
-                    TournamentNav.updateUrlParameters({}, false);
+                    TournamentNav.updateUrlParameters({});
                 }
+                TournamentNav._isRestoring = false;
             }, 500);
         });
-        
-        // Initialize global UI elements
+
         Utils.initializeGlobalUI();
     });
 

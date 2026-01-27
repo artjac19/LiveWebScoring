@@ -111,13 +111,8 @@
             window.location.href = homeUrlString;
         },
 
-        // Load a view's content WITHOUT updating URL/history
-        // Use this for restoring state on back/forward navigation
         loadView: function(view, sanctionId) {
             if (!sanctionId) return;
-
-            // Set flag to prevent URL updates during restoration
-            AppState.isRestoringFromHistory = true;
 
             AppState.currentActiveView = view;
             AppState.currentSelectedTournamentId = sanctionId;
@@ -130,17 +125,9 @@
 
             this.loadScores(sanctionId);
 
-            // Update active button
             $('.tnav-btn').removeClass('active');
             $(`.tnav-btn[data-view="${view}"]`).addClass('active');
             this.updateBackButtonVisibility();
-
-            // Unfreeze and clear flag after async operations complete
-            setTimeout(() => {
-                const overlay = document.getElementById('navOverlay');
-                if (overlay) overlay.style.display = 'none';
-                AppState.isRestoringFromHistory = false;
-            }, 500);
         },
 
         navigateToScores: function(sanctionId) {
@@ -200,15 +187,14 @@
 
         loadScores: function(sanctionId) {
             this.prepareScoresPageDOM();
-            this.repositionTournamentPanel();
             this.loadTournamentInfo(sanctionId);
+            this.repositionTournamentPanel();
             this.initializeScoresData(sanctionId);
             
             // Show refresh button for data views
             const refreshContainer = document.getElementById('refreshContainer');
             if (refreshContainer) {
                 refreshContainer.style.display = 'flex';
-                console.log('Refresh button should now be visible');
             }
         },
 
@@ -253,8 +239,7 @@
         },
 
         loadTournamentInfo: function(sanctionId) {
-            // Load tournament info panel - renderInfo will detect we're on scores page
-            TournamentInfo.load(sanctionId, AppState.currentTrickVideoText);
+            TournamentInfo.load(sanctionId, AppState.currentTrickVideoText, true);
         },
 
         initializeScoresData: function(sanctionId) {
@@ -286,8 +271,12 @@
                     TournamentFilters.setupLeaderboardFilters(response);
                     // Preload division data for all events
                     this.preloadDivisionData(sanctionId, skiYear, AppState.currentTournamentName, formatCode);
+                    var hasUrlFilters = new URLSearchParams(window.location.search).has('event');
                     this.restoreFilterStateFromUrl();
-                    TournamentInfo.loadInitialContent(sanctionId, skiYear, formatCode);
+                    if (!hasUrlFilters) {
+                        TournamentInfo.loadInitialContent(sanctionId, skiYear, formatCode);
+                        this._isRestoring = false;
+                    }
                 } else {
                     $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error: ' + response.error + '</p></div>');
                 }
@@ -298,7 +287,7 @@
         },
 
         preloadDivisionData: function(sanctionId, skiYear, tournamentName, formatCode) {
-            
+
             const events = ['S', 'T', 'J']; // Slalom, Trick, Jump
             const divisionPromises = events.map(eventCode => {
                 return $.getJSON('GetLeaderboardSP.aspx', {
@@ -323,7 +312,7 @@
                 });
             });
 
-            Promise.all(divisionPromises).then(results => {
+            this._divisionDataPromise = Promise.all(divisionPromises).then(results => {
                 // Store in tournament info cache
                 results.forEach(result => {
                     TournamentInfo.currentTournamentInfo.availableDivisions[result.eventCode] = result.divisions;
@@ -331,14 +320,7 @@
             });
         },
 
-        updateUrlParameters: function(params, usePushState = true) {
-            // Skip URL updates if we're restoring from history (prevents breaking back button)
-            if (AppState.isRestoringFromHistory) {
-                console.log('[History] Skipping URL update - restoring from history');
-                return;
-            }
-
-            // Update URL with current filter parameters without triggering page reload
+        updateUrlParameters: function(params) {
             const url = new URL(window.location);
 
             Object.keys(params).forEach(key => {
@@ -349,14 +331,10 @@
                 }
             });
 
-            // Update browser URL without reload
-            // Use pushState for navigation (enables back button), replaceState for minor updates
-            if (usePushState) {
-                console.log('[History] pushState:', url.toString(), 'history.length:', history.length + 1);
-                window.history.pushState({ view: params.view }, '', url.toString());
-            } else {
-                console.log('[History] replaceState:', url.toString());
+            if (this._isRestoring) {
                 window.history.replaceState({}, '', url.toString());
+            } else {
+                window.history.pushState({}, '', url.toString());
             }
         },
 
@@ -424,42 +402,51 @@
                 params.bestof = selectedBestOf;
             }
 
-            // Filter changes use pushState so user can navigate back through them
-            this.updateUrlParameters(params, true);
+            this.updateUrlParameters(params);
         },
         
         restoreFilterStateFromUrl: function() {
             const urlParams = new URLSearchParams(window.location.search);
-            
-            // Restore event filter only using applyFilterCombination
+
             const eventParam = urlParams.get('event');
+            console.log('[restore] event param:', eventParam);
             if (eventParam) {
                 const eventButton = $('#eventFilters .filter-btn[data-value="' + eventParam + '"]');
+                console.log('[restore] event button found:', eventButton.length > 0);
                 if (eventButton.length > 0) {
                     $('#eventFilters .filter-btn').removeClass('active');
                     eventButton.addClass('active');
-                    // Use applyFilterCombination to handle the event change properly
-                    TournamentInfo.applyFilterCombination();
-                    
-                    // Second: After delay, restore divisions and rounds
-                    setTimeout(() => {
-                        this.restoreRemainingFilters(urlParams);
-                    }, 1000); // Give time for divisions to load
+
+                    // Wait for division data instead of blind timeout
+                    var divPromise = this._divisionDataPromise || Promise.resolve();
+                    divPromise.then(() => {
+                        console.log('[restore] divPromise resolved, cached divisions:', Object.keys(TournamentInfo.currentTournamentInfo?.availableDivisions || {}));
+                        TournamentInfo.loadEventDetails(eventParam);
+                        var divButtons = $('#divisionFilters .filter-btn').map(function() { return $(this).data('value'); }).get();
+                        console.log('[restore] division buttons after loadEventDetails:', divButtons);
+                        requestAnimationFrame(() => {
+                            this.restoreRemainingFilters(urlParams);
+                            TournamentInfo.applyFilterCombination();
+                            this._isRestoring = false;
+                        });
+                    });
                     return;
                 }
             }
-            
-            // If no event parameter, restore remaining filters immediately
+
             this.restoreRemainingFilters(urlParams);
+            this._isRestoring = false;
         },
         
         restoreRemainingFilters: function(urlParams) {
             let hasFiltersToRestore = false;
-            
+
             // Restore division filter
             const divisionParam = urlParams.get('division');
+            console.log('[restore] division param:', divisionParam);
             if (divisionParam) {
                 const divisionButton = $('#divisionFilters .filter-btn[data-value="' + divisionParam + '"]');
+                console.log('[restore] division button found:', divisionButton.length > 0);
                 if (divisionButton.length > 0) {
                     $('#divisionFilters .filter-btn').removeClass('active');
                     divisionButton.addClass('active');
@@ -501,123 +488,20 @@
 
     // Export to global scope
     window.TournamentNav = TournamentNav;
-    
+
+    // Browser back/forward: reload so directInitFromUrl renders from the URL
+    window.addEventListener('popstate', function() {
+        window.location.reload();
+    });
+
     // Global refresh function
     window.refreshTournamentData = function() {
         if (!AppState.currentSelectedTournamentId) {
             return;
         }
 
-        // Freeze screen during refresh
-        document.body.style.pointerEvents = 'none';
-        document.body.style.opacity = '0.999';
-
-        // Use the same function that filter buttons use to refresh data
         TournamentInfo.applyFilterCombination();
-
-        // Unfreeze after data loads
-        setTimeout(() => {
-            document.body.style.pointerEvents = '';
-            document.body.style.opacity = '';
-        }, 500);
     };
-
-    // Create/show overlay to freeze screen during navigation
-    function showNavOverlay() {
-        let overlay = document.getElementById('navOverlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'navOverlay';
-            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#f8f9fa;z-index:9999;';
-            document.body.appendChild(overlay);
-        }
-        overlay.style.display = 'block';
-    }
-
-    function hideNavOverlay() {
-        const overlay = document.getElementById('navOverlay');
-        if (overlay) {
-            overlay.style.display = 'none';
-        }
-    }
-
-    // Handle browser back/forward buttons
-    window.addEventListener('popstate', function(event) {
-        console.log('[History] popstate fired, URL:', window.location.href, 'state:', event.state, 'history.length:', history.length);
-
-        // Show overlay to freeze screen
-        showNavOverlay();
-
-        // Set flag to prevent any URL updates during restoration
-        AppState.isRestoringFromHistory = true;
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const view = urlParams.get('view');
-        const sanctionId = urlParams.get('sanctionId');
-
-        // Check if going back to initial state or no tournament selected
-        if (!sanctionId || (event.state && event.state.initial)) {
-            // Going back to tournament list - show list, hide scores
-            console.log('[History] Restoring home/tournament list view');
-            AppState.currentActiveView = 'home';
-            AppState.currentSelectedTournamentId = null;
-
-            // Show tournament list elements
-            $('#tFilters').show();
-            if (window.innerWidth <= 1000) {
-                $('#tMobile').show();
-                $('#tDesktop').hide();
-            } else {
-                $('#tDesktop').show();
-                $('#tMobile').hide();
-            }
-
-            // Hide scores/leaderboard elements
-            $('#leaderboardSection').hide();
-            $('#tInfo').hide();
-
-            // Clear selected states
-            document.querySelectorAll('#TList tr').forEach(r => r.classList.remove('selected'));
-            document.querySelectorAll('.mobile-tournament-card').forEach(c => c.classList.remove('selected'));
-
-            // Hide refresh button
-            const refreshContainer = document.getElementById('refreshContainer');
-            if (refreshContainer) {
-                refreshContainer.style.display = 'none';
-            }
-
-            TournamentNav.updateBackButtonVisibility();
-
-            // Unfreeze screen and clear flag
-            setTimeout(() => {
-                hideNavOverlay();
-                AppState.isRestoringFromHistory = false;
-            }, 100);
-            return;
-        }
-
-        if (view && ['scores', 'running-order', 'by-division'].includes(view)) {
-            // Restore the view directly without pushing new state
-            console.log('[History] Restoring', view, 'view for tournament', sanctionId);
-            TournamentNav.loadView(view, sanctionId);
-        } else {
-            // Tournament selected but no view - just show tournament info panel
-            console.log('[History] Restoring tournament info for', sanctionId);
-            AppState.currentActiveView = 'home';
-            AppState.currentSelectedTournamentId = sanctionId;
-            TournamentNav.updateBackButtonVisibility();
-            // Reload tournament info panel if needed, skip URL update since we're restoring history
-            if (typeof TournamentInfo !== 'undefined' && TournamentInfo.load) {
-                TournamentInfo.load(sanctionId, '', true);
-            }
-        }
-
-        // Unfreeze screen and clear flag after async operations complete
-        setTimeout(() => {
-            hideNavOverlay();
-            AppState.isRestoringFromHistory = false;
-        }, 500);
-    });
 
     // Auto-refresh functionality
     const AutoRefresh = {
@@ -644,14 +528,10 @@
             
             document.addEventListener('visibilitychange', function() {
                 if (document.hidden) {
-                    console.log('Tab/window hidden - starting invisibility timer from 0');
                     self.isVisible = false;
-                    self.lastVisibleTime = Date.now(); // Reset timer to NOW when becoming hidden
-                    // Auto-refresh continues running during grace period
+                    self.lastVisibleTime = Date.now();
                 } else {
-                    console.log('Tab/window visible - stopping invisibility timer');
                     self.isVisible = true;
-                    // No resume/pause logic - auto-refresh never stopped
                 }
             });
         },
@@ -662,14 +542,8 @@
             setInterval(function() {
                 // Only check if auto-refresh is still active and tab is invisible
                 if (!self.isVisible && self.currentInterval > 0) {
-                    const invisibleTime = Date.now() - self.lastVisibleTime;
-                    const invisibleSeconds = Math.floor(invisibleTime / 1000);
-                    
-                    if (invisibleTime > self.maxInactiveTime) {
-                        console.log(`Tab invisible for ${invisibleSeconds}s (max: ${self.maxInactiveTime/1000}s) - forcing auto-refresh OFF`);
+                    if ((Date.now() - self.lastVisibleTime) > self.maxInactiveTime) {
                         self.forceOff();
-                    } else {
-                        console.log(`Tab invisible for ${invisibleSeconds}s (max: ${self.maxInactiveTime/1000}s)`);
                     }
                 }
             }, self.visibilityCheckInterval);
@@ -719,9 +593,6 @@
             // Start timer if interval > 0 (regardless of visibility)
             if (milliseconds > 0) {
                 this.start();
-                console.log('Auto-refresh interval set to:', milliseconds, 'ms');
-            } else if (milliseconds === 0) {
-                console.log('Auto-refresh set to OFF');
             }
         },
 
@@ -746,11 +617,9 @@
                 const self = this;
                 this.intervalId = setInterval(function() {
                     if (AppState.currentSelectedTournamentId) {
-                        console.log('Auto-refreshing tournament data...');
                         window.refreshTournamentData();
                     }
                 }, this.currentInterval);
-                console.log('Auto-refresh timer started');
             }
         },
 
@@ -758,7 +627,6 @@
             if (this.intervalId) {
                 clearInterval(this.intervalId);
                 this.intervalId = null;
-                console.log('Auto-refresh timer stopped');
             }
         },
 
@@ -769,15 +637,13 @@
             this.stop();
             $('.refresh-dropdown-item').removeClass('active');
             $('.refresh-dropdown-item[data-interval="0"]').addClass('active');
-            this.updateIndicator(); // Hide the indicator
-            console.log('Auto-refresh PERMANENTLY turned OFF due to prolonged invisibility');
+            this.updateIndicator();
         },
 
         forceOffState: function() {
             // Set dropdown to "Off" when pausing (temporary)
             $('.refresh-dropdown-item').removeClass('active');
             $('.refresh-dropdown-item[data-interval="0"]').addClass('active');
-            console.log('Dropdown forced to OFF state (temporary)');
         }
     };
 
