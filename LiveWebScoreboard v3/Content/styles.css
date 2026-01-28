@@ -1145,10 +1145,14 @@ td.date-col {
     }
 
     .college-tab {
+        display: flex;
         justify-content: center;
+        width: fit-content;
         font-size: 0.6rem;
         padding: 0.3rem 0.7rem;
         gap: 0.4rem;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .college-tab-text {

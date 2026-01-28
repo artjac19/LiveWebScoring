@@ -212,6 +212,7 @@
             $('#tDesktop').hide();
             $('#tMobile').hide();
             $('#noResultsMessage').hide();
+            $('#collegeTab').hide();
             
             // Show leaderboard section and clean up
             leaderboardSection.show();
