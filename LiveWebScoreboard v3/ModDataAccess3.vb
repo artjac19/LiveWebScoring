@@ -1794,7 +1794,7 @@ Public Module ModDataAccess3
                             arrSpecs(1, 2) = sSanctionID.ToString
                             arrSpecs(2, 1) = "Name:"
                             arrSpecs(2, 2) = sName.ToString
-                            arrSpecs(3, 1) = "Start Date:"
+                            arrSpecs(3, 1) = "End Date:"
                             arrSpecs(3, 2) = sEventDates
                             arrSpecs(4, 1) = "Location:"
                             arrSpecs(4, 2) = sEventLocation

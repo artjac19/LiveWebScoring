@@ -104,6 +104,8 @@ Public Class [Default]
         Btn_Year2023.CssClass = "filter-btn"
         Btn_Year2024.CssClass = "filter-btn"
         Btn_Year2025.CssClass = "filter-btn"
+        Btn_Year2026.CssClass = "filter-btn"
+        Btn_Year2027.CssClass = "filter-btn"
     End Sub
 
     Private Sub ResetRegionButtons()
@@ -132,6 +134,8 @@ Public Class [Default]
                 Btn_Year2025.CssClass = "filter-btn active"
             Case "26"
                 Btn_Year2026.CssClass = "filter-btn active"
+            Case "27"
+                Btn_Year2027.CssClass = "filter-btn active"
         End Select
     End Sub
 

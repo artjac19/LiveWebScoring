@@ -37,6 +37,7 @@ Public Class GetLeaderboardSP
             Dim sGetRecentScores As String = Request("GET_RECENT_SCORES")
             Dim sGetRunningOrder As String = Request("GET_RUNNING_ORDER")
             Dim sGetByDivision As String = Request("GET_BY_DIVISION")
+            Dim sGetOnWater As String = Request("GET_ON_WATER")
 
             ' Validate required parameters
             If String.IsNullOrEmpty(sSanctionID) OrElse String.IsNullOrEmpty(sYrPkd) OrElse
@@ -91,8 +92,15 @@ Public Class GetLeaderboardSP
                     sDisplayMetric = 0
             End Select
 
-            ' Get most recent divisions by activity
-            If sGetMostRecent = "1" Then
+            ' Return only the on-water (most recent performance) panel data - used by auto/manual refresh
+            If sGetOnWater = "1" Then
+                Dim serializer As New JavaScriptSerializer()
+                jsonResponse = serializer.Serialize(New With {
+                    .success = True,
+                    .onWaterData = GetOnWaterData(sSanctionID, sSlalomRounds, sTrickRounds, sJumpRounds)
+                })
+                ' Get most recent divisions by activity
+            ElseIf sGetMostRecent = "1" Then
                 ' Use event code if provided, otherwise get from all events
                 Dim eventCodeForRecent As String = If(String.IsNullOrEmpty(sEventCodePkd), "A", sEventCodePkd)
                 Dim recentDivs = LiveWebScoreBoard.ModDataAccess3.GetDvMostRecent(sSanctionID, eventCodeForRecent)
@@ -643,9 +651,12 @@ Public Class GetLeaderboardSP
         Dim sLoadAllDivisions As String = Request("LOAD_ALL_DIVISIONS")
         Dim sBatchDivisions As String = Request("BATCH_DIVISIONS")
         Dim sGetByDivision As String = Request("GET_BY_DIVISION")
+        Dim sGetOnWater As String = Request("GET_ON_WATER")
 
         ' Route to appropriate mock data based on request type
-        If sGetRecentScores = "1" Then
+        If sGetOnWater = "1" Then
+            jsonResponse = "{""success"":true,""onWaterData"":{""activeEvent"":"""",""slalomOnWater"":"""",""trickOnWater"":"""",""jumpOnWater"":""""}}"
+        ElseIf sGetRecentScores = "1" Then
             jsonResponse = MockData.GetMockRecentScores()
         ElseIf sGetMostRecent = "1" Then
             ' Return prioritized divisions for infinite scroll

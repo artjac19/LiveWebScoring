@@ -637,6 +637,13 @@ td.date-col {
     font-size: 1.2rem;
 }
 
+/* Trick-video flag next to the tournament name in the list */
+.name-col img {
+    height: 1em;
+    vertical-align: middle;
+    margin-left: 0.35rem;
+}
+
 .tnav-buttons {
     display: flex;
     flex-wrap: wrap;
@@ -911,35 +918,6 @@ td.date-col {
     font-size: 0.85rem;
 }
 
-.college-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.5rem 1rem;
-    background: #dcacda;
-    color: #fff;
-    border-radius: 12px;
-    margin: 0 0 .75rem 0;
-    font-family: 'Montserrat', sans-serif;
-}
-
-.college-tab-text {
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-
-.college-tab-link {
-    color: #fff;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: underline;
-    white-space: nowrap;
-}
-
-.college-tab-link:hover {
-    color: #e2efef;
-}
-
 .mobile-table-view {
     display: none;
     font-family: 'Montserrat', sans-serif;
@@ -1142,25 +1120,6 @@ td.date-col {
 
     .tournament-display {
         flex-direction: column;
-    }
-
-    .college-tab {
-        display: flex;
-        justify-content: center;
-        width: fit-content;
-        font-size: 0.6rem;
-        padding: 0.3rem 0.7rem;
-        gap: 0.4rem;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .college-tab-text {
-        font-size: 0.6rem;
-    }
-
-    .college-tab-link {
-        font-size: 0.6rem;
     }
 
     .desktop-table-view {

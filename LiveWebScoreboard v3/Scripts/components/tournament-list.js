@@ -161,7 +161,7 @@
             
             row.innerHTML = `
                 <td class="date-col">${data.date}</td>
-                <td class="name-col">${data.nameHtml}</td>
+                <td class="name-col">${data.nameHtml}${data.hasVideo ? ' ' + data.flagHtml : ''}</td>
                 <td class="loc-col">${data.loc}</td>
                 <td class="sanction-col">${data.sanction}</td>
             `;

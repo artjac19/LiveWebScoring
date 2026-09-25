@@ -60,8 +60,6 @@
                 'sanction id',
                 'sanctionid', 
                 'sanction',
-                'start date',
-                'startdate',
                 'location',
                 'loc'
             ]);

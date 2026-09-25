@@ -96,6 +96,8 @@
                     <div class="filter-container">
                         <asp:Button ID="Btn_Recent20" runat="server" Text="Most Recent 20"
                             CssClass="filter-btn active" OnClick="ApplyFilter_Click" CommandArgument="0" />
+                        <asp:Button ID="Btn_Year2027" runat="server" Text="Ski Year 2027" CssClass="filter-btn"
+                            OnClick="ApplyFilter_Click" CommandArgument="27" />
                         <asp:Button ID="Btn_Year2026" runat="server" Text="Ski Year 2026" CssClass="filter-btn"
                             OnClick="ApplyFilter_Click" CommandArgument="26" />
                         <asp:Button ID="Btn_Year2025" runat="server" Text="Ski Year 2025" CssClass="filter-btn"
@@ -125,10 +127,6 @@
                         <asp:Button ID="Btn_RegionNone" runat="server" Text="All" CssClass="filter-btn"
                             OnClick="ApplyFilter_Click" CommandArgument="" />
                     </div>
-                </div>
-                <div id="collegeTab" class="college-tab">
-                    <span class="college-tab-text">Interested in waterskiing at college?</span>
-                    <a class="college-tab-link" href="https://forms.fillout.com/t/ou6uBmtPSEus" target="_blank">NCWSA Highschool Intake Form</a>
                 </div>
                 <div class="tournament-list-container">
                     <asp:Label ID="lbl_Errors" runat="server" ForeColor="Red" Font-Bold="true"></asp:Label>
@@ -165,6 +163,7 @@
                 <div class="refresh-dropdown" id="refreshDropdown">
                     <div class="refresh-dropdown-title">Refresh every:</div>
                     <button type="button" class="refresh-dropdown-item active" data-interval="0">Off</button>
+                    <button type="button" class="refresh-dropdown-item" data-interval="60000">1 min</button>
                     <button type="button" class="refresh-dropdown-item" data-interval="300000">5 min</button>
                     <button type="button" class="refresh-dropdown-item" data-interval="900000">15 min</button>
                     <button type="button" class="refresh-dropdown-item" data-interval="1800000">30 min</button>

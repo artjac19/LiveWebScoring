@@ -212,7 +212,6 @@
             $('#tDesktop').hide();
             $('#tMobile').hide();
             $('#noResultsMessage').hide();
-            $('#collegeTab').hide();
             
             // Show leaderboard section and clean up
             leaderboardSection.show();
@@ -284,6 +283,30 @@
             })
             .fail((error) => {
                 $('#leaderboardContent').html('<div class="text-center p-4 text-danger"><p>Error loading tournament information: ' + error + '</p></div>');
+            });
+        },
+
+        // Re-query the "Most Recent Performance" (on-water) panel. Called by manual and auto refresh.
+        refreshOnWater: function() {
+            const info = TournamentInfo.currentTournamentInfo;
+            if (!info || !info.sanctionId) {
+                return;
+            }
+            // Plain $.getJSON on purpose: applyFilterCombination() cancels all tracked requests.
+            $.getJSON('GetLeaderboardSP.aspx', {
+                SID: info.sanctionId,
+                SY: '0',
+                TN: info.name || AppState.currentTournamentName,
+                UN: '0',
+                FC: info.formatCode,
+                FT: '1',
+                UT: '0',
+                GET_ON_WATER: '1'
+            })
+            .done(function(response) {
+                if (response && response.success) {
+                    TournamentFilters.setupOnWaterDisplay(response);
+                }
             });
         },
 
@@ -502,6 +525,7 @@
         }
 
         TournamentInfo.applyFilterCombination();
+        TournamentNav.refreshOnWater();
     };
 
     // Auto-refresh functionality
@@ -604,7 +628,8 @@
                 indicator.hide();
             } else {
                 let text = '';
-                if (this.currentInterval === 300000) text = '5min';
+                if (this.currentInterval === 60000) text = '1min';
+                else if (this.currentInterval === 300000) text = '5min';
                 else if (this.currentInterval === 900000) text = '15min';
                 else if (this.currentInterval === 1800000) text = '30min';
                 else text = Math.round(this.currentInterval / 60000) + 'min';
